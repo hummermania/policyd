@@ -88,12 +88,12 @@ sub logModule {
 
 # Get status
 sub getCheckResult {
-	return $status;
+	return $result;
 }
 
 # Return status from a module
 sub setCheckResult {
-	$status = shift;
+	$result = shift;
 }
 
 
