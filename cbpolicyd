@@ -81,7 +81,7 @@ sub process_request {
 		# FIXME: Log message we timed out
 		return;
 	} elsif (keys %request < 1) {
-		print("Got ".(keys %request)." key pairs\n");
+		$self->log(1,"Didn't get any key pairs\n");
 	} else {
 		$self->do_work(\%request);
 		my $res = getCheckResult();

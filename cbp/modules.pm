@@ -36,13 +36,13 @@ sub registerModule {
 
 	# Sanitize first
 	if (!defined($data)) {
-		&$logger(3,"No module data for '$module'!\n");
+		&$logger(1,"No module data for '$module'!\n");
 		return -1;
 	} elsif (!$data->{'name'}) {
-		&$logger(3,"No module name given for '$module'!\n");
+		&$logger(1,"No module name given for '$module'!\n");
 		return -1;
 	} elsif (!$data->{'check'}) {
-		&$logger(3,"No function to run for module '$module'!\n");
+		&$logger(1,"No function to run for module '$module'!\n");
 		return -1;
 	}
 
@@ -63,7 +63,7 @@ sub loadModule {
 	");
 
 	if (!defined($res) || $res != 0) {
-		&$logger(3,"Error loading module '$module':\n$@");
+		&$logger(1,"Error loading module '$module':\n$@");
 	}
 }
 
