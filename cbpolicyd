@@ -1,0 +1,119 @@
+#!/usr/bin/perl
+# Author: Nigel Kukard  <nkukard@lbsd.net>
+# Date: 2007-06-08
+# Desc: Mail cluebringer policy daemon
+
+
+use strict;
+use warnings;
+
+
+package cbp;
+
+
+# Version
+my $VERSION = "0.1";
+
+
+use base qw(Net::Server::PreFork);
+# Import module functions
+use cbp::modules qw(
+	loadModule
+	getModules
+	setLogger
+
+	getCheckResult
+);
+
+
+# FIXME: Add to config file
+my $timeout = 5;  # Timeout to get input
+my @modules = ('greylisting','spamtrap');
+
+
+
+# Run straight after ->run
+sub post_configure_hook {
+	my $self = shift;
+
+	
+	$self->log(1,"Loading modules...");
+	# FIXME: why doesn't this work?
+#	setLogger(\$self->log);
+	# Load modules
+	foreach (@modules) {
+		loadModule($_);
+	}
+}
+
+
+# Process requests we get
+sub process_request {
+	my $self = shift;
+	my $peer = $self->{'peeraddr'};
+	my $id = $self->{'id'};
+
+
+	my %request;
+
+	# Eval to catch sig ALRM
+	eval {
+		local $SIG{'ALRM'} = sub { die "Timed Out!\n" };
+
+		# Give connection $timeout time to do something
+		my $previous_alarm = alarm($timeout);
+
+		# Loop with lines we get
+		while (my $line = <STDIN>) {
+			# If we don't get a pair, b0rk
+			last unless $line =~ s/^([^=]+)=(.*)\n$//;
+			$request{$1} = $2;
+
+			# Reset timeout
+			alarm($timeout);
+		}
+
+		alarm($previous_alarm);
+	};
+
+	# Check results
+	if ($@ =~ /timed out/i) {
+		# FIXME: Log message we timed out
+		return;
+	} elsif (keys %request < 1) {
+		print("Got ".(keys %request)." key pairs\n");
+	} else {
+		$self->do_work(\%request);
+		my $res = getCheckResult();
+		print("$res\n");
+	}
+
+	print("\n");
+}
+
+
+# This is where the actual processing & checking of modules takes place
+sub do_work {
+	my ($self,$data) = @_;
+
+
+	my @moduleList = getModules();
+	foreach my $module (@moduleList) {
+		# RETURN...
+		# -1 - ERROR
+		# 0 - Carry on
+		# 1 - Stop here
+		last if ($module->{'check'}($data) != 0);
+	}
+}
+
+
+
+print(STDERR "ClueBringer v$VERSION - Copyright (c) 2007 LinuxRulz\n");
+
+
+__PACKAGE__->run;
+
+
+1;
+# vim: ts=4

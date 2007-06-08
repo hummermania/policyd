@@ -1,0 +1,56 @@
+
+Use prefork, we cannot guarantee how long the plugins/modules will take to run and don't want to holdup other queries
+
+
+--------------
+
+Database abstraction layer ontop of DBI .... totally abstract SQL, something like postfix's DB layer?
+
+
+We want it to be abstracted so its easy to change how queries are done, threaded, unthreaded ... whatever
+
+getRecord?
+putRecord?
+delRecord?
+
+May allow us to switch between PreFork, Multiplex ... etc easily.
+
+
+--------------
+
+* Sender Throttling based on sender address, SASL username and source IP
+
+* Recipient throttling
+
+* Throttling based on X msgs per Y time and also Z size over Y time and
+also max message size
+
+* Spamtrap where the IP address get blacklisted for configurable time
+period per trap
+
+* Blacklist Helo where the IP address get blacklisted for configurable
+time period per helo
+
+* Blacklist if helo changes X times in Y period of time on same IP
+
+* Sender blacklisting
+ 
+* Whitelisting of source IP addresses
+
+* Sender Whitelisting
+
+* DNS name whitelisting???   (resolved address wildcard)
+
+* Greylisting, for recieving mail servers
+
+* Greylisting abuse blacklisting & auto greylist-whitelisting for good
+hosts
+ 
+* SPF DNS checking
+
+* Multi-treaded application for high volume servers
+
+* Connect to multiple SQL DB's, i.e. MySQL, PostgreSQL, Oracle, SQLite
+and etc.
+
+* IPv6
