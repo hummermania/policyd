@@ -12,6 +12,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 @EXPORT = qw(
 	setCheckResult
 	getCheckResult
+	logModule
 );
 @EXPORT_OK = qw(
 	loadModule
@@ -77,6 +78,11 @@ sub getModules {
 # Set logger
 sub setLogger {
 	$logger = shift;
+}
+
+# Log something
+sub logModule {
+	&$logger(@_);
 }
 
 

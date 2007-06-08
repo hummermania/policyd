@@ -83,8 +83,15 @@ sub process_request {
 	} elsif (keys %request < 1) {
 		$self->log(1,"Didn't get any key pairs\n");
 	} else {
+		# Sanitize data
+		$request{'sender'} = lc($request{'sender'}) if (defined($request{'sender'}));
+		$request{'recipient'} = lc($request{'recipient'}) if (defined($request{'recipient'}));
+
+		# Check the data we have
 		$self->do_work(\%request);
+		# Grab result & check, DUNNO if no data
 		my $res = getCheckResult();
+		$res = "DUNNO" if ($res eq "");
 		print("$res\n");
 	}
 

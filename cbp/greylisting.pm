@@ -20,8 +20,15 @@ our $pluginInfo = {
 sub check {
 	my $request = shift;
 
+	
+	# We only valid in the RCPT state
+	return 0 if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
 
-	setCheckResult("action=DEFER_IF_PERMIT Policy Rejection: Greylisted");
+	# Log what we see
+	logModule(2,
+		sprintf('Server: %s, From: %s, To: %s'."\n",$request->{'client_address'},$request->{'sender'},$result->{'recipient'})
+	);	
+#setCheckResult("action=DEFER_IF_PERMIT Policy Rejection: Greylisted");
 
 	return 0;
 }
