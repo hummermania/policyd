@@ -28,8 +28,14 @@ sub check {
 	return 0 if (!defined($request->{'helo_name'}) || $request->{'helo_name'} eq "");
 
 
+	# FIXME - configureation, bypass FQDN checks for SASL users
+	return 0 if (defined($request->{'sasl_username'}) && $request->{'sasl_username'} ne "");
+
+	# FIXME - configuration, allow address literal
 	# Check if helo is an address literal
 	return 0 if ($request->{'helo_name'} =~ /^\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]$/);
+
+	# FIXME - configuration, allow FQDN
 	# Check if helo is a FQDN - Only valid characters in a domain is alnum and a -
 	return 0 if ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/);	
 
