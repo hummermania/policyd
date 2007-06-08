@@ -22,13 +22,14 @@ use cbp::modules qw(
 	getModules
 	setLogger
 
+	setCheckResult
 	getCheckResult
 );
 
 
 # FIXME: Add to config file
 my $timeout = 5;  # Timeout to get input
-my @modules = ('greylisting','spamtrap');
+my @modules = ('fqdn_helo');
 
 
 
@@ -44,6 +45,8 @@ sub post_configure_hook {
 	foreach (@modules) {
 		loadModule($_);
 	}
+
+	$self->log(1,"Loaded ".getModules()." modules.\n");
 }
 
 
@@ -91,7 +94,7 @@ sub process_request {
 		$self->do_work(\%request);
 		# Grab result & check, DUNNO if no data
 		my $res = getCheckResult();
-		$res = "DUNNO" if ($res eq "");
+		$res = "action=DUNNO" if ($res eq "");
 		print("$res\n");
 	}
 
@@ -103,6 +106,9 @@ sub process_request {
 sub do_work {
 	my ($self,$data) = @_;
 
+
+	# Blank result
+	setCheckResult("");
 
 	my @moduleList = getModules();
 	foreach my $module (@moduleList) {

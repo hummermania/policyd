@@ -22,7 +22,7 @@ sub check {
 	my $request = shift;
 
 
-	setCheckResult("action=REJECT Policy Rejection: Spamtrap(Blacklisted)");
+#	setCheckResult("action=REJECT Policy Rejection: Spamtrap(Blacklisted)");
 
 	return 0;
 }
