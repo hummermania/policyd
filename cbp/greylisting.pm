@@ -26,7 +26,7 @@ sub check {
 
 	# Log what we see
 	logModule(2,
-		sprintf('Server: %s, From: %s, To: %s'."\n",$request->{'client_address'},$request->{'sender'},$result->{'recipient'})
+		sprintf('Server: %s, From: %s, To: %s'."\n",$request->{'client_address'},$request->{'sender'},$request->{'recipient'})
 	);	
 #setCheckResult("action=DEFER_IF_PERMIT Policy Rejection: Greylisted");
 
