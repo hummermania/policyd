@@ -40,19 +40,16 @@ sub configure {
 	my $prop = $self->{'server'};
 
 
-	# Defaults
-	my $cfgfile = undef;
-
 	# Check for config file
-	$cfgfile = "/etc/cluebringer.conf" if (-f "/etc/cluebringer.conf");
-
+	$prop->{'conf_file'} = "/etc/cluebringer.conf" if (-f "/etc/cluebringer.conf");
+	$prop->{'log_level'} = 5;
 	# FIXME - parse commandline
 
 	# FIXME - read in params from config file
-	return if (!defined($cfgfile));
+	return if (!defined($prop->{'conf_file'}));
 	# Use config file, ignore case
 	$self->{'config'} = new Config::IniFiles(
-			-file => $cfgfile,
+			-file => $prop->{'conf_file'},
 			-nocase => 1
 	);
 
@@ -64,6 +61,7 @@ sub configure {
 			'allow', 'deny', 'cidr_allow', 'cidr_deny',
 			'pid_file', 
 			'user', 'group',
+			'timeout'
 	);
 	foreach my $param (@params) {
 		my $val = $self->{'config'}->val('server', $param);
@@ -81,15 +79,16 @@ sub post_configure_hook {
 	my $self = shift;
 
 	
-	$self->log(1,"Loading modules...");
-	# FIXME: why doesn't this work?
-#	setLogger(\$self->log);
+	$self->log(3,"Loading modules...");
+	
+	setLogger(sub { $self->log(@_); } );
+	
 	# Load modules
 	foreach (@modules) {
 		loadModule($_);
 	}
 
-	$self->log(1,"Loaded ".getModules()." modules.\n");
+	$self->log(3,"Loaded ".getModules()." modules.\n");
 }
 
 

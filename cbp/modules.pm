@@ -5,6 +5,7 @@
 
 package cbp::modules;
 
+
 # Exporter stuff
 require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
@@ -12,7 +13,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 @EXPORT = qw(
 	setCheckResult
 	getCheckResult
-	logModule
+	logger
 );
 @EXPORT_OK = qw(
 	loadModule
@@ -64,7 +65,7 @@ sub loadModule {
 	");
 
 	if (!defined($res) || $res != 0) {
-		&$logger(1,"Error loading module '$module':\n$@");
+		&$logger(1,"Error loading module '$module': $@");
 	}
 }
 
@@ -81,7 +82,7 @@ sub setLogger {
 }
 
 # Log something
-sub logModule {
+sub logger {
 	&$logger(@_);
 }
 

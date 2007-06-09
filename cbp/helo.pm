@@ -39,7 +39,7 @@ sub check {
 	}
 
 	if ($found) {
-		logModule(2,"Blacklisting sending server '".$request->{'client_address'}."', blacklisted helo.");
+		logger(3,"Blacklisting sending server '".$request->{'client_address'}."', blacklisted helo.");
 		setCheckResult("action=REJECT Blacklisted: HELO/EHLO");
 		return 1;
 	}

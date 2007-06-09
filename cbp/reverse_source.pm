@@ -34,19 +34,19 @@ sub check {
 	if (!$query) {
 		# Check errror
 		if ($res->errorstring eq "NXDOMAIN") {
-			logModule(2,"Rejecting sending server '".$request->{'client_address'}."', not found.");
+			logger(3,"Rejecting sending server '".$request->{'client_address'}."', not found.");
 			setCheckResult("action=REJECT Sending IP not reversed: No PTR record found");
 			return 1;
 		} elsif ($res->errorstring eq "NOERROR") {
-			logModule(2,"Rejecting sending server '".$request->{'client_address'}."', not records.");
+			logger(3,"Rejecting sending server '".$request->{'client_address'}."', not records.");
 			setCheckResult("action=REJECT Sending IP not reversed: No PTR record found");
 			return 1;
 		} elsif ($res->errorstring eq "SERVFAIL") {
-			logModule(2,"Rejecting sending server '".$request->{'client_address'}."', temp fail.");
+			logger(3,"Rejecting sending server '".$request->{'client_address'}."', temp fail.");
 			setCheckResult("action=DEFER_IF_PERMIT Cannot reverse sending server");
 			return 1;  # FIXME - Use proper defer-if-permit here and return 0?
 		} else {
-			logModule(2,"Unknown error resolving '".$request->{'client_address'}."': ".$res->errorstring);
+			logger(0,"Unknown error resolving '".$request->{'client_address'}."': ".$res->errorstring);
 		}
      }
 	# Look for MX or A records
@@ -57,7 +57,7 @@ sub check {
 	}
 	# Check if we found any valid DNS records
 	if (!$found) {
-		logModule(2,"Rejecting sending server '".$request->{'client_address'}."', not reversed.");
+		logger(3,"Rejecting sending server '".$request->{'client_address'}."', not reversed.");
 		setCheckResult("action=REJECT Sending IP not reversed: No PTR record found");
 		return 1;
 	}

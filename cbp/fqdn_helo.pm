@@ -46,19 +46,19 @@ sub check {
 		if (!$query) {
 			# Check errror
 			if ($res->errorstring eq "NXDOMAIN") {
-				logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', not found.");
+				logger(3,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', not found.");
 				setCheckResult("action=REJECT Invalid HELO/EHLO: Does not resolve");
 				return 1;
 			} elsif ($res->errorstring eq "NOERROR") {
-				logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', no records.");
+				logger(3,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', no records.");
 				setCheckResult("action=REJECT Invalid HELO/EHLO: Does not resolve");
 				return 1;
 			} elsif ($res->errorstring eq "SERVFAIL") {
-				logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', temp fail.");
+				logger(3,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', temp fail.");
 				setCheckResult("action=DEFER_IF_PERMIT Cannot resolve HELO/EHLO");
 				return 1;  # FIXME - Use proper defer-if-permit here and return 0?
 			} else {
-				logModule(2,"Unknown error resolving '".$request->{'helo_name'}."': ".$res->errorstring);
+				logger(0,"Unknown error resolving '".$request->{'helo_name'}."': ".$res->errorstring);
 		 		return 0;
 			}
         }
@@ -70,7 +70,7 @@ sub check {
 		}
 		# Check if we found any valid DNS records
 		if (!$found) {
-			logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', not valid records.");
+			logger(3,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', not valid records.");
 			setCheckResult("action=REJECT Invalid HELO/EHLO: No A or MX records found");
 			return 1;
 		}
@@ -79,7 +79,7 @@ sub check {
 	}
 
 
-	logModule(2,"Rejecting invalid HELO/EHLO '".$request->{'helo_name'}."'");
+	logger(3,"Rejecting invalid HELO/EHLO '".$request->{'helo_name'}."'");
 
 
 	setCheckResult("action=REJECT Invalid HELO/EHLO: RFC2821 requires FQDN HELO/EHLO");
