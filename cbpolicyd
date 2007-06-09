@@ -29,7 +29,7 @@ use cbp::modules qw(
 
 # FIXME: Add to config file
 my $timeout = 5;  # Timeout to get input
-my @modules = ('fqdn_helo','reverse_source');
+my @modules = ('helo', 'fqdn_helo', 'reverse_source', 'greylisting');
 
 
 
