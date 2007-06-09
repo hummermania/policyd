@@ -42,6 +42,20 @@ sub check {
 		# FIXME - configuration, resolvable FQDN
 		my $res = Net::DNS::Resolver->new;
 		my $query = $res->search($request->{'helo_name'});
+		# Look for MX or A records
+		my $found = 0;
+		foreach my $rr ($query->answer) {
+			next unless ($rr->type eq "A" || $rr->type eq "MX");
+			$found = 1;
+		}
+
+		# Check if we found any valid DNS records
+		if (!$found) {
+			logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', not valid records.");
+			setCheckResult("action=REJECT Invalid HELO/EHLO: No A or MX records found");
+			return 1;
+		}
+
 		# If the query failed
 		if (!$query) {
 			# Check errror
