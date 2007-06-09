@@ -42,20 +42,6 @@ sub check {
 		# FIXME - configuration, resolvable FQDN
 		my $res = Net::DNS::Resolver->new;
 		my $query = $res->search($request->{'helo_name'});
-		# Look for MX or A records
-		my $found = 0;
-		foreach my $rr ($query->answer) {
-			next unless ($rr->type eq "A" || $rr->type eq "MX");
-			$found = 1;
-		}
-
-		# Check if we found any valid DNS records
-		if (!$found) {
-			logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', not valid records.");
-			setCheckResult("action=REJECT Invalid HELO/EHLO: No A or MX records found");
-			return 1;
-		}
-
 		# If the query failed
 		if (!$query) {
 			# Check errror
@@ -63,19 +49,37 @@ sub check {
 				logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', not found.");
 				setCheckResult("action=REJECT Invalid HELO/EHLO: Does not resolve");
 				return 1;
-			if ($res->errorstring eq "SERVFAIL") {
+			} elsif ($res->errorstring eq "NOERROR") {
+				logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', no records.");
+				setCheckResult("action=REJECT Invalid HELO/EHLO: Does not resolve");
+				return 1;
+			} elsif ($res->errorstring eq "SERVFAIL") {
+				logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', temp fail.");
 				setCheckResult("action=DEFER_IF_PERMIT Cannot resolve HELO/EHLO");
 				return 1;  # FIXME - Use proper defer-if-permit here and return 0?
 			} else {
 				logModule(2,"Unknown error resolving '".$request->{'helo_name'}."': ".$res->errorstring);
+		 		return 0;
 			}
-         }
+        }
+		# Look for MX or A records
+		my $found = 0;
+		foreach my $rr ($query->answer) {
+			next unless ($rr->type eq "A" || $rr->type eq "MX");
+			$found = 1;
+		}
+		# Check if we found any valid DNS records
+		if (!$found) {
+			logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', not valid records.");
+			setCheckResult("action=REJECT Invalid HELO/EHLO: No A or MX records found");
+			return 1;
+		}
 
-		 return 0;
+		return 0;
 	}
 
 
-	logModule(2,"Rejecting HELO/EHLO '".$request->{'helo_name'}."'");
+	logModule(2,"Rejecting invalid HELO/EHLO '".$request->{'helo_name'}."'");
 
 
 	setCheckResult("action=REJECT Invalid HELO/EHLO: RFC2821 requires FQDN HELO/EHLO");
