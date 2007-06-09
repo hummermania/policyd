@@ -16,6 +16,7 @@ my $VERSION = "0.1";
 
 
 use base qw(Net::Server::PreFork);
+use Config::IniFiles;
 # Import module functions
 use cbp::modules qw(
 	loadModule
@@ -30,6 +31,48 @@ use cbp::modules qw(
 # FIXME: Add to config file
 my $timeout = 5;  # Timeout to get input
 my @modules = ('helo', 'fqdn_helo', 'reverse_source', 'greylisting');
+
+
+
+# Override configuration
+sub configure {
+	my $self = shift;
+	my $prop = $self->{'server'};
+
+
+	# Defaults
+	my $cfgfile = undef;
+
+	# Check for config file
+	$cfgfile = "/etc/cluebringer.conf" if (-f "/etc/cluebringer.conf");
+
+	# FIXME - parse commandline
+
+	# FIXME - read in params from config file
+	return if (!defined($cfgfile));
+	# Use config file, ignore case
+	$self->{'config'} = new Config::IniFiles(
+			-file => $cfgfile,
+			-nocase => 1
+	);
+
+	# Pull in params
+	my @params = (
+			'log_level','log_file',
+			'syslog_logsock', 'syslog_ident', 'syslog_logopt', 'syslog_facility',
+			'port', 'host',
+			'allow', 'deny', 'cidr_allow', 'cidr_deny',
+			'pid_file', 
+			'user', 'group',
+	);
+	foreach my $param (@params) {
+		my $val = $self->{'config'}->val('server', $param);
+		$prop->{$param} = $val if (defined($val));
+	}
+	if ((my $val = $self->{'config'}->val('server', 'background'))) {
+		$prop->{'setsid'} = 1;
+	}
+}
 
 
 
