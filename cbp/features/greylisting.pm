@@ -2,7 +2,7 @@
 # Date: 2007-06-08
 # Desc: Module to implement greylisting
 
-package cbp::greylisting;
+package cbp::feature::greylisting;
 
 use cbp::modules;
 

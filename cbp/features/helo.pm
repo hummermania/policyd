@@ -2,7 +2,7 @@
 # Date: 2007-06-09
 # Desc: Module to implement various HELO/EHLO checks
 
-package cbp::helo;
+package cbp::feature::helo;
 
 use cbp::modules;
 

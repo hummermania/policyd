@@ -3,7 +3,7 @@
 # Desc: Module to check reverse DNS of sending server
 
 
-package cbp::reverse_source;
+package cbp::feature::reverse_source;
 
 use cbp::modules;
 

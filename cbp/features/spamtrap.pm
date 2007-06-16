@@ -3,7 +3,7 @@
 # Desc: Module to implement spamtraps
 
 
-package cbp::spamtrap;
+package cbp::feature::spamtrap;
 
 use cbp::modules;
 

@@ -3,7 +3,7 @@
 # Desc: Module to check if a HELO/EHLO is FQDN
 
 
-package cbp::fqdn_helo;
+package cbp::feature::fqdn_helo;
 
 use Net::DNS;
 use cbp::modules;

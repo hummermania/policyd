@@ -85,7 +85,7 @@ sub post_configure_hook {
 	
 	# Load modules
 	foreach (@modules) {
-		loadModule($_);
+		loadModule($_,$self->{'config'});
 	}
 
 	$self->log(3,"Loaded ".getModules()." modules.\n");

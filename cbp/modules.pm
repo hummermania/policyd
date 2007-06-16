@@ -56,7 +56,7 @@ sub registerModule {
 
 # Function to load a module
 sub loadModule {
-	my $module = shift;
+	my ($module,$config) = @_;
 
 	# Load module
 	my $res = eval("
