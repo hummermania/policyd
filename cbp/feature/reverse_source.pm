@@ -17,6 +17,34 @@ our $pluginInfo = {
 };
 
 
+# Our config
+my %config;
+
+
+# Init
+sub init {
+	my $server = shift;
+	my $ini = $server->{'inifile'};
+
+	
+	# Defaults
+	$config{'enable'} = 0;
+	$config{'reject_unresolvables'} = 0;
+
+	# Parse in config
+	for $token (
+			"enable",
+			"reject_unresolvables",
+	) {
+		my $val = $ini->val("fqdn_helo",$token);
+		# If defined, set
+		if (defined($val)) {
+			print(STDERR "$token/$val\n");
+		}
+	}
+}
+
+
 # Check the request
 sub check {
 	my $request = shift;

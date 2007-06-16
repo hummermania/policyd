@@ -17,10 +17,16 @@ my $VERSION = "0.1";
 
 use base qw(Net::Server::PreFork);
 use Config::IniFiles;
+use Data::Dumper;
+use Getopt::Long;
+
 # Import module functions
 use cbp::modules qw(
-	loadModule
-	getModules
+	loadFeature
+	loadDBType
+	getFeatures
+	getDBTypes
+
 	setLogger
 
 	setCheckResult
@@ -28,32 +34,54 @@ use cbp::modules qw(
 );
 
 
-# FIXME: Add to config file
-my $timeout = 5;  # Timeout to get input
-my @modules = ('helo', 'fqdn_helo', 'reverse_source', 'greylisting');
-
-
 
 # Override configuration
 sub configure {
 	my $self = shift;
-	my $prop = $self->{'server'};
+	my $server = $self->{'server'};
+	my $cfg;
+	my $cmdline;
+	my $inifile;
 
 
-	# Check for config file
-	$prop->{'conf_file'} = "/etc/cluebringer.conf" if (-f "/etc/cluebringer.conf");
-	$prop->{'log_level'} = 5;
-	# FIXME - parse commandline
+	# Set defaults
+	$cfg->{'config_file'} = "/etc/cluebringer.conf";
+	$server->{'timeout'} = 30;
 
-	# FIXME - read in params from config file
-	return if (!defined($prop->{'conf_file'}));
+	# Parse command line params
+	%{$cmdline} = ();
+	GetOptions(
+			\%{$cmdline},
+			"help",
+			"config:s",
+			"debug",
+	);
+
+	# Check for some args
+	if ($cmdline->{'help'}) {
+		$self->displayHelp();
+		exit 0;
+	}
+	if ($cmdline->{'debug'}) {
+		$server->{'log_level'} = 4;
+		$cfg->{'debug'} = 1;
+	}
+	if (defined($cmdline->{'config'}) && $cmdline->{'config'} ne "") {
+		$cfg->{'config_file'} = $cmdline->{'config'};
+	}
+
+	# Check config file exists
+	if (! -f $cfg->{'config_file'}) {
+		print(STDERR "ERROR: No configuration file '".$cfg->{'config_file'}."' found!\n");
+		exit 1;
+	}
 	# Use config file, ignore case
-	$self->{'config'} = new Config::IniFiles(
-			-file => $prop->{'conf_file'},
+	$inifile = new Config::IniFiles(
+			-file => $cfg->{'config_file'},
 			-nocase => 1
 	);
 
-	# Pull in params
+	# Pull in params for the server
 	my @params = (
 			'log_level','log_file',
 			'syslog_logsock', 'syslog_ident', 'syslog_logopt', 'syslog_facility',
@@ -64,12 +92,22 @@ sub configure {
 			'timeout'
 	);
 	foreach my $param (@params) {
-		my $val = $self->{'config'}->val('server', $param);
-		$prop->{$param} = $val if (defined($val));
+		my $val = $inifile->val('server', $param);
+		$server->{$param} = $val if (defined($val));
 	}
-	if ((my $val = $self->{'config'}->val('server', 'background'))) {
-		$prop->{'setsid'} = 1;
+	# Small fixup if we going to be running in background
+	if ((my $val = $inifile->val('server', 'background'))) {
+		$server->{'setsid'} = 1;
 	}
+
+	# Pull in config params
+	$cfg->{'features'} = $inifile->val('server', 'features');
+	$cfg->{'databases'} = $inifile->val('server', 'databases');
+
+	# Save our config and stuff
+	$self->{'config'} = $cfg;
+	$self->{'cmdline'} = $cmdline;
+	$self->{'inifile'} = $inifile;
 }
 
 
@@ -77,18 +115,31 @@ sub configure {
 # Run straight after ->run
 sub post_configure_hook {
 	my $self = shift;
+	my $cfg = $self->{'config'};
 
-	
-	$self->log(3,"Loading modules...");
-	
+
 	setLogger(sub { $self->log(@_); } );
-	
-	# Load modules
-	foreach (@modules) {
-		loadModule($_,$self->{'config'});
+
+	# Check if we have a list of database types
+	if (defined($cfg->{'databases'}) && $cfg->{'databases'} ne "") {
+		$self->log(3,"Loading databases...");
+		# Load modules
+		foreach (split(/[, ]/,$cfg->{'databases'})) {
+			loadDBType($_,$self);
+		}
+		$self->log(3,"Loaded ".getDBTypes()." databases.\n");
 	}
 
-	$self->log(3,"Loaded ".getModules()." modules.\n");
+	# Check if we have a feature list
+	if (defined($cfg->{'features'}) && $cfg->{'features'} ne "") {
+		$self->log(3,"Loading features...");
+		# Load modules
+		foreach (split(/[, ]/,$cfg->{'features'})) {
+			loadFeature($_,$self);
+		}
+		$self->log(3,"Loaded ".getFeatures()." features.\n");
+	}
+
 }
 
 
@@ -97,6 +148,7 @@ sub process_request {
 	my $self = shift;
 	my $peer = $self->{'peeraddr'};
 	my $id = $self->{'id'};
+	my $server = $self->{'server'};
 
 
 	my %request;
@@ -106,7 +158,7 @@ sub process_request {
 		local $SIG{'ALRM'} = sub { die "Timed Out!\n" };
 
 		# Give connection $timeout time to do something
-		my $previous_alarm = alarm($timeout);
+		my $previous_alarm = alarm($server->{'timeout'});
 
 		# Loop with lines we get
 		while (my $line = <STDIN>) {
@@ -115,7 +167,7 @@ sub process_request {
 			$request{$1} = $2;
 
 			# Reset timeout
-			alarm($timeout);
+			alarm($server->{'timeout'});
 		}
 
 		alarm($previous_alarm);
@@ -124,13 +176,20 @@ sub process_request {
 	# Check results
 	if ($@ =~ /timed out/i) {
 		# FIXME: Log message we timed out
+		$self->log(2,"Timed out!");
 		return;
 	} elsif (keys %request < 1) {
-		$self->log(1,"Didn't get any key pairs\n");
+		$self->log(1,"Didn't get any key pairs");
 	} else {
 		# Sanitize data
 		$request{'sender'} = lc($request{'sender'}) if (defined($request{'sender'}));
 		$request{'recipient'} = lc($request{'recipient'}) if (defined($request{'recipient'}));
+		# Internal data
+		$request{'_timestamp'} = time();
+		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
+
+
+		$self->log(3,"Request:\n".Dumper(\%request));
 
 		# Check the data we have
 		$self->do_work(\%request);
@@ -152,7 +211,7 @@ sub do_work {
 	# Blank result
 	setCheckResult("");
 
-	my @moduleList = getModules();
+	my @moduleList = getFeatures();
 	foreach my $module (@moduleList) {
 		# RETURN...
 		# -1 - ERROR
@@ -162,6 +221,17 @@ sub do_work {
 	}
 }
 
+
+# Display help
+sub displayHelp {
+	print(STDERR<<EOF);
+
+Usage: $0 [args]
+    --config=<file>        Configuration file
+    --debug                Put into debug mode
+
+EOF
+}
 
 
 print(STDERR "ClueBringer v$VERSION - Copyright (c) 2007 LinuxRulz\n");

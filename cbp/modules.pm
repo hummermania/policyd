@@ -11,69 +11,135 @@ require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT = qw(
-	setCheckResult
-	getCheckResult
 	logger
 );
 @EXPORT_OK = qw(
-	loadModule
-	getModules
-	setLogger
+	loadFeature
+	loadDBType
+	getFeatures
+	getDBTypes
 
-	registerModule
+	registerFeature
+	registerDBType
+
+	setCheckResult
+	getCheckResult
+
+	setLogger
 );
 
-# List of modules loaded
-my @moduleList;
+use Data::Dumper;
+
+
+# List of features loaded
+my @featureList;
+# List of database types loaded
+my @DBTypeList;
+
 # Logger function
 my $logger = sub { shift; print(STDERR @_, "\n"); };
 # Module return result
 my $result = "";
 
 
-# Function to register a module
-sub registerModule {
-	my ($module,$data) = @_;
+# Function to register a feature
+sub registerFeature {
+	my ($feature,$data) = @_;
 
 
 	# Sanitize first
 	if (!defined($data)) {
-		&$logger(1,"No module data for '$module'!\n");
-		return -1;
+		&$logger(1,"No feature data for '$feature'!\n");
+		return undef;
 	} elsif (!$data->{'name'}) {
-		&$logger(1,"No module name given for '$module'!\n");
-		return -1;
+		&$logger(1,"No feature name given for '$feature'!\n");
+		return undef;
 	} elsif (!$data->{'check'}) {
-		&$logger(1,"No function to run for module '$module'!\n");
-		return -1;
+		&$logger(1,"No check function to run for feature '$feature'!\n");
+		return undef;
 	}
 
-	push(@moduleList,$data);
+	push(@featureList,$data);
 
-	return 0;
+	return $data;
 }
 
 
-# Function to load a module
-sub loadModule {
-	my ($module,$config) = @_;
+# Function to register a database type
+sub registerDBType {
+	my ($dbt,$data) = @_;
 
-	# Load module
+
+	# Sanitize first
+	if (!defined($data)) {
+		&$logger(1,"No DBType data for '$dbt'!\n");
+		return undef;
+	} elsif (!$data->{'name'}) {
+		&$logger(1,"No DBType name given for '$dbt'!\n");
+		return undef;
+	} elsif (!$data->{'new'}) {
+		&$logger(1,"No new function for DBType '$dbt'!\n");
+		return undef;
+	}
+
+	push(@DBTypeList,$data);
+
+	return $data;
+}
+
+
+# Function to load a feature
+sub loadFeature {
+	my ($feature,$server) = @_;
+
+	# Load feature
 	my $res = eval("
-		use cbp::$module qw(registerModule);
-		registerModule(\"$module\",\$cbp::${module}::pluginInfo);
+		use cbp::modules;
+		use cbp::feature::${feature};
+		registerFeature(\"$feature\",\$cbp::feature::${feature}::pluginInfo);
 	");
+	# If we got undef, something is wrong
+	if (!defined($res)) {
+		&$logger(1,"Error loading feature '$feature': $@");
 
-	if (!defined($res) || $res != 0) {
-		&$logger(1,"Error loading module '$module': $@");
+	# Check if we should init
+	} elsif (defined($res->{'init'})) {
+		$res->{'init'}($server);
 	}
 }
 
 
-# Return module list
-sub getModules {
-	return @moduleList;
+# Function to load a lookup database type
+sub loadDBType {
+	my ($ldbt,$server) = @_;
+
+	# Load feature
+	my $res = eval("
+		use cbp::modules;
+		use cbp::database::${ldbt};
+		registerDBType(\"$ldb\",\$cbp::database::${ldbt}::pluginInfo);
+	");
+	# If we got undef, something is wrong
+	if (!defined($res)) {
+		&$logger(1,"Error loading lookup database type '$ldbt': $@");
+
+	# Check if we should init
+	} elsif (defined($res->{'init'})) {
+		$res->{'init'}($server);
+	}
 }
+
+
+# Return feature list
+sub getFeatures {
+	return @featureList;
+}
+
+# Return database type list
+sub getDBTypes {
+	return @DBTypeList;
+}
+
 
 
 # Set logger
