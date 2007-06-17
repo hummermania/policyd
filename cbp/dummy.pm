@@ -5,6 +5,9 @@
 
 package cbp::dummy;
 
+use strict;
+use warnings;
+
 use cbp::modules;
 
 

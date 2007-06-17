@@ -4,9 +4,13 @@
 
 package cbp::feature::helo;
 
+use strict;
+use warnings;
+
 use cbp::modules;
 use cbp::ltable;
 
+use Data::Dumper;
 
 
 # User plugin info
@@ -19,8 +23,9 @@ our $pluginInfo = {
 
 # Our config
 my %config;
-my @lookupTables;
-my @updateTables;
+my @whitelistLookupTables;
+my @trackingLookupTables;
+my @trackingUpdateTables;
 
 
 # Init
@@ -40,12 +45,8 @@ sub init {
 	$config{'tracking_update'} = "helo_tracking";
 
 
-	logger(1,"DEBUG: ".$ini->val("table ".$config{'tracking_lookup'},"provider"));
-	logger(1,"DEBUG: ".$ini->val("table ".$config{'tracking_update'},"provider"));
-
-
 	# Parse in config
-	for $token (
+	foreach my $token (
 			"enable",
 			"enable_whitelist",
 			"whitelist_lookup",
@@ -58,15 +59,19 @@ sub init {
 	}
 
 	# Load lookup tables
+	foreach (split(/[, ]/,$config{'whitelist_lookup'})) {
+		my $table = cbp::ltable->new($server,$_);
+		push(@whitelistLookupTables,$table) if (defined($table));
+	}
 	foreach (split(/[, ]/,$config{'tracking_lookup'})) {
-		my $table = loadTable($server,$_);
-		push(@lookupTables,$table) if (defined($table));
+		my $table = cbp::ltable->new($server,$_);
+		push(@trackingLookupTables,$table) if (defined($table));
 	}
 
 	# Load update tables
 	foreach (split(/[, ]/,$config{'tracking_update'})) {
-		my $table = loadTable($server,$_);
-		push(@updateTables,$table) if (defined($table));
+		my $table = cbp::ltable->new($server,$_);
+		push(@trackingUpdateTables,$table) if (defined($table));
 	}
 
 }
@@ -79,7 +84,7 @@ sub check {
 
 
 	# If we not enabled, don't do anything
-	return 0 if ($config{'enable'});
+	return 0 if (!$config{'enable'});
 
 
 	# We only valid in the RCPT state
@@ -94,12 +99,21 @@ sub check {
 
 	# Check if we should use HELO whitelisting
 	if ($config{'enable_whitelist'}) {
-		# Do a whitelist lookup
-		$res = keyLookup($config{'whitelist_lookup'}, {
-				'address' 		=> $request->{'client_address'},
-		});
+		my $found = 0;
+		# Loop with lookup tables
+		foreach (@whitelistLookupTables) {
+			$res = $_->lookup({
+				'address' => $request->{'client_address'},
+			});
+			logger(3,"Lookup returned $res");
+			# Check result
+			if ($res == 1) {
+				$found = 1;
+				last;
+			}
+		}	
 	}
-
+	return 0;
 	# Check if we should use HELO tracking
 	if ($config{'enable_tracking'}) {
 		# Hey look .... a helo, record it

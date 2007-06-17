@@ -5,7 +5,11 @@
 
 package cbp::database::dbi;
 
+use strict;
+use warnings;
+
 use cbp::modules;
+
 use Data::Dumper;
 
 
@@ -14,18 +18,23 @@ use Data::Dumper;
 our $pluginInfo = {
 	name 	=> "DBI Lookup Database Type",
 	type	=> "dbi",
-	new		=> \&new,
+	new		=> sub { cbp::database::dbi->new(@_) },
 };
 
 
 #constructor
 sub new {
-	my ($class) = @_;
+	my ($class,$server,$name) = @_;
+	my $ini = $server->{'inifile'};
+
 
 	my $self = {
 		_address   => undef
 	};
 
+	my $dsn = $ini->val("database $name",'dsn');
+
+	logger(2,"NEW $class with DSN $dsn");
 
 	bless $self, $class;
 	return $self;

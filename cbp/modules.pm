@@ -5,6 +5,8 @@
 
 package cbp::modules;
 
+use strict;
+use warnings;
 
 # Exporter stuff
 require Exporter;
@@ -117,7 +119,7 @@ sub loadDBType {
 	my $res = eval("
 		use cbp::modules;
 		use cbp::database::${ldbt};
-		registerDBType(\"$ldb\",\$cbp::database::${ldbt}::pluginInfo);
+		registerDBType(\"$ldbt\",\$cbp::database::${ldbt}::pluginInfo);
 	");
 	# If we got undef, something is wrong
 	if (!defined($res)) {
