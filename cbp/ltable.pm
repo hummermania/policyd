@@ -46,7 +46,7 @@ sub new {
 
 
 	my $self = {
-		_dbh => undef,
+		_backend => undef,
 		_query_template => undef,
 		_update_template => undef,
 		_insert_template => undef,
@@ -57,7 +57,7 @@ sub new {
 	# Use existing databae handle
 	if (defined($databases{$dbname})) {
 		logger(3,"Using existing database $dbname for $table.");
-		$self->{'_dbh'} = $databases{$dbname};	
+		$self->{'_backend'} = $databases{$dbname};	
 	# Create new database handle
 	} else {
 		# Grab db types
@@ -70,22 +70,23 @@ sub new {
 			# Check for match
 			if ($dbtype eq $db->{'type'}) {
 				# Create database handle
-				my $dbh = $db->{'new'}($server,$dbname);
-				$databases{$dbname} = $dbh;
+				my $handle = $db->{'new'}($server,$dbname);
+				$databases{$dbname} = $handle;
 				# Use it
-				$self->{'_dbh'} = $dbh;
+				$self->{'_backend'} = $handle;
 				last;
 			}
 		}
 	}
 
 	# Setup queryies
-	my $query = $ini->val("table $table",'query');
-	$self->{'_query_template'} = $query if (defined($query));
-	my $update = $ini->val("table $table",'update');
-	$self->{'_update_template'} = $update if (defined($update));
-	my $insert = $ini->val("table $table",'insert');
-	$self->{'_insert_template'} = $insert if (defined($insert));
+	foreach my $i ("query","update","insert") {
+		my $template = $ini->val("table $table",$i);
+		# If we have a template defined, clean it up a bit
+		if (defined($template)) {
+			($self->{"_${i}_template"} = $template) =~ s/(\n|[[:cntrl:]])+/ /g;
+		}
+	}
 
 	bless $self, $class;
 	return $self;
@@ -96,8 +97,43 @@ sub new {
 sub lookup {
 	my ($self,$params) = @_;
 
-	logger(2,"Lookup: ".Dumper($params));
+	# Do lookup
+	my $res = $self->{'_backend'}->lookup(
+			$self->prepare($self->{'_query_template'},$params)
+	);
+
+	return $res;
 }
+
+
+# Store function to dispatch to database
+sub store {
+	my ($self,$mode,$params) = @_;
+
+
+	# Do insert
+	my $res = $self->{'_backend'}->store(
+			$self->prepare($self->{'_insert_template'},$params)
+	);
+
+	return $res;
+}
+
+
+# Prepare a query to the backend
+sub prepare {
+	my ($self,$template,$params) = @_;
+
+	# Parse in params into template
+	my $query = $template;
+	foreach my $macro (%{$params}) {
+		my $val = $self->{'_backend'}->quote(defined($params->{$macro}) ? $params->{$macro} : "");
+		$query =~ s/%$macro%/$val/g;
+	}
+
+	return $query;
+}
+
 
 
 1;

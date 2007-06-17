@@ -103,7 +103,7 @@ sub check {
 		# Loop with lookup tables
 		foreach (@whitelistLookupTables) {
 			$res = $_->lookup({
-				'address' => $request->{'client_address'},
+				'client_address' => $request->{'client_address'},
 			});
 			logger(3,"Lookup returned $res");
 			# Check result
@@ -113,19 +113,22 @@ sub check {
 			}
 		}	
 	}
-	return 0;
+	
 	# Check if we should use HELO tracking
 	if ($config{'enable_tracking'}) {
-		# Hey look .... a helo, record it
-		$res = keyStore($config{'tracking_update'}, KEY_UPDATE_ON_CONFLICT, {
-				'address'	=> $request->{'client_address'},
-				'helo'		=> $request->{'helo_name'},
-				'timestamp'	=> $request->{'_timestamp'},
-		});
-		# Lookup and see how many
-		$res = keyLookup($config{'tracking_lookup'}, {
-				'address' 		=> $request->{'client_address'},
-		});
+		# Loop with update tables
+		foreach (@trackingUpdateTables) {
+			# Hey look .... a helo, record it
+			$res = $_->store(KEY_UPDATE_ON_CONFLICT, {
+					'client_address'	=> $request->{'client_address'},
+					'helo_name'			=> $request->{'helo_name'},
+					'timestamp'			=> $request->{'_timestamp'},
+			});
+			# Lookup and see how many
+#			$res = $_->store({
+#					'client_address'	=> $request->{'client_address'},
+#			});
+		}
 	}
 
 
