@@ -53,6 +53,15 @@ sub new {
 }
 
 
+# Function to see if we ok
+sub getStatus {
+	my $self = shift;
+
+
+	return $self->{'_dbh'} ? 0 : -1;
+}
+
+
 # Do a lookup
 sub lookup {
 	my ($self,$query) = @_;

@@ -71,12 +71,18 @@ sub new {
 			if ($dbtype eq $db->{'type'}) {
 				# Create database handle
 				my $handle = $db->{'new'}($server,$dbname);
-				$databases{$dbname} = $handle;
-				# Use it
-				$self->{'_backend'} = $handle;
-				last;
+				# Check status
+				if ($handle->getStatus() == 0) {
+					$databases{$dbname} = $self->{'_backend'} = $handle;
+					last;
+				}
 			}
 		}
+	}
+
+	# Return undef if we had a fuckup above
+	if (!$self->{'_backend'}) {
+		return undef;
 	}
 
 	# Setup queryies
@@ -171,6 +177,14 @@ sub name {
 	my ($self) = @_;
 
 	return $self->{'_name'};
+}
+
+
+# Return status
+sub getStatus {
+	my ($self) = @_;
+
+	return $self->{'_backend'}->getStatus();
 }
 
 
