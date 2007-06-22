@@ -15,10 +15,13 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 @EXPORT = qw(
 	loadTable
 
-	KEY_UPDATE_ON_CONFLICT
+	LTABLE_UPDATE_ON_CONFLICT
 );
 @EXPORT_OK = qw(
 );
+use constant {
+	LTABLE_UPDATE_ON_CONFLICT		=> 1,
+};
 
 
 # Stuff we need
@@ -27,11 +30,7 @@ use cbp::modules qw(
 
 	getDBTypes
 );
-
-use constant {
-	KEY_UPDATE_ON_CONFLICT		=> 1,
-};
-
+use cbp::logging;
 use Data::Dumper;
 
 
@@ -46,6 +45,7 @@ sub new {
 
 
 	my $self = {
+		_name => $table,
 		_backend => undef,
 		_query_template => undef,
 		_update_template => undef,
@@ -56,7 +56,7 @@ sub new {
 
 	# Use existing databae handle
 	if (defined($databases{$dbname})) {
-		logger(3,"Using existing database $dbname for $table.");
+		logger(LOG_INFO,"[LTABLE] Using existing database $dbname for $table.");
 		$self->{'_backend'} = $databases{$dbname};	
 	# Create new database handle
 	} else {
@@ -64,7 +64,7 @@ sub new {
 		my @dbTypes = getDBTypes();
 		# Get database type
 		my $dbtype = $ini->val("database $dbname",'type');
-		logger(3,"Using new database $dbname/$dbtype for $table.");
+		logger(LOG_INFO,"[LTABLE] Using new database $dbname/$dbtype for $table.");
 		# Loop with them
 		foreach my $db (@dbTypes) {
 			# Check for match
@@ -110,10 +110,41 @@ sub lookup {
 sub store {
 	my ($self,$mode,$params) = @_;
 
+	my $res;
 
-	# Do insert
-	my $res = $self->{'_backend'}->store(
-			$self->prepare($self->{'_insert_template'},$params)
+	# Try update, if we get 0, insert
+	if ($mode == LTABLE_UPDATE_ON_CONFLICT) {
+		$res = $self->update($params);
+		if ($res == 0) {
+			logger(LOG_INFO,"[LTABLE] Nothing updated, we must insert");
+			# Do insert
+			my $res = $self->{'_backend'}->store(
+				$self->prepare($self->{'_insert_template'},$params)
+			);
+		} else {
+			logger(LOG_NOTICE,"[LTABLE] Updated $res records");
+		}
+	} else {
+		logger(LOG_INFO,"[LTABLE] We must insert");
+		# Do insert
+		my $res = $self->{'_backend'}->store(
+				$self->prepare($self->{'_insert_template'},$params)
+		);
+	}
+
+
+	return $res;
+}
+
+
+# Update function to dispatch to database
+sub update {
+	my ($self,$params) = @_;
+
+
+	# Do update
+	my $res = $self->{'_backend'}->update(
+			$self->prepare($self->{'_update_template'},$params)
 	);
 
 	return $res;
@@ -134,6 +165,13 @@ sub prepare {
 	return $query;
 }
 
+
+# Return our name
+sub name {
+	my ($self) = @_;
+
+	return $self->{'_name'};
+}
 
 
 1;

@@ -30,6 +30,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 	setLogger
 );
 
+use cbp::logging;
 use Data::Dumper;
 
 
@@ -51,13 +52,13 @@ sub registerFeature {
 
 	# Sanitize first
 	if (!defined($data)) {
-		&$logger(1,"No feature data for '$feature'!\n");
+		&$logger(LOG_ERR,"No feature data for '$feature'!\n");
 		return undef;
 	} elsif (!$data->{'name'}) {
-		&$logger(1,"No feature name given for '$feature'!\n");
+		&$logger(LOG_ERR,"No feature name given for '$feature'!\n");
 		return undef;
 	} elsif (!$data->{'check'}) {
-		&$logger(1,"No check function to run for feature '$feature'!\n");
+		&$logger(LOG_ERR,"No check function to run for feature '$feature'!\n");
 		return undef;
 	}
 
@@ -74,13 +75,13 @@ sub registerDBType {
 
 	# Sanitize first
 	if (!defined($data)) {
-		&$logger(1,"No DBType data for '$dbt'!\n");
+		&$logger(LOG_ERR,"No DBType data for '$dbt'!\n");
 		return undef;
 	} elsif (!$data->{'name'}) {
-		&$logger(1,"No DBType name given for '$dbt'!\n");
+		&$logger(LOG_ERR,"No DBType name given for '$dbt'!\n");
 		return undef;
 	} elsif (!$data->{'new'}) {
-		&$logger(1,"No new function for DBType '$dbt'!\n");
+		&$logger(LOG_ERR,"No new function for DBType '$dbt'!\n");
 		return undef;
 	}
 
@@ -102,7 +103,7 @@ sub loadFeature {
 	");
 	# If we got undef, something is wrong
 	if (!defined($res)) {
-		&$logger(1,"Error loading feature '$feature': $@");
+		&$logger(LOG_ERR,"Error loading feature '$feature': $@");
 
 	# Check if we should init
 	} elsif (defined($res->{'init'})) {
@@ -123,7 +124,7 @@ sub loadDBType {
 	");
 	# If we got undef, something is wrong
 	if (!defined($res)) {
-		&$logger(1,"Error loading lookup database type '$ldbt': $@");
+		&$logger(LOG_ERR,"Error loading lookup database type '$ldbt': $@");
 
 	# Check if we should init
 	} elsif (defined($res->{'init'})) {

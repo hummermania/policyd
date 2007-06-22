@@ -19,7 +19,7 @@ use base qw(Net::Server::PreFork);
 use Config::IniFiles;
 use Data::Dumper;
 use Getopt::Long;
-
+use cbp::logging;
 # Import module functions
 use cbp::modules qw(
 	loadFeature
@@ -122,22 +122,22 @@ sub post_configure_hook {
 
 	# Check if we have a list of database types
 	if (defined($cfg->{'databases'}) && $cfg->{'databases'} ne "") {
-		$self->log(3,"Loading databases...");
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Loading databases...");
 		# Load modules
 		foreach (split(/[, ]/,$cfg->{'databases'})) {
 			loadDBType($_,$self);
 		}
-		$self->log(3,"Loaded ".getDBTypes()." databases.\n");
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Loaded ".getDBTypes()." databases.\n");
 	}
 
 	# Check if we have a feature list
 	if (defined($cfg->{'features'}) && $cfg->{'features'} ne "") {
-		$self->log(3,"Loading features...");
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Loading features...");
 		# Load modules
 		foreach (split(/[, ]/,$cfg->{'features'})) {
 			loadFeature($_,$self);
 		}
-		$self->log(3,"Loaded ".getFeatures()." features.\n");
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Loaded ".getFeatures()." features.\n");
 	}
 
 }
@@ -176,10 +176,10 @@ sub process_request {
 	# Check results
 	if ($@ =~ /timed out/i) {
 		# FIXME: Log message we timed out
-		$self->log(2,"Timed out!");
+		$self->log(LOG_NOTICE,"[CBPOLICYD] Timed out!");
 		return;
 	} elsif (keys %request < 1) {
-		$self->log(1,"Didn't get any key pairs");
+		$self->log(LOG_WARN,"[CBPOLICYD] Didn't get any key pairs");
 	} else {
 		# Sanitize data
 		$request{'sender'} = lc($request{'sender'}) if (defined($request{'sender'}));
@@ -189,7 +189,7 @@ sub process_request {
 		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
 
 
-		$self->log(3,"Request:\n".Dumper(\%request));
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Request:\n".Dumper(\%request));
 
 		# Check the data we have
 		$self->do_work(\%request);
