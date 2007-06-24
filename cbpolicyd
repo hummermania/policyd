@@ -23,9 +23,9 @@ use cbp::logging;
 # Import module functions
 use cbp::modules qw(
 	loadFeature
-	loadDBType
+	loadDatabase
 	getFeatures
-	getDBTypes
+	getDatabases
 
 	setLogger
 
@@ -125,9 +125,9 @@ sub post_configure_hook {
 		$self->log(LOG_DEBUG,"[CBPOLICYD] Loading databases...");
 		# Load modules
 		foreach (split(/[, ]/,$cfg->{'databases'})) {
-			loadDBType($_,$self);
+			loadDatabase($_,$self);
 		}
-		$self->log(LOG_DEBUG,"[CBPOLICYD] Loaded ".getDBTypes()." databases.\n");
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Loaded ".getDatabases()." databases.\n");
 	}
 
 	# Check if we have a feature list
@@ -143,11 +143,39 @@ sub post_configure_hook {
 }
 
 
+# Initialize the child
+sub child_init_hook {
+	my $self = shift;
+	my $server = $self->{'server'};
+	my $cfg = $self->{'config'};
+
+
+	# Create child specific contexts
+	my @moduleList = getFeatures();
+	foreach my $module (@moduleList) {
+		$module->{'init'}($self) if (defined($module->{'init'}));
+	}
+}
+
+
+# Destroy the child
+sub child_finish_hook {
+	my $self = shift;
+	my $server = $self->{'server'};
+	my $cfg = $self->{'config'};
+
+
+	# Create child specific contexts
+	my @moduleList = getFeatures();
+	foreach my $module (@moduleList) {
+		$module->{'finish'}($self) if (defined($module->{'finish'}));
+	}
+}
+
+
 # Process requests we get
 sub process_request {
 	my $self = shift;
-	my $peer = $self->{'peeraddr'};
-	my $id = $self->{'id'};
 	my $server = $self->{'server'};
 
 
@@ -189,7 +217,7 @@ sub process_request {
 		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
 
 
-		$self->log(LOG_DEBUG,"[CBPOLICYD] Request:\n".Dumper(\%request));
+		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
 
 		# Check the data we have
 		$self->do_work(\%request);
@@ -219,6 +247,15 @@ sub do_work {
 		# 1 - Stop here
 		last if ($module->{'check'}($data) != 0);
 	}
+}
+
+
+# Slightly better logging
+sub log {
+	my ($self,$level,$msg) = @_;
+
+
+	$self->SUPER::log($level,"$$ => ".$msg);
 }
 
 

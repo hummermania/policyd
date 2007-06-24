@@ -17,12 +17,12 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 );
 @EXPORT_OK = qw(
 	loadFeature
-	loadDBType
-	getFeatures
-	getDBTypes
-
 	registerFeature
-	registerDBType
+	getFeatures
+
+	loadDatabase
+	registerDatabase
+	getDatabases
 
 	setCheckResult
 	getCheckResult
@@ -37,7 +37,7 @@ use Data::Dumper;
 # List of features loaded
 my @featureList;
 # List of database types loaded
-my @DBTypeList;
+my @databaseList;
 
 # Logger function
 my $logger = sub { shift; print(STDERR @_, "\n"); };
@@ -69,23 +69,23 @@ sub registerFeature {
 
 
 # Function to register a database type
-sub registerDBType {
+sub registerDatabase {
 	my ($dbt,$data) = @_;
 
 
 	# Sanitize first
 	if (!defined($data)) {
-		&$logger(LOG_ERR,"No DBType data for '$dbt'!\n");
+		&$logger(LOG_ERR,"No database data for '$dbt'!\n");
 		return undef;
 	} elsif (!$data->{'name'}) {
-		&$logger(LOG_ERR,"No DBType name given for '$dbt'!\n");
+		&$logger(LOG_ERR,"No database name given for '$dbt'!\n");
 		return undef;
 	} elsif (!$data->{'new'}) {
-		&$logger(LOG_ERR,"No new function for DBType '$dbt'!\n");
+		&$logger(LOG_ERR,"No new function for database '$dbt'!\n");
 		return undef;
 	}
 
-	push(@DBTypeList,$data);
+	push(@databaseList,$data);
 
 	return $data;
 }
@@ -105,30 +105,30 @@ sub loadFeature {
 	if (!defined($res)) {
 		&$logger(LOG_ERR,"Error loading feature '$feature': $@");
 
-	# Check if we should init
-	} elsif (defined($res->{'init'})) {
-		$res->{'init'}($server);
+	# Check if we should run the load function
+	} elsif (defined($res->{'load'})) {
+		$res->{'load'}($server);
 	}
 }
 
 
 # Function to load a lookup database type
-sub loadDBType {
+sub loadDatabase {
 	my ($ldbt,$server) = @_;
 
 	# Load feature
 	my $res = eval("
 		use cbp::modules;
 		use cbp::database::${ldbt};
-		registerDBType(\"$ldbt\",\$cbp::database::${ldbt}::pluginInfo);
+		registerDatabase(\"$ldbt\",\$cbp::database::${ldbt}::pluginInfo);
 	");
 	# If we got undef, something is wrong
 	if (!defined($res)) {
 		&$logger(LOG_ERR,"Error loading lookup database type '$ldbt': $@");
 
-	# Check if we should init
-	} elsif (defined($res->{'init'})) {
-		$res->{'init'}($server);
+	# Check if we should run the load function
+	} elsif (defined($res->{'load'})) {
+		$res->{'load'}($server);
 	}
 }
 
@@ -139,8 +139,8 @@ sub getFeatures {
 }
 
 # Return database type list
-sub getDBTypes {
-	return @DBTypeList;
+sub getDatabases {
+	return @databaseList;
 }
 
 

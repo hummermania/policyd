@@ -28,7 +28,7 @@ use constant {
 use cbp::modules qw(
 	logger
 
-	getDBTypes
+	getDatabases
 );
 use cbp::logging;
 use Data::Dumper;
@@ -47,12 +47,14 @@ sub new {
 	my $self = {
 		_name => $table,
 		_backend => undef,
+		_dbname => undef,
 		_query_template => undef,
 		_update_template => undef,
 		_insert_template => undef,
 	};
 
 	my $dbname = $ini->val("table $table",'database');
+	$self->{'_dbname'} = $dbname;
 
 	# Use existing databae handle
 	if (defined($databases{$dbname})) {
@@ -61,12 +63,12 @@ sub new {
 	# Create new database handle
 	} else {
 		# Grab db types
-		my @dbTypes = getDBTypes();
+		my @dbs = getDatabases();
 		# Get database type
 		my $dbtype = $ini->val("database $dbname",'type');
 		logger(LOG_INFO,"[LTABLE] Using new database $dbname/$dbtype for $table.");
 		# Loop with them
-		foreach my $db (@dbTypes) {
+		foreach my $db (@dbs) {
 			# Check for match
 			if ($dbtype eq $db->{'type'}) {
 				# Create database handle
@@ -96,6 +98,18 @@ sub new {
 
 	bless $self, $class;
 	return $self;
+}
+
+
+# Close down
+sub close {
+	my $self = shift;
+	
+	if (defined($databases{$self->{'_dbname'}})) {
+		logger(LOG_INFO,"[LTABLE] Closing table ".$self->{'_dbname'}."/".$self->{'_name'});
+		$self->{'_backend'}->close();
+		delete($databases{$self->{'_dbname'}});
+	}
 }
 
 

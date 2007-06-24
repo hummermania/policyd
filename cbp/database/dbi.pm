@@ -20,8 +20,21 @@ use Data::Dumper;
 our $pluginInfo = {
 	name 	=> "DBI Lookup Database Type",
 	type	=> "dbi",
+	init	=> \&init,
 	new		=> sub { cbp::database::dbi->new(@_) },
 };
+
+# Our config
+my %config;
+
+
+# Initialize
+sub init {
+	my $server = shift;
+	my $ini = $server->{'inifile'};
+
+	return 0;
+}
 
 
 # Constructor
@@ -31,26 +44,38 @@ sub new {
 
 
 	my $self = {
-		_dbh   => undef
+		_dbh   => undef,
+		_dsn   => undef,
 	};
 
-	my $dsn = $ini->val("database $name",'dsn');
+	# Database connection info
+	$self->{'_dsn'} = $ini->val("database $name",'dsn');
 	my $username = $ini->val("database $name",'username');
 	my $password = $ini->val("database $name",'password');
 
 	# Connect to database
-	$self->{'_dbh'} = DBI->connect($dsn, $username, $password, {
+	$self->{'_dbh'} = DBI->connect($self->{'_dsn'}, $username, $password, {
 			'AutoCommit' => 1, 
 			'PrintError' => 0 
 	});
 	# Check for error	
 	if (!$self->{'_dbh'}) {
-		logger(LOG_ERR,"[DATABASE/DBI] Failed to connect to '$dsn': $DBI::errstr");
+		logger(LOG_ERR,"[DATABASE/DBI] Failed to connect to '".$self->{'_dsn'}."': $DBI::errstr");
 	}
 
 	bless $self, $class;
 	return $self;
 }
+
+
+# Close down
+sub close {
+	my $self = shift;
+
+	$self->{'_dbh'}->disconnect();
+	logger(LOG_ERR,"[DATABASE/DBI] Closing '".$self->{'_dsn'}."'");
+}
+
 
 
 # Function to see if we ok
@@ -65,7 +90,6 @@ sub getStatus {
 # Do a lookup
 sub lookup {
 	my ($self,$query) = @_;
-
 
 	# Prepare statement
 	my $sth = $self->{'_dbh'}->prepare($query);

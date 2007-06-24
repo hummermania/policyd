@@ -16,9 +16,11 @@ use Data::Dumper;
 
 # User plugin info
 our $pluginInfo = {
-	name 	=> "HELO/EHLO Plugin",
-	check 	=> \&check,
-	init 	=> \&init,
+	name 			=> "HELO/EHLO Plugin",
+	check 			=> \&check,
+	load 			=> \&load,
+	init		 	=> \&init,
+	finish		 	=> \&finish,
 };
 
 
@@ -29,8 +31,8 @@ my @trackingLookupTables;
 my @trackingUpdateTables;
 
 
-# Init
-sub init {
+# Load modules stuff
+sub load {
 	my $server = shift;
 	my $ini = $server->{'inifile'};
 
@@ -67,6 +69,14 @@ sub init {
 		$config{$token} = $val if (defined($val));
 	}
 
+}
+
+
+# Create a child specific context
+sub init {
+	my $server = shift;
+
+
 	# Load lookup tables
 	foreach (split(/[, ]/,$config{'whitelist_lookup'})) {
 		my $table = cbp::ltable->new($server,$_);
@@ -82,7 +92,14 @@ sub init {
 		my $table = cbp::ltable->new($server,$_);
 		push(@trackingUpdateTables,$table) if (defined($table));
 	}
+}
 
+
+# Destroy
+sub finish {
+	foreach my $table ((@whitelistLookupTables,@trackingLookupTables, @trackingUpdateTables)) {
+		$table->close();
+	}
 }
 
 
@@ -90,7 +107,6 @@ sub init {
 # Check the request
 sub check {
 	my $request = shift;
-
 
 	# If we not enabled, don't do anything
 	return 0 if (!$config{'enable'});
