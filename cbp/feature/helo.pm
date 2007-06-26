@@ -27,6 +27,7 @@ our $pluginInfo = {
 # Our config
 my %config;
 my @whitelistLookupTables;
+my @blacklistLookupTables;
 my @trackingLookupTables;
 my @trackingUpdateTables;
 
@@ -43,6 +44,9 @@ sub load {
 	$config{'enable_whitelist'} = 1;
 	$config{'whitelist_lookup'} = "helo_whitelist";
 
+	$config{'enable_blacklist'} = 1;
+	$config{'blacklist_lookup'} = "helo_blacklist";
+
 	$config{'enable_tracking'} = 1;
 	$config{'tracking_lookup'} = "helo_tracking";
 	$config{'tracking_update'} = "helo_tracking";
@@ -58,6 +62,8 @@ sub load {
 			"enable",
 			"enable_whitelist",
 			"whitelist_lookup",
+			"enable_blacklist",
+			"blacklist_lookup",
 			"enable_tracking",
 			"tracking_lookup",
 			"tracking_update",
@@ -82,6 +88,10 @@ sub init {
 		my $table = cbp::ltable->new($server,$_);
 		push(@whitelistLookupTables,$table) if (defined($table));
 	}
+	foreach (split(/[, ]/,$config{'blacklist_lookup'})) {
+		my $table = cbp::ltable->new($server,$_);
+		push(@blacklistLookupTables,$table) if (defined($table));
+	}
 	foreach (split(/[, ]/,$config{'tracking_lookup'})) {
 		my $table = cbp::ltable->new($server,$_);
 		push(@trackingLookupTables,$table) if (defined($table));
@@ -97,7 +107,7 @@ sub init {
 
 # Destroy
 sub finish {
-	foreach my $table ((@whitelistLookupTables,@trackingLookupTables, @trackingUpdateTables)) {
+	foreach my $table ((@whitelistLookupTables,@blacklistLookupTables,@trackingLookupTables,@trackingUpdateTables)) {
 		$table->close();
 	}
 }
@@ -109,19 +119,25 @@ sub check {
 	my $request = shift;
 
 	# If we not enabled, don't do anything
-	return 0 if (!$config{'enable'});
+	return undef if (!$config{'enable'});
 
 
 	# We only valid in the RCPT state
-	return 0 if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
+	return undef if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
 	# Return if we don't have a helo_name
-	return 0 if (!defined($request->{'helo_name'}) || $request->{'helo_name'} eq "");
+	return undef if (!defined($request->{'helo_name'}) || $request->{'helo_name'} eq "");
 	# Return if we don't have the stuff we need
-	return 0 if (!defined($request->{'client_address'}) || $request->{'client_address'} eq "");
+	return undef if (!defined($request->{'client_address'}) || $request->{'client_address'} eq "");
 
 
 	my $res;
 
+	# Bypass checks for SASL users
+	if ($config{'bypass_for_sasl'} && defined($request->{'sasl_username'}) && $request->{'sasl_username'} ne "") {
+		logger(LOG_NOTICE,"[HELO] Bypassing for SASL user '".$request->{'sasl_username'}."'[".$request->{'client_address'}."]");
+		return undef;
+	}
+	
 	# Check if we should use HELO whitelisting
 	if ($config{'enable_whitelist'}) {
 		my $found = 0;
@@ -136,7 +152,12 @@ sub check {
 				$found = 1;
 				last;
 			}
-		}	
+		}
+		# If we found a whitelist entry, return undef
+		if ($found == 1) {
+			logger(LOG_NOTICE,"[HELO] Address '".$request->{'client_address'}."' whitelisted");
+			return undef;
+		}
 	}
 	
 	# Check if we should use HELO tracking
@@ -179,7 +200,8 @@ sub check {
 	
 				# Check if helo count exceeds our limit
 				if ($helo_count >= $config{'tracking_window_limit'}) {
-					logger(LOG_INFO,"[HELO] Tracking window for ".$request->{'client_address'}." exceeded HELO limit ".$config{'tracking_window_limit'}."($helo_count)");
+					logger(LOG_INFO,"[HELO] Tracking window for ".$request->{'client_address'}." exceeded HELO limit ".$config{'tracking_window_limit'}
+							."($helo_count)");
 					$helo_exceeded = 1;
 				}
 			}
@@ -189,61 +211,110 @@ sub check {
 		if ($config{'tracking_auto_prune'} && @oldHelos > 0) {
 			# Nuke old HELO's out of our databases
 			foreach my $table (@trackingUpdateTables) {
-				# FIXME - enable this
-#				$res = $table->remove({
-#						'helo_name'			=> @oldHelos,
-#				});
+				$res = $table->remove({
+						'helo_name'			=> \@oldHelos,
+				});
 			}
 			logger(LOG_INFO,"[HELO] Pruned ".(@oldHelos)." HELO's for ".$request->{'client_address'});
 		}
 
 		# If HELO count exceeded, reject
 		if ($helo_exceeded) {
-			# FIXME - enable this
 			logger(LOG_NOTICE,"[HELO] Address '".$request->{'client_address'}."' exceeds allowed helo count of '".$config{'max_helo_count'});
+			return "action=REJECT Rejected HELO/EHLO: Threshold exceeded";
 		}
-
-
 	}
+
 
 
 	# check helo validity, does it violate rfc in its construction?
 
-	# check helo count for host
-
 	# check if helo resolves, if not, maybe reject
 	# if helo resolves, set address it resolves to
 
-	# if we an address literal, set address to address literal
 
-	# check if helo address is whitelisted?
-
-
-
-
-
-
-
-	# QUERY DICTIONARY HERE, if we get a positive result, blacklist
-
-
-	# Check helo
-	my @blacklist = ('localhost','localhost.localdomain');
-	my $found = 0;
-	foreach (@blacklist) {
-		if ($request->{'helo_name'} eq $_) {
-			$found = 1;
-			last;
+	# Check for stuff to blacklist
+	if ($config{'enable_blacklist'}) {
+		my $found = 0;
+		# Loop with lookup tables
+		foreach my $table (@blacklistLookupTables) {
+			$res = $table->lookup({
+				'helo_name' => $request->{'helo_name'},
+			});
+			logger(LOG_INFO,"[HELO] Blacklist check against '".$table->name."' returned ".(@{$res})." results");
+			# Check result
+			if (@{$res} >= 1) {
+				$found = 1;
+				last;
+			}
+		}
+		# If we found a blacklist entry, reject
+		if ($found == 1) {
+			logger(LOG_NOTICE,"[HELO] Address '".$request->{'client_address'}."' blacklisted");
+			return "action=REJECT Rejected HELO/EHLO: Blacklisted";
 		}
 	}
 
-	if ($found) {
-		logger(3,"Blacklisting sending server '".$request->{'client_address'}."', blacklisted helo.");
-		setCheckResult("action=REJECT Blacklisted: HELO/EHLO");
-		return 1;
+	# Check if helo is an address literal
+	if ($request->{'helo_name'} =~ /^\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]$/) {
+		logger(LOG_INFO,"[HELO] No further checks, this is an address literal: '".$request->{'helo_name'}."'");
+		return undef;
+
+	# Check the use of an IP address in the HELO/EHLO command. This violations RFC, and IP address must be an FQDN or address literal
+	} elsif ($request->{'helo_name'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+		if ($config{'reject_ip_address'}) {
+			logger(LOG_NOTICE,"[HELO] Rejecting HELO/EHLO which is an IP address '".$request->{'helo_name'}."'");
+			return "action=REJECT Rejected HELO/EHLO: '".$request->{'helo_name'}."' is not FQDN";
+		}
+		return undef;
+	
+	# Check if helo is a FQDN - Only valid characters in a domain is alnum and a -
+	} elsif ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/) {
+
+		# Check if we must check resolvability
+		if ($config{'reject_unresolvable_helo'}) {
+			my $res = Net::DNS::Resolver->new;
+			my $query = $res->search($request->{'helo_name'});
+
+			# If the query failed
+			if (!$query) {
+
+				# Check for error
+				if ($res->errorstring eq "NXDOMAIN") {
+					logger(LOG_NOTICE,"[HELO] Rejecting HELO/EHLO '".$request->{'helo_name'}."', not found.");
+					return "action=REJECT Invalid HELO/EHLO: '".$request->{'helo_name'}."' does not resolve, no such domain";
+				} elsif ($res->errorstring eq "NOERROR") {
+					logger(LOG_NOTICE,"[HELO] Rejecting HELO/EHLO '".$request->{'helo_name'}."', no records.");
+					return "action=REJECT Invalid HELO/EHLO: '".$request->{'helo_name'}."' does not resolve, no records found";
+				} elsif ($res->errorstring eq "SERVFAIL") {
+					logger(LOG_NOTICE,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', temp fail.");
+					return "action=DEFER_IF_PERMIT Invalid HELO/EHLO: Failure while trying to resolve '".$request->{'helo_name'}."'";
+				} else {
+					logger(LOG_ERR,"[HELO] Unknown error resolving '".$request->{'helo_name'}."': ".$res->errorstring);
+			 		return undef;
+				}
+    	    }
+
+			# Look for MX or A records
+			my $found = 0;
+			foreach my $rr ($query->answer) {
+				next unless ($rr->type eq "A" || $rr->type eq "MX");
+				$found = 1;
+			}
+
+			# Check if we found any valid DNS records
+			if (!$found) {
+				logger(LOG_NOTICE,"[HELO] Rejecting HELO/EHLO '".$request->{'helo_name'}."', no valid records.");
+				return "action=REJECT Invalid HELO/EHLO: No A or MX records found for '".$request->{'helo_name'}."'";
+			}
+		}
+
+		return undef;
 	}
 
-	return 0;
+	# If we failed the FQDN check, reject
+	logger(LOG_NOTICE,"Rejecting HELO/EHLO '".$request->{'helo_name'}."', invalid.");
+	return "action=REJECT Invalid HELO/EHLO: '".$request->{'helo_name'}."' is invalid, RFC2821 section 3.6 requires a HELO/EHLO be a resolvable FQDN hostname";
 }
 
 

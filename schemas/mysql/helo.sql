@@ -9,6 +9,15 @@ CREATE TABLE helo_whitelist (
 	UNIQUE INDEX (client_address)
 );
 
+DROP TABLE IF EXISTS helo_blacklist;
+CREATE TABLE helo_blacklist (
+	ID			SERIAL PRIMARY KEY,
+	helo_name		VARCHAR(255) NOT NULL,
+	comment			TINYTEXT,
+
+	UNIQUE INDEX (helo_name)
+);
+
 DROP TABLE IF EXISTS helo_tracking;
 CREATE TABLE helo_tracking (
 	ID			SERIAL,

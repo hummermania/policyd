@@ -51,9 +51,16 @@ sub new {
 		_query_template => undef,
 		_update_template => undef,
 		_insert_template => undef,
+		_remove_template => undef,
 	};
 
 	my $dbname = $ini->val("table $table",'database');
+	# Undef if table doesn't exist
+	if (!defined($dbname)) {
+		logger(LOG_ERR,"[LTABLE] No configuration found for table '$table'");
+		return undef;
+	}
+
 	$self->{'_dbname'} = $dbname;
 
 	# Use existing databae handle
@@ -88,7 +95,7 @@ sub new {
 	}
 
 	# Setup queryies
-	foreach my $i ("query","update","insert") {
+	foreach my $i ("query","update","insert","remove") {
 		my $template = $ini->val("table $table",$i);
 		# If we have a template defined, clean it up a bit
 		if (defined($template)) {
@@ -178,11 +185,38 @@ sub prepare {
 	# Parse in params into template
 	my $query = $template;
 	foreach my $macro (%{$params}) {
-		my $val = $self->{'_backend'}->quote(defined($params->{$macro}) ? $params->{$macro} : "");
-		$query =~ s/%$macro%/$val/g;
+		logger(LOG_DEBUG,"Query: $query");
+		# Check for macros
+		if ($query =~ /%array:$macro%/) {
+			# Quote all the vals
+			my @vals;
+			foreach my $i (@{$params->{$macro}}) {
+				push(@vals,$self->{'_backend'}->quote($i));
+			}
+			# Build query & replace macro
+			my $val = join(',',@vals);
+			$query =~ s/%array:$macro%/$val/g;
+		} else {
+			my $val = $self->{'_backend'}->quote(defined($params->{$macro}) ? $params->{$macro} : "");
+			$query =~ s/%$macro%/$val/g;
+		}
 	}
 
 	return $query;
+}
+
+
+# Remove function to dispatch to database
+sub remove {
+	my ($self,$params) = @_;
+
+
+	# Do remove
+	my $res = $self->{'_backend'}->remove(
+		$self->prepare($self->{'_remove_template'},$params)
+	);
+
+	return $res;
 }
 
 

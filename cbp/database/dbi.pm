@@ -175,6 +175,34 @@ sub update {
 }
 
 
+# Remove something
+sub remove {
+	my ($self,$query) = @_;
+
+
+	# Prepare statement
+	my $sth = $self->{'_dbh'}->prepare($query);
+	if (!$sth) {
+		logger(LOG_ERR,"[DATABASE/DBI] Failed to prepare statement '$query': ".$self->{'_dbh'}->errstr);
+		return -1;
+	}
+
+	# Execute
+	my $res = $sth->execute();
+	if (!$res) {
+		logger(LOG_ERR,"[DATABASE/DBI] Failed to execute statement: '$query': ".$self->{'_dbh'}->errstr);
+		return -1;
+	}
+
+	# Finish off
+	$sth->finish();
+
+	logger(LOG_DEBUG,"[DATABASE/DBI] REMOVE Results: $res");
+
+	return $res;
+}
+
+
 # Quote something
 sub quote {
 	my ($self,$string) = @_;

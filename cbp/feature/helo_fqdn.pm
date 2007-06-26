@@ -64,16 +64,6 @@ sub check {
 	}
 
 
-	# Bypass FQDN checks for SASL users
-	if ($config{'bypass_for_sasl'}) {
-		return 0 if (defined($request->{'sasl_username'}) && $request->{'sasl_username'} ne "");
-	}
-
-	# Check if helo is an address literal
-	if ($config{'allow_address_literals'}) {
-		return 0 if ($request->{'helo_name'} =~ /^\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]$/);
-	}
-
 	# Check if helo is a FQDN - Only valid characters in a domain is alnum and a -
 	if ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/) {
 
