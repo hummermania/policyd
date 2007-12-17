@@ -24,9 +24,6 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 	registerDatabase
 	getDatabases
 
-	setCheckResult
-	getCheckResult
-
 	setLogger
 );
 
@@ -154,20 +151,6 @@ sub setLogger {
 sub logger {
 	&$logger(@_);
 }
-
-
-# Get status
-sub getCheckResult {
-	return $result;
-}
-
-# Return status from a module
-sub setCheckResult {
-	$result = shift;
-}
-
-
-
 
 
 1;

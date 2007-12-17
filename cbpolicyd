@@ -28,9 +28,6 @@ use cbp::modules qw(
 	getDatabases
 
 	setLogger
-
-	setCheckResult
-	getCheckResult
 );
 
 
@@ -222,8 +219,7 @@ sub process_request {
 		# Check the data we have
 		$self->do_work(\%request);
 		# Grab result & check, DUNNO if no data
-		my $res = getCheckResult();
-		$res = "action=DUNNO" if ($res eq "");
+		my $res = "action=DUNNO";
 		print("$res\n");
 	}
 
@@ -236,16 +232,27 @@ sub do_work {
 	my ($self,$data) = @_;
 
 
-	# Blank result
-	setCheckResult("");
-
 	my @moduleList = getFeatures();
 	foreach my $module (@moduleList) {
-		# RETURN...
-		# -1 - ERROR
-		# 0 - Carry on
-		# 1 - Stop here
-		last if ($module->{'check'}($data) != 0);
+		my $res = $module->{'check'}($data);
+		# This means we must just carry on
+		if (!defined($res)) {
+			$self->log(LOG_ERR,"Ok ... we got undef, do nothing");
+			next;
+
+		# REJECT
+		} elsif ($res =~ /^action=REJECT/i) {
+			$self->log(LOG_ERR,"Ok ... we must reject");
+		
+		# DEFER_IF_PERMIT
+		} elsif ($res =~ /^action=DEFER_IF_PERMIT/i) {
+			$self->log(LOG_ERR,"Ok ... we must defer if we going to permit");
+		
+		# OK
+		} elsif ($res =~ /^action=OK/i) {
+			$self->log(LOG_ERR,"Ok ... total whitelisting");
+
+		}
 	}
 }
 

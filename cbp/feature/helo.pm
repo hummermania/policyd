@@ -41,11 +41,10 @@ sub load {
 	# Defaults
 	$config{'enable'} = 0;
 
+	$config{'bypass_for_sasl'} = 1;
+
 	$config{'enable_whitelist'} = 1;
 	$config{'whitelist_lookup'} = "helo_whitelist";
-
-	$config{'enable_blacklist'} = 1;
-	$config{'blacklist_lookup'} = "helo_blacklist";
 
 	$config{'enable_tracking'} = 1;
 	$config{'tracking_lookup'} = "helo_tracking";
@@ -55,21 +54,30 @@ sub load {
 	$config{'tracking_window_limit'} = 5;
 	
 	$config{'tracking_auto_prune'} = 0;
+	
+	$config{'enable_blacklist'} = 1;
+	$config{'blacklist_lookup'} = "helo_blacklist";
+
+	$config{'reject_unresolvable_helo'} = 0;
+	$config{'reject_ip_address'} = 0;
 
 
 	# Parse in config
 	foreach my $token (
 			"enable",
+			"bypass_for_sasl",
 			"enable_whitelist",
 			"whitelist_lookup",
-			"enable_blacklist",
-			"blacklist_lookup",
 			"enable_tracking",
 			"tracking_lookup",
 			"tracking_update",
 			"tracking_window",
 			"tracking_window_limit",
 			"tracking_auto_prune",
+			"enable_blacklist",
+			"blacklist_lookup",
+			"reject_unresolvable_helo",
+			"reject_ip_address",
 	) {
 		my $val = $ini->val("helo",$token);
 		$config{$token} = $val if (defined($val));
@@ -224,14 +232,6 @@ sub check {
 			return "action=REJECT Rejected HELO/EHLO: Threshold exceeded";
 		}
 	}
-
-
-
-	# check helo validity, does it violate rfc in its construction?
-
-	# check if helo resolves, if not, maybe reject
-	# if helo resolves, set address it resolves to
-
 
 	# Check for stuff to blacklist
 	if ($config{'enable_blacklist'}) {
