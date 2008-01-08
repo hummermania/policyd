@@ -33,9 +33,9 @@ CREATE TABLE policy_acls (
 	/* 
 		Format of key: 
 		NULL = any
-		@domain = domain policy, 
+		@domain = domain specification, 
 		%xyz = xyz group, 
-		abc@domain = abc user policy
+		abc@domain = abc user specification
 	*/
 	Source			TEXT,
 	Destination		TEXT,

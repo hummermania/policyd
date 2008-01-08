@@ -1,7 +1,21 @@
 #!/usr/bin/perl
-# Author: Nigel Kukard  <nkukard@lbsd.net>
-# Date: 2007-06-08
-# Desc: Mail cluebringer policy daemon
+# Cluebringer policy daemon
+# Copyright (C) 2007, Nigel Kukard  <nkukard@lbsd.net>
+# Copyright (C) 2008, LinuxRulz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
 use strict;
@@ -19,16 +33,11 @@ use base qw(Net::Server::PreFork);
 use Config::IniFiles;
 use Data::Dumper;
 use Getopt::Long;
-use cbp::logging;
-# Import module functions
-use cbp::modules qw(
-	loadFeature
-	loadDatabase
-	getFeatures
-	getDatabases
 
-	setLogger
-);
+use cbp::logging;
+
+use cbp::dblayer;
+use cbp::dbilayer;
 
 
 
@@ -43,7 +52,7 @@ sub configure {
 
 	# Set defaults
 	$cfg->{'config_file'} = "/etc/cluebringer.conf";
-	$server->{'timeout'} = 30;
+	$server->{'timeout'} = 120;
 
 	# Parse command line params
 	%{$cmdline} = ();
@@ -72,14 +81,19 @@ sub configure {
 		print(STDERR "ERROR: No configuration file '".$cfg->{'config_file'}."' found!\n");
 		exit 1;
 	}
+	
 	# Use config file, ignore case
-	$inifile = new Config::IniFiles(
+	tie my %inifile, 'Config::IniFiles', (
 			-file => $cfg->{'config_file'},
 			-nocase => 1
-	);
+	) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
+	# Copy config
+	my %config = %inifile;
+	untie(%inifile);
+
 
 	# Pull in params for the server
-	my @params = (
+	my @server_params = (
 			'log_level','log_file',
 			'syslog_logsock', 'syslog_ident', 'syslog_logopt', 'syslog_facility',
 			'port', 'host',
@@ -88,23 +102,29 @@ sub configure {
 			'user', 'group',
 			'timeout'
 	);
-	foreach my $param (@params) {
-		my $val = $inifile->val('server', $param);
-		$server->{$param} = $val if (defined($val));
+	foreach my $param (@server_params) {
+		$server->{$param} = $config{'server'}{$param} if (defined($config{'server'}{$param}));
 	}
+	
 	# Small fixup if we going to be running in background
-	if ((my $val = $inifile->val('server', 'background'))) {
+	if ((my $val = $config{'server'}{'background'})) {
 		$server->{'setsid'} = 1;
 	}
 
-	# Pull in config params
-	$cfg->{'features'} = $inifile->val('server', 'features');
-	$cfg->{'databases'} = $inifile->val('server', 'databases');
+	# Split off modules
+	if (!defined($config{'server'}{'modules'})) {
+		$self->log(LOG_WARN,"Server configuration error: 'modules' not found");
+		exit 1;
+	}
+	$cfg->{'module_list'} = $config{'server'}{'modules'};
+	foreach my $module (@{$cfg->{'modules_list'}}) {
+		$module =~ s/\s+//g;
+	}
 
 	# Save our config and stuff
 	$self->{'config'} = $cfg;
 	$self->{'cmdline'} = $cmdline;
-	$self->{'inifile'} = $inifile;
+	$self->{'inifile'} = \%config;
 }
 
 
@@ -112,61 +132,94 @@ sub configure {
 # Run straight after ->run
 sub post_configure_hook {
 	my $self = shift;
-	my $cfg = $self->{'config'};
 
 
-	setLogger(sub { $self->log(@_); } );
+	$self->log(LOG_NOTICE,"Initializing system modules.");
+	cbp::config::Init($self);
+	# Init caching engine
+	#cbp::cache::Init($self);
+	$self->log(LOG_NOTICE,"System modules initialized.");
 
-	# Check if we have a list of database types
-	if (defined($cfg->{'databases'}) && $cfg->{'databases'} ne "") {
-		$self->log(LOG_DEBUG,"[CBPOLICYD] Loading databases...");
-		# Load modules
-		foreach (split(/[, ]/,$cfg->{'databases'})) {
-			loadDatabase($_,$self);
+
+	$self->log(LOG_NOTICE,"Module load started...");
+	# Load modules
+	foreach my $module (@{$self->{'config'}{'module_list'}}) {
+		# Load module
+		my $res = eval("
+			use cbp::modules::$module;
+			plugin_register(\$self,\"$module\",\$cbp::modules::${module}::pluginInfo);
+		");
+		if ($@ || (defined($res) && $res != 0)) {
+			$self->log(LOG_WARN,"WARNING: Error loading plugin $module ($@)");
 		}
-		$self->log(LOG_DEBUG,"[CBPOLICYD] Loaded ".getDatabases()." databases.\n");
 	}
 
-	# Check if we have a feature list
-	if (defined($cfg->{'features'}) && $cfg->{'features'} ne "") {
-		$self->log(LOG_DEBUG,"[CBPOLICYD] Loading features...");
-		# Load modules
-		foreach (split(/[, ]/,$cfg->{'features'})) {
-			loadFeature($_,$self);
-		}
-		$self->log(LOG_DEBUG,"[CBPOLICYD] Loaded ".getFeatures()." features.\n");
-	}
-
+	$self->log(LOG_NOTICE,"Module load done.");
 }
 
 
-# Initialize the child
-sub child_init_hook {
+# Register plugin info
+sub plugin_register {
+	my ($self,$module,$info) = @_;
+
+
+	# If no info, return
+	if (!defined($info)) {
+		$self->log(LOG_WARN,"WARNING: Plugin info not found for module => $module");
+		return -1;
+	}
+
+	# Set real module name & save
+	$info->{'Module'} = $module;
+	push(@{$self->{'modules'}},$info);
+
+	# If we should, init the module
+	if (defined($info->{'init'})) {
+			$info->{'init'}($self);
+	}
+
+	$self->log(LOG_NOTICE,"  => $module");
+
+	return 0;
+}
+
+
+# Initialize child
+sub child_init_hook
+{
 	my $self = shift;
-	my $server = $self->{'server'};
-	my $cfg = $self->{'config'};
 
+	
+	$self->SUPER::child_init_hook();
+	
+#	$self->log(4,"Starting up caching engine ($$)");
+#	cbp::cache::connect($self);
 
-	# Create child specific contexts
-	my @moduleList = getFeatures();
-	foreach my $module (@moduleList) {
-		$module->{'init'}($self) if (defined($module->{'init'}));
+	# Init system stuff
+	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
+	if (!defined($self->{'client'}->{'dbh'})) {
+		$self->log(LOG_WARN,"Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
+		die;
 	}
+	if ($self->{'client'}->{'dbh'}->connect()) {
+		$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+		die;
+	}
+
 }
+
+
 
 
 # Destroy the child
 sub child_finish_hook {
 	my $self = shift;
 	my $server = $self->{'server'};
-	my $cfg = $self->{'config'};
 
-
-	# Create child specific contexts
-	my @moduleList = getFeatures();
-	foreach my $module (@moduleList) {
-		$module->{'finish'}($self) if (defined($module->{'finish'}));
-	}
+	$self->SUPER::child_init_hook();
+	
+#	$self->log(LOG_DEBUG,"Shutting down caching engine ($$)");
+#	cbp::cache::disconnect($self);
 }
 
 
@@ -175,6 +228,9 @@ sub process_request {
 	my $self = shift;
 	my $server = $self->{'server'};
 
+
+	# Setup database handle
+	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 	my %request;
 
@@ -213,7 +269,6 @@ sub process_request {
 		$request{'_timestamp'} = time();
 		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
 
-
 		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
 
 		# Check the data we have
@@ -233,9 +288,13 @@ sub do_work {
 	my ($self,$data) = @_;
 
 
-	my @moduleList = getFeatures();
-	foreach my $module (@moduleList) {
-		my $res = $module->{'check'}($data);
+	# Loop with modules
+	foreach my $module (@{$self->{'modules'}}) {
+		
+		# Run check
+		my $res = $module->{'check'}($self,$data);
+
+
 		# This means we must just carry on
 		if (!defined($res)) {
 			$self->log(LOG_ERR,"Ok ... we got undef, do nothing");
@@ -258,12 +317,27 @@ sub do_work {
 }
 
 
+# Initialize child
+sub server_exit
+{
+	my $self = shift;
+
+	
+	$self->log(2,"Destroying system modules.");
+	# Destroy cache
+#	cbp::cache::Destroy($self);
+	$self->log(2,"System modules destroyed.");
+
+	$self->SUPER::server_exit();
+}
+
+
+
 # Slightly better logging
-sub log {
-	my ($self,$level,$msg) = @_;
-
-
-	$self->SUPER::log($level,"$$ => ".$msg);
+sub log
+{
+	my ($self,$level,$msg,@args) = @_;
+	$self->SUPER::log($level,"[".$self->log_time." - $$] $msg",@args);
 }
 
 
@@ -279,7 +353,7 @@ EOF
 }
 
 
-print(STDERR "ClueBringer v$VERSION - Copyright (c) 2007 LinuxRulz\n");
+print(STDERR "ClueBringer v$VERSION - Copyright (c) 2007-2008 LinuxRulz\n");
 
 
 __PACKAGE__->run;
