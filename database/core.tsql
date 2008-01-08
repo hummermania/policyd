@@ -1,0 +1,115 @@
+@PRELOAD@
+
+
+/* Policies */
+CREATE TABLE policies (
+	ID			@SERIAL_TYPE@,
+
+	Name			TINYTEXT NOT NULL,
+	Description		TEXT,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
+
+) @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO policies (Name,Description) VALUES ('Default','Default System Policy');
+INSERT INTO policies (Name,Description) VALUES ('Default Outbound','Default Outbound System Policy');
+INSERT INTO policies (Name,Description) VALUES ('Default Inbound','Default Inbound System Policy');
+INSERT INTO policies (Name,Description) VALUES ('Default Internal','Default Internal System Policy');
+INSERT INTO policies (Name,Description) VALUES ('Test','Test policy');
+
+
+/* Access control list for policies */
+CREATE TABLE policy_acls (
+	ID			@SERIAL_TYPE@,
+
+	PolicyID		@SERIAL_REF_TYPE@,
+
+	Priority		SMALLINT NOT NULL,
+
+	/* Matching IP masks, or NULL if any, comma separated */
+	SourceIP		TEXT,
+
+	/* 
+		Format of key: 
+		NULL = any
+		@domain = domain policy, 
+		%xyz = xyz group, 
+		abc@domain = abc user policy
+	*/
+	Source			TEXT,
+	Destination		TEXT,
+
+
+	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+/* 
+Priorities...
+	0      - System policy priority (fallthrough)
+	1-50   - System policies
+	50-100 - Custom policies
+*/
+
+/* Default System Policy */
+INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
+	(1,0,NULL,NULL,NULL);
+/* Default Outbound System Policy */
+INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
+	(2,10,"10.254.254.0/24",NULL,"!%internal");
+/* Default Inbound System Policy */
+INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
+	(3,10,"!10.254.254.0/24",NULL,"%internal");
+/* Default Internal System Policy */
+INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
+	(4,20,NULL,"%internal","%internal");
+/* Test Policy */
+INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
+	(4,0,NULL,NULL,NULL);
+
+
+
+/* Groups usable in ACL */
+CREATE TABLE policy_groups (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	Comment			VARCHAR(1024),
+
+
+	UNIQUE (Name)
+)  @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO policy_groups (Name) VALUES ("internal");
+
+
+
+/* Group members */
+CREATE TABLE policy_group_members (
+	ID			@SERIAL_TYPE@,
+
+	GroupID			@SERIAL_REF_TYPE@,
+
+	/* Format of member: @domain = domain, %xyz = xyz group, abc@domain = abc user */
+	Member			VARCHAR(255) NOT NULL,
+	
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+	Comment			VARCHAR(1024),
+
+
+	FOREIGN KEY (ID) REFERENCES groups(ID)
+)  @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO policy_group_members (GroupID,Member) VALUES (1,"root@localhost");
+
+
+
+
+
+

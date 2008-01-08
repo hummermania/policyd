@@ -1,0 +1,32 @@
+
+CREATE TABLE quotas (
+	ID			@SERIAL_TYPE@,
+
+	PolicyID		@SERIAL_REF_TYPE@,
+
+
+	/* Period over which this policy is valid,  this is in seconds */
+	Period			@BIG_INTEGER@,
+
+	/* Quotas */
+	MessageCount		@BIG_INTEGER@,
+	MessageCountDelta	DECIMAL(10,2),  /* This stores the current counter */
+
+	MessageCumulativeSize	@BIG_INTEGER@,
+	MessageCumulativeSizeDelta	DECIMAL(10,2),  /* This stores the current counter */
+
+	/* Limits */
+	MessageMaxSize		@BIG_INTEGER@,
+
+
+	/* Last time this record was update */
+	LastUpdate		DATETIME,  /* NULL means not updated yet */	
+
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	Comment			VARCHAR(1024),
+
+	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+) @CREATE_TABLE_SUFFIX@;
+

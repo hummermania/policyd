@@ -197,7 +197,8 @@ sub prepare {
 			my $val = join(',',@vals);
 			$query =~ s/%array:$macro%/$val/g;
 		} else {
-			my $val = $self->{'_backend'}->quote(defined($params->{$macro}) ? $params->{$macro} : "");
+			my $val = $self->{'_backend'}->quote(defined($params->{$macro}) ? 
+					$params->{$macro} : "");
 			$query =~ s/%$macro%/$val/g;
 		}
 	}

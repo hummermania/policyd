@@ -218,6 +218,7 @@ sub process_request {
 
 		# Check the data we have
 		$self->do_work(\%request);
+
 		# Grab result & check, DUNNO if no data
 		my $res = "action=DUNNO";
 		print("$res\n");
