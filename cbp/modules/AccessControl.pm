@@ -67,7 +67,7 @@ sub check {
 	my ($server,$request) = @_;
 	
 	use Data::Dumper;
-	$server->log(LOG_DEBUG,"CHECK: ".Dumper($request));
+#	$server->log(LOG_DEBUG,"CHECK: ".Dumper($request));
 
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
