@@ -1,0 +1,23 @@
+
+/* Plain and simple access control */
+
+CREATE TABLE access_control (
+	ID			@SERIAL_TYPE@,
+
+	PolicyID		@SERIAL_REF_TYPE@,
+
+
+	Verdict			TINYTEXT,
+	Data			TEXT,
+
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	Comment			VARCHAR(1024),
+
+	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO access_control (PolicyID,Verdict,Data) VALUES (5,'REJECT','POP,SNAPPLE,CRAK');
+
+
