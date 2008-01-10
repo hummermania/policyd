@@ -1,22 +1,32 @@
 @PRELOAD@
 
 
+/* 
+Priorities...
+	0      - System policy priority (fallthrough)
+	1-50   - System policies
+	50-100 - Custom policies
+*/
+
 /* Policies */
 CREATE TABLE policies (
 	ID			@SERIAL_TYPE@,
 
 	Name			TINYTEXT NOT NULL,
+
+	Priority		SMALLINT NOT NULL,
+
 	Description		TEXT,
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0'
 
 ) @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO policies (Name,Description) VALUES ('Default','Default System Policy');
-INSERT INTO policies (Name,Description) VALUES ('Default Outbound','Default Outbound System Policy');
-INSERT INTO policies (Name,Description) VALUES ('Default Inbound','Default Inbound System Policy');
-INSERT INTO policies (Name,Description) VALUES ('Default Internal','Default Internal System Policy');
-INSERT INTO policies (Name,Description) VALUES ('Test','Test policy');
+INSERT INTO policies (Name,Priority,Description) VALUES ('Default',0,'Default System Policy');
+INSERT INTO policies (Name,Priority,Description) VALUES ('Default Outbound',10,'Default Outbound System Policy');
+INSERT INTO policies (Name,Priority,Description) VALUES ('Default Inbound',10,'Default Inbound System Policy');
+INSERT INTO policies (Name,Priority,Description) VALUES ('Default Internal',20,'Default Internal System Policy');
+INSERT INTO policies (Name,Priority,Description) VALUES ('Test',50,'Test policy');
 
 
 /* Access control list for policies */
@@ -25,48 +35,40 @@ CREATE TABLE policy_acls (
 
 	PolicyID		@SERIAL_REF_TYPE@,
 
-	Priority		SMALLINT NOT NULL,
-
-	/* Matching IP masks, or NULL if any, comma separated */
-	SourceIP		TEXT,
-
 	/* 
 		Format of key: 
 		NULL = any
+		a.b.c.d/e = IP address with optional /e
 		@domain = domain specification, 
 		%xyz = xyz group, 
 		abc@domain = abc user specification
+
+		all options support negation using !<key>
 	*/
 	Source			TEXT,
 	Destination		TEXT,
 
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
 	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
 
-/* 
-Priorities...
-	0      - System policy priority (fallthrough)
-	1-50   - System policies
-	50-100 - Custom policies
-*/
-
 /* Default System Policy */
-INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
-	(1,0,NULL,NULL,NULL);
+INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+	(1,NULL,NULL);
 /* Default Outbound System Policy */
-INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
-	(2,10,"10.254.254.0/24",NULL,"!%internal");
+INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+	(2,"%internal_ips,%internal_domains","!%internal_domains");
 /* Default Inbound System Policy */
-INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
-	(3,10,"!10.254.254.0/24",NULL,"%internal");
+INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+	(3,"!%internal_ips,!%internal_domains","%internal_domains");
 /* Default Internal System Policy */
-INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
-	(4,20,NULL,"%internal","%internal");
+INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+	(4,"%internal_ips,%internal_domains","%internal_domains");
 /* Test Policy */
-INSERT INTO policy_acls (PolicyID,Priority,SourceIP,Source,Destination) VALUES
-	(4,0,NULL,NULL,NULL);
+INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+	(5,"@lbsd.net",NULL);
 
 
 
@@ -85,7 +87,8 @@ CREATE TABLE policy_groups (
 	UNIQUE (Name)
 )  @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO policy_groups (Name) VALUES ("internal");
+INSERT INTO policy_groups (Name) VALUES ("internal_ips");
+INSERT INTO policy_groups (Name) VALUES ("internal_domains");
 
 
 
@@ -93,9 +96,9 @@ INSERT INTO policy_groups (Name) VALUES ("internal");
 CREATE TABLE policy_group_members (
 	ID			@SERIAL_TYPE@,
 
-	GroupID			@SERIAL_REF_TYPE@,
+	PolicyGroupID		@SERIAL_REF_TYPE@,
 
-	/* Format of member: @domain = domain, %xyz = xyz group, abc@domain = abc user */
+	/* Format of member: a.b.c.d/e = ip,  @domain = domain, %xyz = xyz group, abc@domain = abc user */
 	Member			VARCHAR(255) NOT NULL,
 	
 
@@ -106,7 +109,10 @@ CREATE TABLE policy_group_members (
 	FOREIGN KEY (ID) REFERENCES groups(ID)
 )  @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO policy_group_members (GroupID,Member) VALUES (1,"root@localhost");
+INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (1,"10.0.0.0/8");
+INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,"@example.org");
+INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,"@example.net");
+INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,"@example.com");
 
 
 
