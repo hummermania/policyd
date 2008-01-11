@@ -46,12 +46,17 @@ sub init {
 	# Defaults
 	$config{'enable'} = 0;
 
-
 	# Parse in config
 	if (defined($inifile->{'accesscontrol'})) {
 		foreach my $key (keys %{$inifile->{'accesscontrol'}}) {
 			$config{$key} = $inifile->{'accesscontrol'}->{$key};
 		}
+	}
+
+	# Check if enabled
+	if ($config{'enable'} =~ /^\s*(y|yes|1|on)\s*$/i) {
+		$server->log(LOG_NOTICE,"  => AccessControl: enabled");
+		$config{'enable'} = 1;
 	}
 }
 
@@ -66,15 +71,58 @@ sub finish {
 sub check {
 	my ($server,$request) = @_;
 	
-	use Data::Dumper;
-#	$server->log(LOG_DEBUG,"CHECK: ".Dumper($request));
 
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
+	$server->log(LOG_DEBUG,"enabled");
 
 	# We only valid in the RCPT state
 	return undef if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
+	$server->log(LOG_DEBUG,"protocol_state");
 
+
+	use Data::Dumper;
+	$server->log(LOG_DEBUG,Dumper($request));
+
+	# Our verdict and data
+	my ($verdict,$verdict_data);
+
+	# Loop with priorities, high to low
+	foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}}) {
+		
+		foreach my $policyID (@{$request->{'_policy'}->{$priority}}) {
+			$server->log(LOG_DEBUG, "Priority: '$priority', Policy: '$policyID'\n");
+
+			my $sth = DBSelect("
+				SELECT
+					Verdict, Data
+				FROM
+					access_control
+				WHERE
+					PolicyID = ".DBQuote($policyID)."
+					AND Disabled = 0
+			");
+			if (!$sth) {
+				$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
+				return undef;
+			}
+			my $row = $sth->fetchrow_hashref();
+			DBFreeRes($sth);
+			# If no result, next
+			next if (!$row);
+
+			# Setup result
+			$verdict = $row->{'Verdict'};
+			$verdict_data = $row->{'Data'};
+
+			$server->log(LOG_DEBUG, "Verdict: '".$row->{'Verdict'}."', Data: '".$row->{'Data'}."'\n");
+		}
+
+		# Last if we found something
+		last if ($verdict);
+	}
+
+	return ($verdict,$verdict_data);
 }
 
 

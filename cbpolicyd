@@ -26,7 +26,7 @@ package cbp;
 
 
 # Version
-my $VERSION = "0.1";
+my $VERSION = "2.0.0a";
 
 
 use base qw(Net::Server::PreFork);
@@ -38,7 +38,9 @@ use cbp::logging;
 
 use cbp::dblayer;
 use cbp::dbilayer;
+use cbp::cache;
 
+use cbp::policies qw(getPolicy);
 
 
 # Override configuration
@@ -137,7 +139,7 @@ sub post_configure_hook {
 	$self->log(LOG_NOTICE,"Initializing system modules.");
 	cbp::config::Init($self);
 	# Init caching engine
-	#cbp::cache::Init($self);
+	cbp::cache::Init($self);
 	$self->log(LOG_NOTICE,"System modules initialized.");
 
 
@@ -178,7 +180,6 @@ sub plugin_register {
 			$info->{'init'}($self);
 	}
 
-	$self->log(LOG_NOTICE,"  => $module");
 
 	return 0;
 }
@@ -192,8 +193,8 @@ sub child_init_hook
 	
 	$self->SUPER::child_init_hook();
 	
-#	$self->log(4,"Starting up caching engine ($$)");
-#	cbp::cache::connect($self);
+	$self->log(4,"Starting up caching engine");
+	cbp::cache::connect($self);
 
 	# Init system stuff
 	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
@@ -218,8 +219,8 @@ sub child_finish_hook {
 
 	$self->SUPER::child_init_hook();
 	
-#	$self->log(LOG_DEBUG,"Shutting down caching engine ($$)");
-#	cbp::cache::disconnect($self);
+	$self->log(LOG_DEBUG,"Shutting down caching engine ($$)");
+	cbp::cache::disconnect($self);
 }
 
 
@@ -269,7 +270,18 @@ sub process_request {
 		$request{'_timestamp'} = time();
 		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
 
-		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
+		# Pull in policy, by this time we should have all the info we need
+		if ($request{'protocol_state'} eq "RCPT") {
+			my $policy = getPolicy($request{'client_address'},$request{'sender'},$request{'recipient'});
+			if (!defined($policy)) {
+				$self->log(LOG_ERR,"[CBPOLICYD] Failed to retriev policy: ".cbp::policies::Error());
+			}
+			$request{'_policy'} = $policy;
+
+		}
+
+#		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
+#		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Policies:\n".Dumper($request{'_policy'}));
 
 		# Check the data we have
 		$self->do_work(\%request);
@@ -288,32 +300,43 @@ sub do_work {
 	my ($self,$data) = @_;
 
 
+	# Set default result
+	my $result = "DUNNO";
+
 	# Loop with modules
 	foreach my $module (@{$self->{'modules'}}) {
 		
 		# Run check
-		my $res = $module->{'check'}($self,$data);
+		my ($verdict,$verdict_data) = $module->{'check'}($self,$data);
 
+		# Next if no verdict
+		next if (!$verdict);
 
-		# This means we must just carry on
-		if (!defined($res)) {
-			$self->log(LOG_ERR,"Ok ... we got undef, do nothing");
-			next;
 
 		# REJECT
-		} elsif ($res =~ /^action=REJECT/i) {
+		if ($verdict =~ /^reject$/i) {
 			$self->log(LOG_ERR,"Ok ... we must reject");
-		
-		# DEFER_IF_PERMIT
-		} elsif ($res =~ /^action=DEFER_IF_PERMIT/i) {
-			$self->log(LOG_ERR,"Ok ... we must defer if we going to permit");
+			# Set verdict data
+			$verdict_data = "Policy Rejection" if (!defined($verdict_data));
+			$result = "REJECT $verdict_data";
 		
 		# OK
-		} elsif ($res =~ /^action=OK/i) {
+		} elsif ($verdict =~ /^ok/i) {
 			$self->log(LOG_ERR,"Ok ... total whitelisting");
+			# Set verdict data
+			$result = "OK";
 
 		}
 	}
+
+	$self->log(LOG_ERR,"Policy Result: $result");
+
+	# Make sure we have no newline
+	chomp($result);
+
+	# Send result
+	print("action=$result\n");
+	print("\n");
 }
 
 
@@ -325,7 +348,7 @@ sub server_exit
 	
 	$self->log(2,"Destroying system modules.");
 	# Destroy cache
-#	cbp::cache::Destroy($self);
+	cbp::cache::Destroy($self);
 	$self->log(2,"System modules destroyed.");
 
 	$self->SUPER::server_exit();

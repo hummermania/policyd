@@ -1,6 +1,6 @@
 echo '\c postgres'
-echo "DROP DATABASE wiaflos;"
-echo "CREATE DATABASE wiaflos;"
+echo "DROP DATABASE policydv2;"
+echo "CREATE DATABASE policydv2;"
 echo '\c wiaflos'
 sed \
 	-e 's/@PRELOAD@/SET CONSTRAINTS ALL DEFERRED;/' \

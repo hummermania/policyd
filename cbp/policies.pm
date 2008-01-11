@@ -107,8 +107,6 @@ sub getPolicy
 	# Process the ACL's
 	foreach my $policyACL (@policyACLs) {
 
-		print(STDERR Dumper($policyACL));
-
 		#
 		# Source Test
 		#
@@ -148,21 +146,15 @@ sub getPolicy
 			
 			# Process sources and see if we match
 			foreach my $source (@sources) {
-				print(STDERR "-> Source: $source\n");
-
 				my $res = 0;
 
 				# Match IP
 				if ($source =~ /^(!?)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))$/) {
-					print(STDERR "  -> its an IP\n");
 					$res = ipMatches($sourceIP,$source);
-					print(STDERR "  -> IP result: $res\n");
 
 				# Match email addy
 				} elsif ($source =~ /^(!)?\S*@\S+$/) {
-					print(STDERR "  -> its an email address/domain\n");
 					$res = emailAddressMatches($emailFrom,$source);
-					print(STDERR "  -> email result: $res\n");
 				} else {
 					setError("Source '".$source."' is not valid in policy '".$policyACL->{'Name'}."' acl or group");
 					return undef;
@@ -177,7 +169,6 @@ sub getPolicy
 			}
 
 			# Check if we passed the tests
-			print(STDERR "SOURCE TEST: $sourceMatch\n");
 			next if (!$sourceMatch);
 		}
 
@@ -220,15 +211,11 @@ sub getPolicy
 			
 			# Process destinations and see if we match
 			foreach my $destination (@destinations) {
-				print(STDERR "-> Destination: $destination\n");
-
 				my $res = 0;
 
 				# Match email addy
 				if ($destination =~ /^(!)?\S*@\S+$/) {
-					print(STDERR "  -> its an email address/domain\n");
 					$res = emailAddressMatches($emailTo,$destination);
-					print(STDERR "  -> email result: $res\n");
 				} else {
 					setError("Destination '".$destination."' is not valid in policy '".$policyACL->{'Name'}."' acl or group");
 					return undef;
@@ -243,12 +230,10 @@ sub getPolicy
 			}
 
 			# Check if we passed the tests
-			print(STDERR "DESTINATION TEST: $destinationMatch\n");
 			next if (!$destinationMatch);
 		}
 
-		print(STDERR "FINAL MATCH! ".$policyACL->{'PolicyID'}."\n");
-		$matchedPolicies{$policyACL->{'Priority'}} = $policyACL->{'PolicyID'};
+		push(@{$matchedPolicies{$policyACL->{'Priority'}}},$policyACL->{'PolicyID'});
 	}
 
 	return \%matchedPolicies;
@@ -319,16 +304,12 @@ sub ipMatches
 	# Convert to quad;/
 	my $cidr_network = long_to_ip($cidr_network_long);
 	my $cidr_broadcast = long_to_ip($cidr_broadcast_long);
-	printf(STDERR "    -> MATCH?  =>  Negate = %s, src = %s ($cidr_network_long-$cidr_broadcast_long), mask = %s, client = %s\n", 
-			$cidr_negate ? 'yes' : 'no', $cidr_address, $cidr_mask ? $cidr_mask : '-', $ip_long);
 
 	# Default to no match
 	my $match = 0;
 
 	# Check IP is within range
 	if ($ip_long >= $cidr_network_long && $ip_long <= $cidr_broadcast_long) {
-		print(STDERR "    -> IP IS WITHIN RANGE\n");
-
 		# Check for match, we cannot be negating though
 		if (!$cidr_negate) {
 			$match = 1;
