@@ -17,9 +17,24 @@
 
 
 
+package cbp::system;
+
 use strict;
 use warnings;
 
+# Exporter stuff
+require Exporter;
+our (@ISA,@EXPORT);
+@ISA = qw(Exporter);
+@EXPORT = qw(
+	isValidIP
+
+	ip_to_long
+	long_to_ip
+	ipbits_to_mask
+
+	IPMASK
+);
 
 use Socket qw(
 	inet_ntoa
