@@ -1,27 +1,21 @@
 
+/* Main quotas table, this defines the period the quota is over and how to track it */
 CREATE TABLE quotas (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
 
+	/* Tracking Options */
+	Track			TINYTEXT NOT NULL,  /* Format:   <type>:<spec>
+
+					      SenderIP - This takes a bitmask to mask the IP with. A good default is /24 
+
+					      Sender & Recipient - Either "user@domain" (default), "user" or "domain" for the entire 
+					      		email addy or email addy domain respectively. 
+					   */
 
 	/* Period over which this policy is valid,  this is in seconds */
 	Period			@BIG_INTEGER@,
-
-	/* Quotas */
-	MessageCount		@BIG_INTEGER@,
-	MessageCountDelta	DECIMAL(10,2),  /* This stores the current counter */
-
-	MessageCumulativeSize	@BIG_INTEGER@,
-	MessageCumulativeSizeDelta	DECIMAL(10,2),  /* This stores the current counter */
-
-	/* Limits */
-	MessageMaxSize		@BIG_INTEGER@,
-
-
-	/* Last time this record was update */
-	LastUpdate		DATETIME,  /* NULL means not updated yet */	
-
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
@@ -29,4 +23,47 @@ CREATE TABLE quotas (
 
 	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
+INSERT INTO quotas (PolicyID,Track,Period) VALUES (5,'Recipient:user@domain',3600);
+INSERT INTO quotas (PolicyID,Track,Period) VALUES (5,'SenderIP:/24',3600);
+
+
+/* Limits for the quota */
+CREATE TABLE quotas_limits (
+	ID			@SERIAL_TYPE@,
+
+	QuotasID		@SERIAL_REF_TYPE@,
+
+	Type			TINYTEXT,  /* "MessageCount" or "MessageCumulativeSize" */
+	CounterLimit		@BIG_INTEGER@,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	Comment			VARCHAR(1024),
+
+	FOREIGN KEY (QuotasID) REFERENCES quotas(ID)
+) @CREATE_TABLE_SUFFIX@;
+INSERT INTO quotas_limits (QuotasID,Type,CounterLimit) VALUES (1,'MessageCount',10);
+INSERT INTO quotas_limits (QuotasID,Type,CounterLimit) VALUES (1,'MessageCumulativeSize',8000);
+INSERT INTO quotas_limits (QuotasID,Type,CounterLimit) VALUES (2,'MessageCount',12);
+
+
+/* This table is used for tracking the quotas */
+CREATE TABLE quotas_tracking (
+	ID			@SERIAL_TYPE@,
+
+	QuotasLimitsID		@SERIAL_REF_TYPE@,
+	Key			VARCHAR(255),
+
+	/* Last time this record was update */
+	LastUpdate		DATETIME,  /* NULL means not updated yet */	
+
+	Counter			DECIMAL(10,4),
+	
+
+	UNIQUE (QuotasLimitsID,Key),
+	FOREIGN KEY (QuotasLimitsID) REFERENCES quotas_limits(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
 
