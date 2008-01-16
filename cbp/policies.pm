@@ -98,7 +98,6 @@ sub getPolicy
 	# Loop with results
 	my @policyACLs;
 	while (my $row = $sth->fetchrow_hashref()) {
-		use Data::Dumper;
 		push(@policyACLs,$row);
 	}
 
@@ -114,7 +113,6 @@ sub getPolicy
 		if (defined($policyACL->{'Source'}) && lc($policyACL->{'Source'}) ne "any") {
 			# Split off sources
 			my @rawSources = split(/,/,$policyACL->{'Source'});
-
 
 			# Parse in group data
 			my @sources;
@@ -235,6 +233,7 @@ sub getPolicy
 
 		push(@{$matchedPolicies{$policyACL->{'Priority'}}},$policyACL->{'PolicyID'});
 	}
+
 
 	return \%matchedPolicies;
 }
