@@ -74,24 +74,18 @@ sub check {
 
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
-	$server->log(LOG_DEBUG,"enabled");
 
 	# We only valid in the RCPT state
 	return undef if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
-	$server->log(LOG_DEBUG,"protocol_state");
-
-
-	use Data::Dumper;
-	$server->log(LOG_DEBUG,Dumper($request));
 
 	# Our verdict and data
 	my ($verdict,$verdict_data);
 
 	# Loop with priorities, high to low
 	foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}}) {
-		
+
+		# Loop with policies
 		foreach my $policyID (@{$request->{'_policy'}->{$priority}}) {
-			$server->log(LOG_DEBUG, "Priority: '$priority', Policy: '$policyID'\n");
 
 			my $sth = DBSelect("
 				SELECT
@@ -115,12 +109,12 @@ sub check {
 			$verdict = $row->{'Verdict'};
 			$verdict_data = $row->{'Data'};
 
-			$server->log(LOG_DEBUG, "Verdict: '".$row->{'Verdict'}."', Data: '".$row->{'Data'}."'\n");
-		}
+		} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
 
 		# Last if we found something
 		last if ($verdict);
-	}
+
+	} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}})
 
 	return ($verdict,$verdict_data);
 }
