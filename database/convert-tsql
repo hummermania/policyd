@@ -1,0 +1,90 @@
+#!/bin/bash
+# Database translation/creation script
+# Copyright (C) 2008, LinuxRulz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+database="$1"
+file="$2"
+
+
+# Display usage info
+display_usage() {
+    echo "Usage: $0 <database type> <file>"
+    echo
+    echo "Valid database types:"
+    echo "      mysql"
+    echo "      pgsql"
+    echo "      sqlite"
+    echo 
+    exit
+}
+
+
+# Check we have our params
+if [ -z "$database" -o -z "$file" ]
+then
+    display_usage
+fi
+
+
+
+# Check file exists
+if [ ! -f "$file" ]
+then
+    echo "ERROR: Cannot open file '$file'"
+    exit 1
+fi
+
+# Check what we converting for
+case "$database" in
+    	"mysql")
+		sed \
+			-e 's/@PRELOAD@/SET FOREIGN_KEY_CHECKS=0;/' \
+			-e 's/@POSTLOAD@/SET FOREIGN_KEY_CHECKS=1;/' \
+			-e 's/@CREATE_TABLE_SUFFIX@/TYPE=InnoDB/' \
+			-e 's/@SERIAL_TYPE@/SERIAL/' \
+			-e 's/@BIG_INTEGER@/BIGINT UNSIGNED/' \
+			-e 's/@SERIAL_REF_TYPE@/BIGINT UNSIGNED/' < "$file"
+		;;
+
+	"pgsql")
+		sed \
+			-e 's/@PRELOAD@/SET CONSTRAINTS ALL DEFERRED;/' \
+			-e 's/@POSTLOAD@//' \
+			-e 's/@CREATE_TABLE_SUFFIX@//' \
+			-e 's/@SERIAL_TYPE@/SERIAL/' \
+			-e 's/@BIG_INTEGER@/INT8/' \
+			-e 's/@SERIAL_REF_TYPE@/INT8/' < "$file"
+		;;
+
+	"sqlite")
+		sed \
+			-e 's/@PRELOAD@//' \
+			-e 's/@POSTLOAD@//' \
+			-e 's/@CREATE_TABLE_SUFFIX@//' \
+			-e 's/@SERIAL_TYPE@/INTEGER PRIMARY KEY AUTOINCREMENT/' \
+			-e 's/@BIG_INTEGER@/INT8/' \
+			-e 's/@SERIAL_REF_TYPE@/INT8/' < "$file"
+		;;
+
+	*)
+	    echo "ERROR: Invalid database type '$database'"
+	    exit 1
+	    ;;
+
+esac
+
+

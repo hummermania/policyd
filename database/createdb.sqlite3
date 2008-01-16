@@ -1,4 +1,0 @@
-rm -f ../cluebringer.sqlite
-sh sqlite3.sh < core.tsql | sqlite3 ../cluebringer.sqlite
-sh sqlite3.sh < quotas.tsql | sqlite3 ../cluebringer.sqlite
-sh sqlite3.sh < access_control.tsql | sqlite3 ../cluebringer.sqlite
