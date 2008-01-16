@@ -270,28 +270,105 @@ sub process_request {
 		$request{'_timestamp'} = time();
 		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
 
+
 		# Pull in policy, by this time we should have all the info we need
 		if ($request{'protocol_state'} eq "RCPT") {
 			my $policy = getPolicy($request{'client_address'},$request{'sender'},$request{'recipient'});
 			if (!defined($policy)) {
-				$self->log(LOG_ERR,"[CBPOLICYD] Failed to retriev policy: ".cbp::policies::Error());
+				$self->log(LOG_ERR,"[CBPOLICYD] Failed to retrieve policy: ".cbp::policies::Error());
 			}
 			$request{'_policy'} = $policy;
 
+
+		# Restore policies	
+		} elsif ($request{'protocol_state'} eq "END-OF-MESSAGE") {
+			my $sth = DBSelect("
+				SELECT
+					Recipient,Policies
+				FROM
+					session_tracking
+				WHERE
+					Instance = ".DBQuote($request{'instance'})."
+			");
+			my %rawPolicies;
+			my %recipientToPolicy;
+			# Build policy str list and recipients list
+			while (my $row = $sth->fetchrow_hashref()) {
+				# Loop with policies
+				foreach my $policy (split(/;/,$row->{'Policies'})) {
+					my ($prio,$pids) = ( $policy =~ /(\d+)=(.*)/ );
+					foreach my $pid (split(/,/,$pids)) {
+						$rawPolicies{$prio}{$pid} = 1;
+						push(@{$recipientToPolicy{$prio}{$row->{'Recipient'}}},$pid);
+					}
+				}
+			}
+			DBFreeRes($sth);
+
+			# Build final policy list
+			my $policyHash;
+			foreach my $prio (keys %rawPolicies) {
+				$policyHash->{$prio} = [ keys %{$rawPolicies{$prio}} ] ;
+			}
+
+			$request{'_policy'} = $policyHash;
+			$request{'_recipient_policy'} = \%recipientToPolicy;
 		}
 
 #		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
 #		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Policies:\n".Dumper($request{'_policy'}));
 
 		# Check the data we have
-		$self->do_work(\%request);
+		my $verdict = $self->do_work(\%request);
 
+		# Check if state is RCPT and we not rejecting, dropping or redirecting message
+		if ($request{'protocol_state'} eq "RCPT" && !($verdict =~ /action=(REJECT|DISCARD|REDIRECT)/)) {
+			# SAVE POLICY DATE PER RECEIPT, WE WANT TO RESTORE FOR THE E-O-M
+
+			my $policyStr;
+			foreach my $priority (keys %{$request{'_policy'}}) {
+				$policyStr .= sprintf('%s=%s;',$priority,join(',',@{$request{'_policy'}->{$priority}}));
+			}
+
+			# Chop off trailing ;
+			chop($policyStr) if (defined($policyStr));
+
+			# Record tracking info
+			my $sth = DBDo("
+					INSERT INTO session_tracking 
+						(Instance,Timestamp,Recipient,Policies) 
+					VALUES
+						(
+							".DBQuote($request{'instance'}).",
+							".DBQuote($request{'_timestamp'}).",
+							".DBQuote($request{'recipient'}).",
+							".DBQuote($policyStr)."
+						)
+			");
+			if (!$sth) {
+				$self->log(LOG_ERR,"[CBPOLICYD] Failed to record sessing tracking info: ".cbp::dblayer::Error());
+			}
+
+		# When we done and we got E-O-M, nuke tracking
+		} elsif ($request{'protocol_state'} eq "END-OF-MESSAGE") {
+			my $sth = DBDo("
+					DELETE FROM 
+						session_tracking 
+					WHERE
+						Instance = ".DBQuote($request{'instance'})."
+			");
+			if (!$sth) {
+				$self->log(LOG_ERR,"[CBPOLICYD] Failed to remove sessing tracking info: ".cbp::dblayer::Error());
+			}
+		}
+		
 		# Grab result & check, DUNNO if no data
-		my $res = "action=DUNNO";
-		print("$res\n");
+		print("$verdict\n");
+		print("\n");
+
 	}
 
-	print("\n");
+
 }
 
 
@@ -312,13 +389,43 @@ sub do_work {
 		# Next if no verdict
 		next if (!$verdict);
 
-
-		# REJECT
-		if ($verdict =~ /^reject$/i) {
-			$self->log(LOG_ERR,"Ok ... we must reject");
+		# HOLD
+		if ($verdict =~ /^hold$/i) {
 			# Set verdict data
-			$verdict_data = "Policy Rejection" if (!defined($verdict_data));
+			$verdict_data = "Policy hold" if (!defined($verdict_data));
+			$result = "HOLD $verdict_data";
+		
+		# REJECT
+		} elsif ($verdict =~ /^reject$/i) {
+			# Set verdict data
+			$verdict_data = "Policy rejection" if (!defined($verdict_data));
 			$result = "REJECT $verdict_data";
+		
+		# DISCARD
+		} elsif ($verdict =~ /^discard$/i) {
+			# Set verdict data
+			$verdict_data = "Policy discard" if (!defined($verdict_data));
+			$result = "DISCARD $verdict_data";
+		
+		# FILTER
+		} elsif ($verdict =~ /^filter$/i) {
+			# Sanity check
+			if (!defined($verdict_data) || $verdict_data eq "") {
+				$self->log(LOG_ERR,"[CBPOLICYD] Verdict data returned from module '".$module->{'name'}."' for FILTER is invalid");
+				next;
+			}
+			# Set verdict data
+			$result = "FILTER $verdict_data";
+		
+		# REDIRECT
+		} elsif ($verdict =~ /^redirect$/i) {
+			# Sanity check
+			if (!defined($verdict_data) || $verdict_data eq "") {
+				$self->log(LOG_ERR,"[CBPOLICYD] Verdict data returned from module '".$module->{'name'}."' for REDIRECT is invalid");
+				next;
+			}
+			# Set verdict data
+			$result = "REDIRECT $verdict_data";
 		
 		# OK
 		} elsif ($verdict =~ /^ok/i) {
@@ -334,9 +441,8 @@ sub do_work {
 	# Make sure we have no newline
 	chomp($result);
 
-	# Send result
-	print("action=$result\n");
-	print("\n");
+	# Return result
+	return "action=$result";
 }
 
 

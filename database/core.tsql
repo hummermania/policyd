@@ -116,6 +116,20 @@ INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,"@example.com"
 
 
 
+/* Message session tracking */
+CREATE TABLE session_tracking (
+	ID			@SERIAL_TYPE@,
+
+	Instance		VARCHAR(255) NOT NULL,
+
+	Timestamp		BIGINT NOT NULL,
+
+	Recipient		VARCHAR(255) NOT NULL,
+
+	Policies		VARCHAR(1024)
+
+)  @CREATE_TABLE_SUFFIX@;
+
 
 
 
