@@ -18,6 +18,6 @@ CREATE TABLE access_control (
 	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO access_control (PolicyID,Verdict,Data) VALUES (5,'REJECT','POP,SNAPPLE,CRAK');
+# INSERT INTO access_control (PolicyID,Verdict,Data) VALUES (5,'REJECT','POP,SNAPPLE,CRAK');
 
 
