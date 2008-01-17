@@ -31,8 +31,8 @@ my $VERSION = "2.0.1a";
 
 use base qw(Net::Server::PreFork);
 use Config::IniFiles;
-use Data::Dumper;
 use Getopt::Long;
+use Sys::Syslog;
 
 use cbp::logging;
 
@@ -97,9 +97,8 @@ sub configure {
 	# Pull in params for the server
 	my @server_params = (
 			'log_level','log_file',
-			'syslog_logsock', 'syslog_ident', 'syslog_logopt', 'syslog_facility',
 			'port', 'host',
-			'allow', 'deny', 'cidr_allow', 'cidr_deny',
+			'cidr_allow', 'cidr_deny',
 			'pid_file', 
 			'user', 'group',
 			'timeout'
@@ -137,6 +136,7 @@ sub post_configure_hook {
 
 
 	$self->log(LOG_NOTICE,"Initializing system modules.");
+	# Init config
 	cbp::config::Init($self);
 	# Init caching engine
 	cbp::cache::Init($self);
@@ -155,8 +155,12 @@ sub post_configure_hook {
 			$self->log(LOG_WARN,"WARNING: Error loading plugin $module ($@)");
 		}
 	}
-
 	$self->log(LOG_NOTICE,"Module load done.");
+
+	$self->log(LOG_DEBUG,"Opening syslog.");
+	Sys::Syslog::setlogsock("unix") || $self->log(LOG_ERR,"Failed to set log socket: $!");
+	Sys::Syslog::openlog("cbpolicyd",'pid|ndelay','mail') || $self->log(LOG_ERR,"Failed to open syslog socket: $!");
+	$self->log(LOG_DEBUG,"Syslog open.");
 }
 
 
@@ -193,7 +197,7 @@ sub child_init_hook
 	
 	$self->SUPER::child_init_hook();
 	
-	$self->log(4,"Starting up caching engine");
+	$self->log(LOG_DEBUG,"Starting up caching engine");
 	cbp::cache::connect($self);
 
 	# Init system stuff
@@ -452,11 +456,16 @@ sub server_exit
 	my $self = shift;
 
 	
-	$self->log(2,"Destroying system modules.");
+	$self->log(LOG_DEBUG,"Destroying system modules.");
 	# Destroy cache
 	cbp::cache::Destroy($self);
-	$self->log(2,"System modules destroyed.");
+	$self->log(LOG_DEBUG,"System modules destroyed.");
 
+	$self->log(LOG_DEBUG,"Closing syslog.");
+	Sys::Syslog::closelog();
+	$self->log(LOG_DEBUG,"Syslog closed.");
+
+	# Parent exit
 	$self->SUPER::server_exit();
 }
 
@@ -467,6 +476,20 @@ sub log
 {
 	my ($self,$level,$msg,@args) = @_;
 	$self->SUPER::log($level,"[".$self->log_time." - $$] $msg",@args);
+}
+
+
+# Syslog logging
+sub maillog
+{
+	my ($self,$msg,@args) = @_;
+
+	# If we have args use printf style
+	if (@args) {
+		Sys::Syslog::syslog('info',$msg,@args);
+	} else {
+		Sys::Syslog::syslog('info','%s',$msg);
+	}
 }
 
 
