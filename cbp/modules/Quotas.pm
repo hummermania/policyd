@@ -56,6 +56,7 @@ sub init {
 
 	# Check if enabled
 	if ($config{'enable'} =~ /^\s*(y|yes|1|on)\s*$/i) {
+		$server->log(LOG_NOTICE,"  => Quotas: enabled");
 		$config{'enable'} = 1;
 	}
 }
@@ -107,13 +108,20 @@ sub check {
 		my %newCounters;  # Indexed by QuotaLimitsID
 		my @trackingList;
 		my $hasExceeded;
-
+		my $exceededQtrack;
 
 		# Loop with priorities, high to low
 		foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}}) {
 
+			# Last if we've exceeded
+			last if ($hasExceeded);
+
+
 			# Loop with each policyID
 			foreach my $policyID (@{$request->{'_policy'}->{$priority}}) {
+
+				# Last if we've exceeded
+				last if ($hasExceeded);
 
 				# Get quota object
 				my $quotas = getQuotas($server,$policyID);
@@ -124,6 +132,9 @@ sub check {
 			
 				# Loop with quotas
 				foreach my $quota (@{$quotas}) {
+
+					# Last if we've exceeded
+					last if ($hasExceeded);
 
 					# Grab tracking keys
 					my $key = getKey($server,$quota,$request);
@@ -161,9 +172,10 @@ sub check {
 								
 							# Make sure increment is at least 0
 							$newCounters{$qtrack->{'QuotasLimitsID'}} = $qtrack->{'Counter'} if (!defined($newCounters{$qtrack->{'QuotasLimitsID'}}));
-		
-							my $limitType = lc($limit->{'Type'});
 	
+							# Limit type
+							my $limitType = lc($limit->{'Type'});
+
 							# Make sure its the MessageCount counter
 							if ($limitType eq "messagecount") {
 								# Check for violation
@@ -195,12 +207,24 @@ sub check {
 								$newCounters{$qtrack->{'QuotasLimitsID'}}++;
 							}
 						}
-	
+						
+						# Setup some stuff we need for logging
+						$qtrack->{'DBKey'} = $key;
+						$qtrack->{'CounterLimit'} = $limit->{'CounterLimit'};
+						$qtrack->{'LimitType'} = $limit->{'Type'};
+						$qtrack->{'PolicyID'} = $policyID;
+						$qtrack->{'QuotaID'} = $quota->{'ID'};
+						$qtrack->{'LimitID'} = $limit->{'ID'};
+
+						# If we've exceeded setup the qtrack which was exceeded
+						if ($hasExceeded) {
+							$exceededQtrack = $qtrack;
+						}
+
 						# Save quota tracking info
 						push(@trackingList,$qtrack);
 	
 					}  # foreach my $limit (@{$limits})
-					next;
 	
 				} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
 
@@ -213,6 +237,9 @@ sub check {
 
 			# Loop with tracking ID's and update
 			foreach my $qtrack (@trackingList) {
+					
+				# Percent used
+				my $pused =  sprintf('%.1f', ( $newCounters{$qtrack->{'QuotasLimitsID'}} / $qtrack->{'CounterLimit'} ) * 100);
 
 				# Update database
 				my $sth = DBDo("
@@ -248,7 +275,40 @@ sub check {
 						$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
 						next;
 					}
+					
+					# Log create to mail log
+					$server->maillog("module=Quotas, action=create, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+								"counter=%s, quota=%s/%s (%s%%)",
+							$request->{'client_address'},
+							$request->{'sender'},
+							$request->{'recipient'},
+							$qtrack->{'PolicyID'},
+							$qtrack->{'QuotaID'},
+							$qtrack->{'LimitID'},
+							$qtrack->{'DBKey'},
+							$qtrack->{'LimitType'},
+							sprintf('%.0f',$newCounters{$qtrack->{'QuotasLimitsID'}}),
+							$qtrack->{'CounterLimit'},
+							$pused);
+
+				# If we updated ...
+				} else {
+					# Log update to mail log
+					$server->maillog("module=Quotas, action=update, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+								"counter=%s, quota=%s/%s (%s%%)",
+							$request->{'client_address'},
+							$request->{'sender'},
+							$request->{'recipient'},
+							$qtrack->{'PolicyID'},
+							$qtrack->{'QuotaID'},
+							$qtrack->{'LimitID'},
+							$qtrack->{'DBKey'},
+							$qtrack->{'LimitType'},
+							sprintf('%.0f',$newCounters{$qtrack->{'QuotasLimitsID'}}),
+							$qtrack->{'CounterLimit'},
+							$pused);
 				}
+					
 
 				# Remove limit
 				delete($newCounters{$qtrack->{'QuotasLimitsID'}});
@@ -256,6 +316,24 @@ sub check {
 
 		# If we have exceeded, set verdict
 		} else {
+			# Percent used
+			my $pused =  sprintf('%.1f', ( $newCounters{$exceededQtrack->{'QuotasLimitsID'}} / $exceededQtrack->{'CounterLimit'} ) * 100);
+
+			# Log rejection to mail log
+			$server->maillog("module=Quotas, action=reject, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+						"counter=%s, quota=%s/%s (%s%%)",
+					$request->{'client_address'},
+					$request->{'sender'},
+					$request->{'recipient'},
+					$exceededQtrack->{'PolicyID'},
+					$exceededQtrack->{'QuotaID'},
+					$exceededQtrack->{'LimitID'},
+					$exceededQtrack->{'DBKey'},
+					$exceededQtrack->{'LimitType'},
+					sprintf('%.0f',$newCounters{$exceededQtrack->{'QuotasLimitsID'}}),
+					$exceededQtrack->{'CounterLimit'},
+					$pused);
+
 			$verdict = "REJECT";
 			$verdict_data = $hasExceeded;
 		}
@@ -267,8 +345,6 @@ sub check {
 	} elsif ($request->{'protocol_state'} eq "END-OF-MESSAGE") {
 
 		my @keys;
-
-		my %newCounters;  # Indexed by limit ID
 
 		# Loop with priorities, high to low
 		foreach my $priority (sort {$b <=> $a} keys %{$request->{'_recipient_policy'}}) {
@@ -315,11 +391,41 @@ sub check {
 	
 								# Check if we're working with cumulative sizes
 								if (lc($limit->{'Type'}) eq "messagecumulativesize") {
-									# Make sure increment is at least 0
-									$newCounters{$qtrack->{'ID'}} = $qtrack->{'Counter'} if (!defined($newCounters{$qtrack->{'ID'}}));
-			
 									# Bump up counter
-									$newCounters{$qtrack->{'ID'}} += $request->{'size'};
+									$qtrack->{'Counter'} += $request->{'size'};
+									
+									# Update database
+									my $sth = DBDo("
+										UPDATE 
+											quotas_tracking
+										SET
+											Counter = ".DBQuote($qtrack->{'Counter'}).",
+											LastUpdate = ".DBQuote($now)."
+										WHERE
+											ID = ".DBQuote($qtrack->{'ID'})."
+									");
+									if (!$sth) {
+										$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
+										next;
+									}
+
+									# Percent used
+									my $pused =  sprintf('%.1f', ( $qtrack->{'Counter'} / $limit->{'CounterLimit'} ) * 100);
+
+									# Log update to mail log
+									$server->maillog("module=Quotas, action=update, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+												"counter=%s, quota=%s/%s (%s%%)",
+											$request->{'client_address'},
+											$request->{'sender'},
+											$emailAddy,
+											$policyID,
+											$quota->{'ID'},
+											$limit->{'ID'},
+											$key,
+											$limit->{'Type'},
+											sprintf('%.0f',$qtrack->{'Counter'}),
+											$limit->{'CounterLimit'},
+											$pused);
 								}
 							}
 						
@@ -330,23 +436,7 @@ sub check {
 			} # foreach my $emailAddy (keys %{$request->{'_recipient_policy'}{$priority}})
 		} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_recipient_policy'}})
 
-		# Loop with tracking ID's and update
-		foreach my $qtrackID (keys %newCounters) {
-			# Update database
-			my $sth = DBDo("
-				UPDATE 
-					quotas_tracking
-				SET
-					Counter = ".DBQuote($newCounters{$qtrackID}).",
-					LastUpdate = ".DBQuote($now)."
-				WHERE
-					ID = ".DBQuote($qtrackID)."
-			");
-			if (!$sth) {
-				$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
-				next;
-			}
-		} # foreach my $qtrack (@trackingList) 
+			
 	}
 	
 	return ($verdict,$verdict_data);
