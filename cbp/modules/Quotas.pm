@@ -544,19 +544,18 @@ sub getKey
 
 
 	# Split off method and splec
-	my ($method,$spec) = ($quota->{'Track'} =~ /^([^:]+):(\S+)/);
-
-	# Make sure we have a method and spec from above
-	if (!defined($method) || !defined($spec)) {
-		$server->log(LOG_WARN,"[QUOTAS] Invalid tracking specification '".$quota->{'Track'}."'");
-	}
-
+	my ($method,$spec) = ($quota->{'Track'} =~ /^([^:]+)(?::(\S+))?/);
+	
 	# Lowercase method & spec
 	$method = lc($method);
-	$spec = lc($spec);
+	$spec = lc($spec) if (defined($spec));
+
+	# Track entire policy
+	if ($method eq "policy") {
+		$res = "policy";
 
 	# Check TrackSenderIP
-	if ($method eq "senderip") {
+	} elsif ($method eq "senderip") {
 		my $key = getIPKey($spec,$request->{'client_address'});
 
 		# Check for no key
@@ -589,7 +588,12 @@ sub getKey
 		} else {
 			$server->log(LOG_WARN,"[QUOTAS] Unknown key specification in TrackRecipient");
 		}
+	
+	# Fall-through to catch invalid specs
+	} else {
+		$server->log(LOG_WARN,"[QUOTAS] Invalid tracking specification '".$quota->{'Track'}."'");
 	}
+
 
 	return $res;
 }
