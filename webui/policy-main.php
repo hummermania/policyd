@@ -102,7 +102,7 @@ if (!isset($_POST['action']))
 					<tr>
 						<td class="entrytitle">Priority</td>
 						<td class="oldval"><?php echo $row->priority ?></td>
-						<td><input type="text" name="policyUpdates[<?php echo $row->id ?>][priority]" /></td>
+						<td><input type="text" name="policyUpdates[<?php echo $row->id ?>][priority]" /> (50-100: 50 lowest, 100 highest)</td>
 					</tr>
 					<tr>
 						<td class="entrytitle texttop">Description</td>
