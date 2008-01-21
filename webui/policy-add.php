@@ -1,4 +1,20 @@
 <?php
+# Policy add
+# Copyright (C) 2008, LinuxRulz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 include_once("includes/header.php");
 include_once("includes/footer.php");
@@ -10,43 +26,49 @@ $db = connect_db();
 
 
 
-printHeader();
+printHeader(array(
+		"Tabs" => array(
+			"Back to policies" => "policy-main.php"
+		),
+));
 
 
-if (!isset($_POST['action'])) {
+
+if ($_POST['action'] == "add") {
 ?>
-	<div id="centercontent">
-		<h1>Add Policy</h1>
+	<h1>Add Policy</h1>
 
-		<form method="post" action="policy-add.php">
-			<input type="hidden" name="action" value="add" />
-			<table class="entry">
-				<tr>
-					<td class="entrytitle">Name</td>
-					<td><input type="text" name="policy_name" /></td>
-				</tr>
-				<tr>
-					<td class="entrytitle">Priority</td>
-					<td><input type="text" size="4" name="policy_priority" /> (50-100: 50 lowest, 100 highest)</td>
-				</tr>
-				<tr>
-					<td class="entrytitle">Description</td>
-					<td><textarea name="policy_description" cols="40" rows="5" /></textarea></td>
-				</tr>
-				<tr>
-					<td colspan="2">
-						<input type="submit" />
-					</td>
-				</tr>
-			</table>
-		</form>
-	</div>
+	<form method="post" action="policy-add.php">
+		<input type="hidden" name="action" value="add2" />
+		<table class="entry">
+			<tr>
+				<td class="entrytitle">Name</td>
+				<td><input type="text" name="policy_name" /></td>
+			</tr>
+			<tr>
+				<td class="entrytitle">Priority</td>
+				<td><input type="text" size="4" name="policy_priority" /> (50-100: 50 lowest, 100 highest)</td>
+			</tr>
+			<tr>
+				<td class="entrytitle">Description</td>
+				<td><textarea name="policy_description" cols="40" rows="5" /></textarea></td>
+			</tr>
+			<tr>
+				<td colspan="2">
+					<input type="submit" />
+				</td>
+			</tr>
+		</table>
+	</form>
 
 <?php
 
 # Check we have all params
-} elseif ($_POST['action'] == "add") {
+} elseif ($_POST['action'] == "add2") {
+?>
+	<h1>Policy Add Results</h1>
 
+<?php
 	# Check name
 	if (empty($_POST['policy_name'])) {
 ?>
@@ -88,7 +110,7 @@ if (!isset($_POST['action'])) {
 
 } else {
 ?>
-	<div class="warning">Unknown mode of operation</div>
+	<div class="warning">Invalid invocation</div>
 <?php
 }
 

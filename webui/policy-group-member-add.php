@@ -1,5 +1,5 @@
 <?php
-# Policy ACL add
+# Policy group member add
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -29,33 +29,28 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to policies" => "policy-main.php",
-			"Back to ACLs" => "policy-acl-main.php?policy_id=".$_REQUEST['policy_id'],
+			"Back to groups" => "policy-group-main.php",
+			"Back to members" => "policy-group-member-main.php?policy_group_id=".$_POST['policy_group_id'],
 		),
 ));
 
 
 if ($_POST['action'] == "add")  {
 ?>
-	<h1>Add Policy ACL</h1>
+	<h1>Add Policy Group Member</h1>
 <?php
-	if (!empty($_POST['policy_id'])) {
 ?>
-		<form method="post" action="policy-acl-add.php">
+		<form method="post" action="policy-group-member-add.php">
 			<input type="hidden" name="action" value="add2" />
-			<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id'] ?>" />
+			<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id'] ?>" />
 			<table class="entry">
 				<tr>
-					<td class="entrytitle">Source</td>
-					<td><textarea name="acl_source" /></textarea></td>
-				</tr>
-				<tr>
-					<td class="entrytitle">Destination</td>
-					<td><textarea name="acl_destination" /></textarea></td>
+					<td class="entrytitle">Member</td>
+					<td><input type="text" name="policy_group_member_member" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Comment</td>
-					<td><textarea name="acl_comment"></textarea></td>
+					<td><textarea name="policy_group_member_comment"></textarea></td>
 				</tr>
 				<tr>
 					<td colspan="2">
@@ -65,47 +60,33 @@ if ($_POST['action'] == "add")  {
 			</table>
 		</form>
 <?php
-	} else {
-?>
-		<div class="warning">No policy ID, invalid invocation?</div>
-<?php
-	}
 	
 	
 	
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Policy ACL Add Results</h1>
+	<h1>Policy Group Member Add Results</h1>
 
 <?php
-	# Check source and dest are not blank
-	if (empty($_POST['acl_source']) && empty($_POST['acl_destination'])) {
+
+	$stmt = $db->prepare("INSERT INTO policy_group_members (PolicyGroupID,Member,Comment,Disabled) VALUES (?,?,?,1)");
+	
+	$res = $stmt->execute(array(
+		$_POST['policy_group_id'],
+		$_POST['policy_group_member_member'],
+		$_POST['policy_group_member_comment']
+	));
+	if ($res) {
 ?>
-		<div class="warning">A blank ACL is useless?</div>
+		<div class="notice">Policy group member created</div>
 <?php
-
-
 	} else {
-		$stmt = $db->prepare("INSERT INTO policy_acls (PolicyID,Source,Destination,Comment,Disabled) VALUES (?,?,?,?,1)");
-		
-		$res = $stmt->execute(array(
-			$_POST['policy_id'],
-			$_POST['acl_source'],
-			$_POST['acl_destination'],
-			$_POST['acl_comment']
-		));
-		if ($res) {
 ?>
-			<div class="notice">Policy ACL created</div>
+		<div class="warning">Failed to create policy group member</div>
 <?php
-		} else {
-?>
-			<div class="warning">Failed to create policy ACL</div>
-<?php
-		}
-
 	}
+
 
 
 } else {

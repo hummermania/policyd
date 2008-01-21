@@ -1,5 +1,5 @@
 <?php
-# Policy main screen
+# Policy ACL main screen
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -28,17 +27,31 @@ $db = connect_db();
 
 
 printHeader(array(
+		"Tabs" => array(
+			"Back to policies" => "policy-main.php"
+		),
 ));
 
-# If we have no action, display list
-if (!isset($_POST['action']))
-{
+
+# Check a policy was selected
+if (isset($_REQUEST['policy_id'])) {
+
 ?>
-	<h1>Policy List</h1>
+	<h1>Policy ACLs</h1>
+	
+<?php		
 
-	<form id="main_form" action="policy-main.php" method="post">
+	$policy_stmt = $db->prepare('SELECT Name FROM policies WHERE ID = ?');
+	$stmt = $db->prepare('SELECT ID, Source, Destination, Disabled FROM policy_acls WHERE PolicyID = ?');
 
+	$policy_stmt->execute(array($_REQUEST['policy_id']));
+	$row = $policy_stmt->fetchObject();
+?>
+	<form id="main_form" action="policy-acl-main.php" method="post">
+		<input type="hidden" name="policy_id" value="<?php echo $_REQUEST['policy_id'] ?>" />
 		<div class="textcenter">
+			<div class="notice">Policy: <?php echo $row->name ?></div>
+
 			Action
 			<select id="main_form_action" name="action" 
 					onChange="
@@ -46,25 +59,23 @@ if (!isset($_POST['action']))
 						var myobj = document.getElementById('main_form_action');
 
 						if (myobj.selectedIndex == 2) {
-							myform.action = 'policy-add.php';
+							myform.action = 'policy-acl-add.php';
+							myform.submit();
 						} else if (myobj.selectedIndex == 4) {
-							myform.action = 'policy-change.php';
+							myform.action = 'policy-acl-change.php';
+							myform.submit();
 						} else if (myobj.selectedIndex == 5) {
-							myform.action = 'policy-delete.php';
-						} else if (myobj.selectedIndex == 6) {
-							myform.action = 'policy-acl-main.php';
+							myform.action = 'policy-acl-delete.php';
+							myform.submit();
 						}
-
-						myform.submit();
-					">
-			 
+">
+	 
 				<option selected>select action</option>
 				<option disabled> - - - - - - - - - - - </option>
 				<option value="add">Add</option>
 				<option disabled> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
-				<option value="delete">Delete (not implemented yet)</option>
-				<option value="acls">ACLs</option>
+				<option value="delete">Delete</option>
 			</select> 
 		</div>
 
@@ -73,35 +84,35 @@ if (!isset($_POST['action']))
 		<table class="results" style="width: 75%;">
 			<tr class="resultstitle">
 				<td id="noborder"></td>
-				<td class="textcenter">Name</td>
-				<td class="textcenter">Priority</td>
-				<td class="textcenter">Description</td>
+				<td class="textcenter">Source</td>
+				<td class="textcenter">Destination</td>
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, Name, Priority, Description, Disabled FROM policies ORDER BY Priority ASC';
-			$res = $db->query($sql);
+
+			$res = $stmt->execute(array($_REQUEST['policy_id']));
 
 			$i = 0;
-			while ($row = $res->fetchObject()) {
+
+			# Loop with rows
+			while ($row = $stmt->fetchObject()) {
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="policy_id" value="<?php echo $row->id ?>" /></td>
-					<td><?php echo $row->name ?></td>
-					<td class="textcenter"><?php echo $row->priority ?></td>
-					<td><?php echo $row->description ?></td>
+					<td><input type="radio" name="policy_acl_id" value="<?php echo $row->id ?>" /></td>
+					<td class="textcenter"><?php echo is_null($row->source) ? 'any' : $row->source ?></td>
+					<td class="textcenter"><?php echo is_null($row->destination) ? 'any' : $row->destination ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
-				$i++;
-			}
+				}
 ?>
 		</table>
 	</form>
 <?php
-
-
-
+} else {
+?>
+	<div class="warning">Invalid invocation</div>
+<?php
 }
 
 

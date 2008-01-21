@@ -1,5 +1,5 @@
 <?php
-# Policy main screen
+# Policy groups main screen
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
+
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -30,13 +31,10 @@ $db = connect_db();
 printHeader(array(
 ));
 
-# If we have no action, display list
-if (!isset($_POST['action']))
-{
 ?>
-	<h1>Policy List</h1>
+	<h1>Policy Groups</h1>
 
-	<form id="main_form" action="policy-main.php" method="post">
+	<form id="main_form" action="policy-group-main.php" method="post">
 
 		<div class="textcenter">
 			Action
@@ -46,13 +44,13 @@ if (!isset($_POST['action']))
 						var myobj = document.getElementById('main_form_action');
 
 						if (myobj.selectedIndex == 2) {
-							myform.action = 'policy-add.php';
+							myform.action = 'policy-group-add.php';
 						} else if (myobj.selectedIndex == 4) {
-							myform.action = 'policy-change.php';
+							myform.action = 'policy-group-change.php';
 						} else if (myobj.selectedIndex == 5) {
-							myform.action = 'policy-delete.php';
+							myform.action = 'policy-group-delete.php';
 						} else if (myobj.selectedIndex == 6) {
-							myform.action = 'policy-acl-main.php';
+							myform.action = 'policy-group-member-main.php';
 						}
 
 						myform.submit();
@@ -63,8 +61,8 @@ if (!isset($_POST['action']))
 				<option value="add">Add</option>
 				<option disabled> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
-				<option value="delete">Delete (not implemented yet)</option>
-				<option value="acls">ACLs</option>
+				<option value="delete">Delete</option>
+				<option value="members">Members</option>
 			</select> 
 		</div>
 
@@ -74,22 +72,18 @@ if (!isset($_POST['action']))
 			<tr class="resultstitle">
 				<td id="noborder"></td>
 				<td class="textcenter">Name</td>
-				<td class="textcenter">Priority</td>
-				<td class="textcenter">Description</td>
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, Name, Priority, Description, Disabled FROM policies ORDER BY Priority ASC';
+			$sql = 'SELECT ID, Name, Disabled FROM policy_groups ORDER BY Name';
 			$res = $db->query($sql);
 
 			$i = 0;
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="policy_id" value="<?php echo $row->id ?>" /></td>
+					<td><input type="radio" name="policy_group_id" value="<?php echo $row->id ?>" /></td>
 					<td><?php echo $row->name ?></td>
-					<td class="textcenter"><?php echo $row->priority ?></td>
-					<td><?php echo $row->description ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
@@ -102,11 +96,7 @@ if (!isset($_POST['action']))
 
 
 
-}
-
-
 printFooter();
-
 
 # vim: ts=4
 ?>

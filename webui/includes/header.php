@@ -2,9 +2,18 @@
 
 
 # Print out HTML header
-function printHeader($tabs = NULL)
+function printHeader($params = NULL)
 {
 
+    # Pull in params
+    if (!is_null($params)) {
+		if (isset($params['Tabs'])) {
+			$tabs = $params['Tabs'];
+		}
+		if (isset($params['js.onLoad'])) {
+			$jsOnLoad = $params['js.onLoad'];
+		}
+    }
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -14,7 +23,7 @@ function printHeader($tabs = NULL)
 	<link rel="stylesheet" type="text/css" href="stylesheet.css" />
     </head>
 
-    <body>
+    <body<?php if (!empty($jsOnLoad)) { echo " onLoad=\"".$jsOnLoad."\""; } ?>>
 
 
 	<table id="maintable">
@@ -33,7 +42,7 @@ function printHeader($tabs = NULL)
 							<p>Policies
 								<ul>
 									<li><a href="policy-main.php">Main</a></li>
-									<li><a href="policy-groups.php">Groups</a></li>
+									<li><a href="policy-group-main.php">Groups</a></li>
 								</ul>
 							</p>
 
@@ -91,4 +100,5 @@ function printHeader($tabs = NULL)
 }
 
 
+# vim: ts=4
 ?>
