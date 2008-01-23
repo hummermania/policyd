@@ -1,5 +1,5 @@
 <?php
-# Module: AccessControl add
+# Module: Quotas add
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to access cntrl" => "accesscontrol-main.php"
+			"Back to quotas" => "quotas-main.php"
 		),
 ));
 
@@ -36,21 +36,52 @@ printHeader(array(
 
 if ($_POST['action'] == "add") {
 ?>
-	<h1>Add Access Control</h1>
+	<h1>Add Quota</h1>
 
-	<form method="post" action="accesscontrol-add.php">
+	<form method="post" action="quotas-add.php">
 		<div>
 			<input type="hidden" name="action" value="add2" />
 		</div>
 		<table class="entry">
 			<tr>
 				<td class="entrytitle">Name</td>
-				<td><input type="text" name="accesscontrol_name" /></td>
+				<td><input type="text" name="quota_name" /></td>
+			</tr>
+			<tr>
+				<td class="entrytitle">Track</td>
+				<td>
+					<select id="quota_track" name="quota_track"
+							onChange="
+								var myobj = document.getElementById('quota_track');
+								var myobj2 = document.getElementById('quota_trackextra');
+
+								if (myobj.selectedIndex == 0) {
+									myobj2.disabled = false;
+									myobj2.value = '0.0.0.0/0';
+								} else if (myobj.selectedIndex != 0) {
+									myobj2.disabled = true;
+									myobj2.value = 'n/a';
+								}
+					">
+						<option value="SenderIP">Sender IP</option>
+						<option value="Sender:user@domain" selected="selected">Sender:user@domain</option>
+						<option value="Sender:@domain">Sender:@domain</option>
+						<option value="Sender:user@">Sender:user@</option>
+						<option value="Recipient:user@domain">Recipient:user@domain</option>
+						<option value="Recipient:@domain">Recipient:@domain</option>
+						<option value="Recipient:user@">Recipient:user@</option>
+					</select>
+					<input type="text" id="quota_trackextra" name="quota_trackextra" size="18" value="n/a" disabled="disabled" />
+				</td>
+			</tr>
+			<tr>
+				<td class="entrytitle">Period</td>
+				<td><input type="text" name="quota_period" /></td>
 			</tr>
 			<tr>
 				<td class="entrytitle">Link to policy</td>
 				<td>
-					<select name="accesscontrol_policyid">
+					<select name="quota_policyid">
 <?php
 						$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
 						while ($row = $res->fetchObject()) {
@@ -65,7 +96,7 @@ if ($_POST['action'] == "add") {
 			<tr>
 				<td class="entrytitle">Verdict</td>
 				<td>
-					<select name="accesscontrol_verdict">
+					<select name="quota_verdict">
 						<option value="HOLD">Hold</option>
 						<option value="REJECT" selected="selected">Reject</option>
 						<option value="DISCARD">Discard (drop)</option>
@@ -76,11 +107,11 @@ if ($_POST['action'] == "add") {
 			</tr>
 			<tr>
 				<td class="entrytitle">Data</td>
-				<td><input type="text" name="accesscontrol_data" /></td>
+				<td><input type="text" name="quota_data" /></td>
 			</tr>
 			<tr>
 				<td class="entrytitle">Comment</td>
-				<td><textarea name="accesscontrol_comment" cols="40" rows="5"></textarea></td>
+				<td><textarea name="quota_comment" cols="40" rows="5"></textarea></td>
 			</tr>
 			<tr>
 				<td colspan="2">
@@ -95,45 +126,55 @@ if ($_POST['action'] == "add") {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Access Control Add Results</h1>
+	<h1>Quota Add Results</h1>
 
 <?php
-	# Check name
-	if (empty($_POST['accesscontrol_policyid'])) {
+	# Check policy id
+	if (empty($_POST['quota_policyid'])) {
 ?>
 		<div class="warning">Policy ID cannot be empty</div>
 <?php
 
 	# Check name
-	} elseif (empty($_POST['accesscontrol_name'])) {
+	} elseif (empty($_POST['quota_name'])) {
 ?>
 		<div class="warning">Name cannot be empty</div>
 <?php
 
 	# Check verdict
-	} elseif (empty($_POST['accesscontrol_verdict'])) {
+	} elseif (empty($_POST['quota_verdict'])) {
 ?>
 		<div class="warning">Verdict cannot be empty</div>
 <?php
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO access_control (PolicyID,Name,Verdict,Data,Comment,Disabled) VALUES (?,?,?,?,?,1)");
+
+		if ($_POST['quota_track'] == "SenderIP") {
+			$quotaTrack = sprintf('%s:%s',$_POST['quota_track'],$_POST['quota_trackextra']);
+		} else {
+			$quotaTrack = $_POST['quota_track'];
+		}
+
+
+		$stmt = $db->prepare("INSERT INTO quotas (PolicyID,Name,Track,Period,Verdict,Data,Comment,Disabled) VALUES (?,?,?,?,?,?,?,1)");
 		
 		$res = $stmt->execute(array(
-			$_POST['accesscontrol_policyid'],
-			$_POST['accesscontrol_name'],
-			$_POST['accesscontrol_verdict'],
-			$_POST['accesscontrol_data'],
-			$_POST['accesscontrol_comment']
+			$_POST['quota_policyid'],
+			$_POST['quota_name'],
+			$quotaTrack,
+			$_POST['quota_period'],
+			$_POST['quota_verdict'],
+			$_POST['quota_data'],
+			$_POST['quota_comment']
 		));
 		
 		if ($res) {
 ?>
-			<div class="notice">Access control created</div>
+			<div class="notice">Quota created</div>
 <?php
 		} else {
 ?>
-			<div class="warning">Failed to create access control</div>
+			<div class="warning">Failed to create quota</div>
 <?php
 		}
 
