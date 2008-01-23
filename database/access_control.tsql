@@ -6,14 +6,15 @@ CREATE TABLE access_control (
 
 	PolicyID		@SERIAL_REF_TYPE@,
 
+	Name			TINYTEXT NOT NULL,
 
 	Verdict			TINYTEXT,
 	Data			TEXT,
 
 
-	Disabled		SMALLINT NOT NULL DEFAULT '0',
-
 	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
 	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
 ) @CREATE_TABLE_SUFFIX@;

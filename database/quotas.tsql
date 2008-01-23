@@ -4,6 +4,8 @@ CREATE TABLE quotas (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
+	
+	Name			TINYTEXT NOT NULL,
 
 	/* Tracking Options */
 	Track			TINYTEXT NOT NULL,  /* Format:   <type>:<spec>
@@ -17,14 +19,17 @@ CREATE TABLE quotas (
 	/* Period over which this policy is valid,  this is in seconds */
 	Period			@BIG_INTEGER@,
 
-	Disabled		SMALLINT NOT NULL DEFAULT '0',
-
+	Verdict			TINYTEXT,
+	Data			TEXT,
+		
 	Comment			VARCHAR(1024),
+	
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
 	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
-INSERT INTO quotas (PolicyID,Track,Period) VALUES (5,'Recipient:user@domain',3600);
-INSERT INTO quotas (PolicyID,Track,Period) VALUES (5,'SenderIP:/24',3600);
+INSERT INTO quotas (PolicyID,Name,Track,Period,Verdict) VALUES (5,'Recipient quotas','Recipient:user@domain',3600,'REJECT');
+INSERT INTO quotas (PolicyID,Name,Track,Period,Verdict) VALUES (5,'Quota on all /24s','SenderIP:/24',3600,'REJECT');
 
 
 /* Limits for the quota */
@@ -36,9 +41,9 @@ CREATE TABLE quotas_limits (
 	Type			TINYTEXT,  /* "MessageCount" or "MessageCumulativeSize" */
 	CounterLimit		@BIG_INTEGER@,
 
-	Disabled		SMALLINT NOT NULL DEFAULT '0',
-
 	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
 	FOREIGN KEY (QuotasID) REFERENCES quotas(ID)
 ) @CREATE_TABLE_SUFFIX@;
