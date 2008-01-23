@@ -195,7 +195,7 @@ sub check {
 	
 						} else {
 							$qtrack->{'QuotasLimitsID'} = $limit->{'ID'};
-							$qtrack->{'Key'} = $key;
+							$qtrack->{'TrackKey'} = $key;
 							$qtrack->{'Counter'} = 0;
 								
 							# Make sure increment is at least 0
@@ -250,7 +250,7 @@ sub check {
 						LastUpdate = ".DBQuote($now)."
 					WHERE
 						QuotasLimitsID = ".DBQuote($qtrack->{'QuotasLimitsID'})."
-						AND Key = ".DBQuote($qtrack->{'Key'})."
+						AND TrackKey = ".DBQuote($qtrack->{'TrackKey'})."
 				");
 				if (!$sth) {
 					$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
@@ -262,11 +262,11 @@ sub check {
 					# Insert into database
 					my $sth = DBDo("
 						INSERT INTO quotas_tracking
-							(QuotasLimitsID,Key,LastUpdate,Counter)
+							(QuotasLimitsID,TrackKey,LastUpdate,Counter)
 						VALUES
 							(
 								".DBQuote($qtrack->{'QuotasLimitsID'}).",
-								".DBQuote($qtrack->{'Key'}).",
+								".DBQuote($qtrack->{'TrackKey'}).",
 								".DBQuote($qtrack->{'LastUpdate'}).",
 								".DBQuote($newCounters{$qtrack->{'QuotasLimitsID'}})."
 							)
@@ -609,12 +609,12 @@ sub getTrackingInfo
 	my $sth = DBSelect("
 		SELECT 
 			ID, QuotasLimitsID,
-			Key, Counter, LastUpdate
+			TrackKey, Counter, LastUpdate
 		FROM
 			quotas_tracking
 		WHERE
 			QuotasLimitsID = ".DBQuote($quotaID)."
-			AND Key = ".DBQuote($key)."
+			AND TrackKey = ".DBQuote($key)."
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_tracking: ".cbp::dblayer::Error());

@@ -12,7 +12,7 @@ CREATE TABLE quotas (
 
 					      SenderIP - This takes a bitmask to mask the IP with. A good default is /24 
 
-					      Sender & Recipient - Either "user@domain" (default), "user" or "domain" for the entire 
+					      Sender & Recipient - Either "user@domain" (default), "user@" or "@domain" for the entire 
 					      		email addy or email addy domain respectively. 
 					   */
 
@@ -57,15 +57,14 @@ CREATE TABLE quotas_tracking (
 	ID			@SERIAL_TYPE@,
 
 	QuotasLimitsID		@SERIAL_REF_TYPE@,
-	Key			VARCHAR(255),
+	TrackKey		VARCHAR(512),
 
 	/* Last time this record was update */
 	LastUpdate		DATETIME,  /* NULL means not updated yet */	
 
-	Counter			DECIMAL(10,4),
+	Counter			NUMERIC(10,4),
 	
-
-	UNIQUE (QuotasLimitsID,Key),
+	UNIQUE (QuotasLimitsID,TrackKey),
 	FOREIGN KEY (QuotasLimitsID) REFERENCES quotas_limits(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
