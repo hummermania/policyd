@@ -45,8 +45,10 @@ if ($_POST['action'] == "delete") {
 		<h1>Delete Policy Group</h1>
 
 		<form action="policy-group-delete.php" method="post">
-			<input type="hidden" name="action" value="delete2" />
-			<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
+			<div>
+				<input type="hidden" name="action" value="delete2" />
+				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
+			</div>
 			
 			<div class="textcenter">
 				Are you very sure? <br />

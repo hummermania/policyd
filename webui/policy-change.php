@@ -47,8 +47,10 @@ if ($_POST['action'] == "change") {
 		<h1>Update Policies</h1>
 
 		<form action="policy-change.php" method="post">
-			<input type="hidden" name="action" value="change2" />
-			<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
+			<div>
+				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
+			</div>
 <?php
 
 			$res = $stmt->execute(array($_POST['policy_id']));
@@ -80,7 +82,7 @@ if ($_POST['action'] == "change") {
 					<td class="entrytitle">Disabled</td>
 					<td class="oldval"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 					<td>
-						<select name="policy_disabled" />
+						<select name="policy_disabled">
 							<option value="">--</option>
 							<option value="0">No</option>
 							<option value="1">Yes</option>

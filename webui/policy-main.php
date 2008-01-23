@@ -41,7 +41,7 @@ if (!isset($_POST['action']))
 		<div class="textcenter">
 			Action
 			<select id="main_form_action" name="action" 
-					onChange="
+					onchange="
 						var myform = document.getElementById('main_form');
 						var myobj = document.getElementById('main_form_action');
 
@@ -58,10 +58,10 @@ if (!isset($_POST['action']))
 						myform.submit();
 					">
 			 
-				<option selected>select action</option>
-				<option disabled> - - - - - - - - - - - </option>
+				<option selected="selected">select action</option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="add">Add</option>
-				<option disabled> - - - - - - - - - - - </option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
 				<option value="delete">Delete (not implemented yet)</option>
 				<option value="acls">ACLs</option>

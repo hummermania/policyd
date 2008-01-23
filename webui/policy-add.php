@@ -39,7 +39,9 @@ if ($_POST['action'] == "add") {
 	<h1>Add Policy</h1>
 
 	<form method="post" action="policy-add.php">
-		<input type="hidden" name="action" value="add2" />
+		<div>
+			<input type="hidden" name="action" value="add2" />
+		</div>
 		<table class="entry">
 			<tr>
 				<td class="entrytitle">Name</td>

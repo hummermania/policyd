@@ -42,19 +42,19 @@ if (isset($_REQUEST['policy_group_id'])) {
 <?php		
 
 	$policy_group_stmt = $db->prepare('SELECT Name FROM policy_groups WHERE ID = ?');
-	$stmt = $db->prepare('SELECT ID, Member, Disabled FROM policy_group_members WHERE PolicyGroupID = ?');
-
 	$policy_group_stmt->execute(array($_REQUEST['policy_group_id']));
 	$row = $policy_group_stmt->fetchObject();
 ?>
 	<form id="main_form" action="policy-group-member-main.php" method="post">
-		<input type="hidden" name="policy_group_id" value="<?php echo $_REQUEST['policy_group_id'] ?>" />
+		<div>
+			<input type="hidden" name="policy_group_id" value="<?php echo $_REQUEST['policy_group_id'] ?>" />
+		</div>
 		<div class="textcenter">
 			<div class="notice">Policy Group: <?php echo $row->name ?></div>
 
 			Action
 			<select id="main_form_action" name="action" 
-					onChange="
+					onchange="
 						var myform = document.getElementById('main_form');
 						var myobj = document.getElementById('main_form_action');
 
@@ -71,9 +71,9 @@ if (isset($_REQUEST['policy_group_id'])) {
 ">
 	 
 				<option selected>select action</option>
-				<option disabled> - - - - - - - - - - - </option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="add">Add</option>
-				<option disabled> - - - - - - - - - - - </option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
 				<option value="delete">Delete</option>
 			</select> 
@@ -89,6 +89,7 @@ if (isset($_REQUEST['policy_group_id'])) {
 			</tr>
 <?php
 
+			$stmt = $db->prepare('SELECT ID, Member, Disabled FROM policy_group_members WHERE PolicyGroupID = ?');
 			$res = $stmt->execute(array($_REQUEST['policy_group_id']));
 
 			$i = 0;

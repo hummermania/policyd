@@ -40,8 +40,10 @@ if ($_POST['action'] == "add")  {
 <?php
 ?>
 		<form method="post" action="policy-group-add.php">
-			<input type="hidden" name="action" value="add2" />
-			<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id'] ?>" />
+			<div>
+				<input type="hidden" name="action" value="add2" />
+				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id'] ?>" />
+			</div>
 			<table class="entry">
 				<tr>
 					<td class="entrytitle">Name</td>

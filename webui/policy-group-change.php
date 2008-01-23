@@ -47,8 +47,10 @@ if ($_POST['action'] == "change") {
 		<h1>Update Policy Group</h1>
 
 		<form action="policy-group-change.php" method="post">
-			<input type="hidden" name="action" value="change2" />
-			<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
+			<div>
+				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
+			</div>
 <?php
 
 			$res = $stmt->execute(array($_POST['policy_group_id']));

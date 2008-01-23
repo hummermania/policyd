@@ -1,5 +1,5 @@
 <?php
-# Policy groups main screen
+# Module: AccessControl
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -31,10 +30,13 @@ $db = connect_db();
 printHeader(array(
 ));
 
+# If we have no action, display list
+if (!isset($_POST['action']))
+{
 ?>
-	<h1>Policy Groups</h1>
+	<h1>Access Control List</h1>
 
-	<form id="main_form" action="policy-group-main.php" method="post">
+	<form id="main_form" action="accesscontrol-main.php" method="post">
 
 		<div class="textcenter">
 			Action
@@ -44,13 +46,11 @@ printHeader(array(
 						var myobj = document.getElementById('main_form_action');
 
 						if (myobj.selectedIndex == 2) {
-							myform.action = 'policy-group-add.php';
+							myform.action = 'accesscontrol-add.php';
 						} else if (myobj.selectedIndex == 4) {
-							myform.action = 'policy-group-change.php';
+							myform.action = 'accesscontrol-change.php';
 						} else if (myobj.selectedIndex == 5) {
-							myform.action = 'policy-group-delete.php';
-						} else if (myobj.selectedIndex == 6) {
-							myform.action = 'policy-group-member-main.php';
+							myform.action = 'accesscontrol-delete.php';
 						}
 
 						myform.submit();
@@ -62,7 +62,6 @@ printHeader(array(
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
 				<option value="delete">Delete</option>
-				<option value="members">Members</option>
 			</select> 
 		</div>
 
@@ -71,23 +70,40 @@ printHeader(array(
 		<table class="results" style="width: 75%;">
 			<tr class="resultstitle">
 				<td id="noborder"></td>
+				<td class="textcenter">Policy</td>
 				<td class="textcenter">Name</td>
+				<td class="textcenter">Verdict</td>
+				<td class="textcenter">Data</td>
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, Name, Disabled FROM policy_groups ORDER BY Name';
+			$sql = '
+					SELECT 
+						access_control.ID, access_control.Name, access_control.Verdict, access_control.Data, access_control.Disabled,
+						policies.Name AS PolicyName
+
+					FROM 
+						access_control, policies
+
+					WHERE
+						policies.ID = access_control.PolicyID
+
+					ORDER BY 
+						policies.Name
+			';
 			$res = $db->query($sql);
 
-			$i = 0;
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="policy_group_id" value="<?php echo $row->id ?>" /></td>
+					<td><input type="radio" name="accesscontrol_id" value="<?php echo $row->id ?>" /></td>
+					<td><?php echo $row->policyname ?></td>
 					<td><?php echo $row->name ?></td>
+					<td><?php echo $row->verdict ?></td>
+					<td><?php echo $row->data ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
-				$i++;
 			}
 ?>
 		</table>
@@ -96,7 +112,11 @@ printHeader(array(
 
 
 
+}
+
+
 printFooter();
+
 
 # vim: ts=4
 ?>

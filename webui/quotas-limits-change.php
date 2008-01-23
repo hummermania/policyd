@@ -1,5 +1,5 @@
 <?php
-# Policy ACL change
+# Module: Quotas limits change
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -30,8 +30,8 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to policies" => "policy-main.php",
-			"Back to ACLs" => "policy-acl-main.php?policy_id=".$_REQUEST['policy_id'],
+			"Back to quotas" => "quotas-main.php",
+			"Back to limits" => "quotas-limits-main.php?quota_id=".$_REQUEST['quota_id'],
 		),
 ));
 
@@ -40,20 +40,20 @@ printHeader(array(
 # Display change screen
 if ($_POST['action'] == "change") {
 
-	# Check a policy acl was selected
-	if (isset($_POST['policy_acl_id'])) {
+	# Check a limit was selected
+	if (isset($_POST['quota_limit_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('SELECT ID, Source, Destination, Comment, Disabled FROM policy_acls WHERE ID = ?');
-		$res = $stmt->execute(array($_POST['policy_acl_id']));
+		$stmt = $db->prepare('SELECT ID, Type, CounterLimit, Comment, Disabled FROM quotas_limits WHERE ID = ?');
+		$res = $stmt->execute(array($_POST['quota_limit_id']));
 		$row = $stmt->fetchObject();
 ?>
-		<h1>Update Policy ACL</h1>
+		<h1>Update Quota Limit</h1>
 
-		<form action="policy-acl-change.php" method="post">
+		<form action="quotas-limits-change.php" method="post">
 			<div>
 				<input type="hidden" name="action" value="change2" />
-				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
-				<input type="hidden" name="policy_acl_id" value="<?php echo $_POST['policy_acl_id']; ?>" />
+				<input type="hidden" name="quota_id" value="<?php echo $_POST['quota_id']; ?>" />
+				<input type="hidden" name="quota_limit_id" value="<?php echo $_POST['quota_limit_id']; ?>" />
 			</div>
 			<table class="entry" style="width: 75%;">
 				<tr>
@@ -62,25 +62,31 @@ if ($_POST['action'] == "change") {
 					<td class="entrytitle textcenter">New Value</td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">Source</td>
-					<td class="oldval texttop"><?php echo $row->source ?></td>
-					<td><textarea name="policy_acl_source" cols="40" rows="5"></textarea></td>
+					<td class="entrytitle texttop">Type</td>
+					<td class="oldval texttop"><?php echo $row->type ?></td>
+					<td>
+						<select name="limit_type">
+							<option value="">--</option>
+							<option value="MessageCount">Message Count</option>
+							<option value="MessageCumulativeSize">Message Cumulative Size</option>
+						</select>
+					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">Destination</td>
-					<td class="oldval texttop"><?php echo $row->destination ?></td>
-					<td><textarea name="policy_acl_destination" cols="40" rows="5"></textarea></td>
+					<td class="entrytitle texttop">Counter Limit</td>
+					<td class="oldval texttop"><?php echo $row->counterlimit ?></td>
+					<td><input type="text" name="limit_counterlimit" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Comment</td>
 					<td class="oldval texttop"><?php echo $row->comment ?></td>
-					<td><textarea name="policy_acl_comment" cols="40" rows="5"></textarea></td>
+					<td><textarea name="limit_comment" cols="40" rows="5"></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Disabled</td>
 					<td class="oldval"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 					<td>
-						<select name="policy_acl_disabled" />
+						<select name="limit_disabled" />
 							<option value="">--</option>
 							<option value="0">No</option>
 							<option value="1">Yes</option>
@@ -98,7 +104,7 @@ if ($_POST['action'] == "change") {
 <?php
 	} else {
 ?>
-		<div class="warning">No policy selected</div>
+		<div class="warning">No quota selected</div>
 <?php
 	}
 	
@@ -109,50 +115,50 @@ if ($_POST['action'] == "change") {
 ?>
 	<h1>Policy Update Results</h1>
 <?
-	# Check a policy was selected
-	if (isset($_POST['policy_acl_id'])) {
+	# Check a quota was selected
+	if (isset($_POST['quota_limit_id'])) {
 		
 		$updates = array();
 
-		if (!empty($_POST['policy_acl_source'])) {
-			array_push($updates,"Source = ".$db->quote($_POST['policy_acl_source']));
+		if (!empty($_POST['limit_type'])) {
+			array_push($updates,"Type = ".$db->quote($_POST['limit_type']));
 		}
-		if (isset($_POST['policy_acl_destination']) && $_POST['policy_acl_destination'] != "") {
-			array_push($updates,"Destination = ".$db->quote($_POST['policy_acl_destination']));
+		if (!empty($_POST['limit_counterlimit'])) {
+			array_push($updates,"CounterLimit = ".$db->quote($_POST['limit_counterlimit']));
 		}
-		if (!empty($_POST['policy_acl_comment'])) {
-			array_push($updates,"Comment = ".$db->quote($_POST['policy_acl_comment']));
+		if (!empty($_POST['limit_comment'])) {
+			array_push($updates,"Comment = ".$db->quote($_POST['limit_comment']));
 		}
-		if (isset($_POST['policy_acl_disabled']) && $_POST['policy_acl_disabled'] != "") {
-			array_push($updates ,"Disabled = ".$db->quote($_POST['policy_acl_disabled']));
+		if (isset($_POST['limit_disabled']) && $_POST['limit_disabled'] != "") {
+			array_push($updates ,"Disabled = ".$db->quote($_POST['limit_disabled']));
 		}
 
 		# Check if we have updates
 		if (sizeof($updates) > 0) {
 			$updateStr = implode(', ',$updates);
 	
-			$res = $db->exec("UPDATE policy_acls SET $updateStr WHERE ID = ".$db->quote($_POST['policy_acl_id']));
+			$res = $db->exec("UPDATE quotas_limits SET $updateStr WHERE ID = ".$db->quote($_POST['quota_limit_id']));
 			if ($res) {
 ?>
-				<div class="notice">Policy ACL updated</div>
+				<div class="notice">Quota limit updated</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error updating policy ACL!</div>
+				<div class="warning">Error updating quota limit!</div>
 <?php
 			}
 
 		# Warn
 		} else {
 ?>
-			<div class="warning">No policy ACL updates</div>
+			<div class="warning">No quota limit updates</div>
 <?php
 		}
 
 	# Warn
 	} else {
 ?>
-		<div class="error">No policy ACL data available</div>
+		<div class="error">No quota limit data available</div>
 <?php
 	}
 

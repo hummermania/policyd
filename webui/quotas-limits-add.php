@@ -1,5 +1,5 @@
 <?php
-# Policy ACL add
+# Module: Quotas limits add
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -29,35 +29,40 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to policies" => "policy-main.php",
-			"Back to ACLs" => "policy-acl-main.php?policy_id=".$_REQUEST['policy_id'],
+			"Back to quotas" => "quotas-main.php",
+			"Back to quota limits" => "quotas-limits-main.php?quota_id=".$_REQUEST['quota_id'],
 		),
 ));
 
 
 if ($_POST['action'] == "add")  {
 ?>
-	<h1>Add Policy ACL</h1>
+	<h1>Add Quota Limit</h1>
 <?php
-	if (!empty($_POST['policy_id'])) {
+	if (!empty($_POST['quota_id'])) {
 ?>
-		<form method="post" action="policy-acl-add.php">
+		<form method="post" action="quotas-limits-add.php">
 			<div>
 				<input type="hidden" name="action" value="add2" />
-				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id'] ?>" />
+				<input type="hidden" name="quota_id" value="<?php echo $_POST['quota_id'] ?>" />
 			</div>
 			<table class="entry">
 				<tr>
-					<td class="entrytitle">Source</td>
-					<td><textarea name="acl_source" /></textarea></td>
+					<td class="entrytitle">Type</td>
+					<td>
+						<select name="limit_type">
+							<option value="MessageCount">Message Count</option>
+							<option value="MessageCumulativeSize">Message Cumulative Size</option>
+						</select>
+					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Destination</td>
-					<td><textarea name="acl_destination" /></textarea></td>
+					<td class="entrytitle">Counter Limit</td>
+					<td><input type="text" name="limit_counterlimit" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Comment</td>
-					<td><textarea name="acl_comment"></textarea></td>
+					<td><textarea name="limit_comment"></textarea></td>
 				</tr>
 				<tr>
 					<td colspan="2">
@@ -78,32 +83,32 @@ if ($_POST['action'] == "add")  {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Policy ACL Add Results</h1>
+	<h1>Quota Limit Add Results</h1>
 
 <?php
-	# Check source and dest are not blank
-	if (empty($_POST['acl_source']) && empty($_POST['acl_destination'])) {
+	# Check we have a limit
+	if (empty($_POST['limit_counterlimit'])) {
 ?>
-		<div class="warning">A blank ACL is useless?</div>
+		<div class="warning">Counter limit is required</div>
 <?php
 
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO policy_acls (PolicyID,Source,Destination,Comment,Disabled) VALUES (?,?,?,?,1)");
+		$stmt = $db->prepare("INSERT INTO quotas_limits (QuotasID,Type,CounterLimit,Comment,Disabled) VALUES (?,?,?,?,1)");
 		
 		$res = $stmt->execute(array(
-			$_POST['policy_id'],
-			$_POST['acl_source'],
-			$_POST['acl_destination'],
-			$_POST['acl_comment']
+			$_POST['quota_id'],
+			$_POST['limit_type'],
+			$_POST['limit_counterlimit'],
+			$_POST['limit_comment']
 		));
 		if ($res) {
 ?>
-			<div class="notice">Policy ACL created</div>
+			<div class="notice">Quota limit created</div>
 <?php
 		} else {
 ?>
-			<div class="warning">Failed to create policy ACL</div>
+			<div class="warning">Failed to create quota limit</div>
 <?php
 		}
 

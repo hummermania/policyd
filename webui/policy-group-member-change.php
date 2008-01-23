@@ -48,9 +48,11 @@ if ($_POST['action'] == "change") {
 		<h1>Update Policy Group Member</h1>
 
 		<form action="policy-group-member-change.php" method="post">
-			<input type="hidden" name="action" value="change2" />
-			<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
-			<input type="hidden" name="policy_group_member_id" value="<?php echo $_POST['policy_group_member_id']; ?>" />
+			<div>
+				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
+				<input type="hidden" name="policy_group_member_id" value="<?php echo $_POST['policy_group_member_id']; ?>" />
+			</div>
 <?php
 
 			$res = $stmt->execute(array($_POST['policy_group_member_id']));
@@ -72,7 +74,7 @@ if ($_POST['action'] == "change") {
 					<td class="entrytitle">Disabled</td>
 					<td class="oldval"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 					<td>
-						<select name="policy_group_member_disabled" />
+						<select name="policy_group_member_disabled">
 							<option value="">--</option>
 							<option value="0">No</option>
 							<option value="1">Yes</option>

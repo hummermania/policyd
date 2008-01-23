@@ -42,19 +42,19 @@ if (isset($_REQUEST['policy_id'])) {
 <?php		
 
 	$policy_stmt = $db->prepare('SELECT Name FROM policies WHERE ID = ?');
-	$stmt = $db->prepare('SELECT ID, Source, Destination, Disabled FROM policy_acls WHERE PolicyID = ?');
-
 	$policy_stmt->execute(array($_REQUEST['policy_id']));
 	$row = $policy_stmt->fetchObject();
 ?>
 	<form id="main_form" action="policy-acl-main.php" method="post">
-		<input type="hidden" name="policy_id" value="<?php echo $_REQUEST['policy_id'] ?>" />
+		<div>
+			<input type="hidden" name="policy_id" value="<?php echo $_REQUEST['policy_id'] ?>" />
+		</div>
 		<div class="textcenter">
 			<div class="notice">Policy: <?php echo $row->name ?></div>
 
 			Action
 			<select id="main_form_action" name="action" 
-					onChange="
+					onchange="
 						var myform = document.getElementById('main_form');
 						var myobj = document.getElementById('main_form_action');
 
@@ -70,10 +70,10 @@ if (isset($_REQUEST['policy_id'])) {
 						}
 ">
 	 
-				<option selected>select action</option>
-				<option disabled> - - - - - - - - - - - </option>
+				<option selected="selected">select action</option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="add">Add</option>
-				<option disabled> - - - - - - - - - - - </option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
 				<option value="delete">Delete</option>
 			</select> 
@@ -90,6 +90,7 @@ if (isset($_REQUEST['policy_id'])) {
 			</tr>
 <?php
 
+			$stmt = $db->prepare('SELECT ID, Source, Destination, Disabled FROM policy_acls WHERE PolicyID = ?');
 			$res = $stmt->execute(array($_REQUEST['policy_id']));
 
 			$i = 0;

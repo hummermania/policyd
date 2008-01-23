@@ -46,10 +46,12 @@ if ($_POST['action'] == "delete") {
 		<h1>Delete Policy ACL</h1>
 
 		<form action="policy-acl-delete.php" method="post">
-			<input type="hidden" name="action" value="delete2" />
-			<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
-			<input type="hidden" name="policy_acl_id" value="<?php echo $_POST['policy_acl_id']; ?>" />
-			
+			<div>
+				<input type="hidden" name="action" value="delete2" />
+				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
+				<input type="hidden" name="policy_acl_id" value="<?php echo $_POST['policy_acl_id']; ?>" />
+			</div>
+
 			<div class="textcenter">
 				Are you very sure? <br />
 				<input type="submit" name="confirm" value="yes" />

@@ -1,5 +1,5 @@
 <?php
-# Policy group member delete
+# Module: Quotas limits delete
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -30,8 +30,8 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to groups" => "policy-group-main.php",
-			"Back to members" => "policy-group-member-main.php?policy_group_id=".$_POST['policy_group_id'],
+			"Back to quotas" => "quotas-main.php",
+			"Back to limits" => "quotas-limits-main.php?quota_id=".$_REQUEST['quota_id'],
 		),
 ));
 
@@ -40,17 +40,18 @@ printHeader(array(
 # Display delete confirm screen
 if ($_POST['action'] == "delete") {
 
-	# Check a policy group member was selected
-	if (isset($_POST['policy_group_member_id'])) {
+	# Check a quota limit was selected
+	if (isset($_POST['quota_limit_id'])) {
 ?>
-		<h1>Delete Policy Group Member</h1>
+		<h1>Delete Quota Limit</h1>
 
-		<form action="policy-group-member-delete.php" method="post">
+		<form action="quotas-limits-delete.php" method="post">
 			<div>
 				<input type="hidden" name="action" value="delete2" />
-				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
-				<input type="hidden" name="policy_group_member_id" value="<?php echo $_POST['policy_group_member_id']; ?>" />
+				<input type="hidden" name="quota_id" value="<?php echo $_POST['quota_id']; ?>" />
+				<input type="hidden" name="quota_limit_id" value="<?php echo $_POST['quota_limit_id']; ?>" />
 			</div>
+
 			<div class="textcenter">
 				Are you very sure? <br />
 				<input type="submit" name="confirm" value="yes" />
@@ -60,7 +61,7 @@ if ($_POST['action'] == "delete") {
 <?php
 	} else {
 ?>
-		<div class="warning">No policy group member selected</div>
+		<div class="warning">No quota limit selected</div>
 <?php
 	}
 	
@@ -69,31 +70,31 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Policy Group Member Delete Results</h1>
+	<h1>Quota Limit Delete Results</h1>
 <?
-	if (isset($_POST['policy_group_member_id'])) {
+	if (isset($_POST['quota_limit_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM policy_group_members WHERE ID = ".$db->quote($_POST['policy_group_member_id']));
+			$res = $db->exec("DELETE FROM quotas_limits WHERE ID = ".$db->quote($_POST['quota_limit_id']));
 			if ($res) {
 ?>
-				<div class="notice">Policy group member deleted</div>
+				<div class="notice">Quota limit deleted</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting policy group member!</div>
+				<div class="warning">Error deleting quota limit!</div>
 <?php
 			}
 		} else {
 ?>
-			<div class="notice">Policy group member not deleted, aborted by user</div>
+			<div class="notice">Quota limit not deleted, aborted by user</div>
 <?php
 		}
 
 	# Warn
 	} else {
 ?>
-		<div class="warning">Invocation error, no policy group member ID</div>
+		<div class="warning">Invocation error, no quota limit ID</div>
 <?php
 	}
 

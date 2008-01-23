@@ -13,6 +13,9 @@ function printHeader($params = NULL)
 		if (isset($params['js.onLoad'])) {
 			$jsOnLoad = $params['js.onLoad'];
 		}
+		if (isset($params['Title'])) {
+			$title = $params['Title'];
+		}
     }
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -36,41 +39,38 @@ function printHeader($params = NULL)
 				<table>
 					<tr>
 						<td id="menu">
-	    						<img style="margin-top:-1px; margin-left:-1px;" src="images/top2.jpg" alt="" />
-	    						<p><a href=".">Home</a></p>
+	    					<img style="margin-top:-1px; margin-left:-1px;" src="images/top2.jpg" alt="" />
+	    					<p><a href=".">Home</a></p>
 
-							<p>Policies
-								<ul>
-									<li><a href="policy-main.php">Main</a></li>
-									<li><a href="policy-group-main.php">Groups</a></li>
-								</ul>
-							</p>
+							<p>Policies</p>
+							<ul>
+								<li><a href="policy-main.php">Main</a></li>
+								<li><a href="policy-group-main.php">Groups</a></li>
+							</ul>
 
-							<p>Access Control
-								<ul>
-				    					<li><a href="acl-main.php">Configure</a></li>
-								</ul>
-							</p>
+							<p>Access Control</p>
+							<ul>
+				   				<li><a href="accesscontrol-main.php">Configure</a></li>
+							</ul>
 					
-							<p>Quotas
-								<ul>
-		    							<li><a href="quotas-main.php">Configure</a></li>
-								</ul>
-							</p>
+							<p>Quotas</p>
+							<ul>
+		    					<li><a href="quotas-main.php">Configure</a></li>
+							</ul>
 					
-							<p>Postfix Integration
-								<ul>
-				    					<li><a href="postfix-main.php">Configure</a></li>
-		    							<li><a href="postfix-vda.php">Mailbox Quotas</a></li>
-								</ul>
-							</p>
+							<p>Postfix Integration</p>
+							<ul>
+				    			<li><a href="postfix-main.php">Configure</a></li>
+		    					<li><a href="postfix-vda-main.php">Mailbox Quotas</a></li>
+		    					<li><a href="postfix-queue-main.php">Hold Queue</a></li>
+							</ul>
 					
-							<p>Amavis Integration
-								<ul>
-		    							<li><a href="amavis-main.php">Configure</a></li>
-								</ul>
-							</p>
-	    						<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />
+							<p>Amavis Integration</p>
+							<ul>
+		    					<li><a href="amavis-main.php">Configure</a></li>
+							</ul>
+
+	    					<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />
 						</td>
 
 						<td class="content">
