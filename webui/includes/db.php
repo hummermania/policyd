@@ -14,7 +14,7 @@ function connect_db()
 
 	try {
 		$dbh = new PDO($DB_DSN, $DB_USER, $DB_PASS, array(
-			PDO::ATTR_PERSISTENT => true
+			PDO::ATTR_PERSISTENT => false
 		));
 
 		$dbh->setAttribute(PDO::ATTR_CASE,PDO::CASE_LOWER);

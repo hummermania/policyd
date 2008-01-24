@@ -72,17 +72,113 @@ if ($_POST['action'] == "delete") {
 <?
 	if (isset($_POST['quota_id'])) {
 
-		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM quotas WHERE ID = ".$db->quote($_POST['quota_id']));
+		if ($_POST['confirm'] == "yes") {
+
+			# Grab tracking limits we must delete for
+			$res = $db->query("
+					SELECT 
+						ID
+					FROM 
+						quotas_limits
+					WHERE
+						QuotasID = ".$db->quote($_POST['quota_id'])."
+			");
+
+			$limitIDs = array();
+
 			if ($res) {
-?>
-				<div class="notice">Quota deleted</div>
-<?php
+				# Pull in limit ID's
+				while ($row = $res->fetchObject()) {
+					array_push($limitIDs,$row->id);
+				}
+
 			} else {
+				print_r($db->errorInfo());
 ?>
-				<div class="warning">Error deleting quota!</div>
+				<div class="warning">Error selecting quota limit IDs!</div>
 <?php
 			}
+
+
+			# Check last query succeeded, if so continue
+			if ($res) {
+				$db->beginTransaction();
+
+				$stmt = $db->prepare("
+					DELETE FROM 
+						quotas_tracking 
+					WHERE 
+						QuotasLimitsID = ?
+				");
+
+				# Loop with limit ID's, start off true
+				$res = true;
+				foreach ($limitIDs as $id) {
+					$res = $stmt->execute(array($id));
+				}
+
+				if ($res) {
+?>
+					<div class="notice">Quota tracking info deleted</div>
+<?php
+				} else {
+					print_r($db->errorInfo());
+?>
+					<div class="warning">Error deleting quota tracking info!</div>
+<?php
+					$db->rollBack();
+				}
+			}
+
+
+			# Check last query succeeded, if so continue
+			if ($res) {
+				$stmt = $db->prepare("
+						DELETE FROM 
+							quotas_limits 
+						WHERE 
+							QuotasID = ?"
+				);
+
+				# Loop with limit ID's, start off true
+				$res = true;
+				foreach ($limitIDs as $id) {
+					$res = $stmt->execute(array($id));
+				}
+
+				if ($res) {
+?>
+					<div class="notice">Quota limits deleted</div>
+<?php
+				} else {
+					print_r($db->errorInfo());
+?>
+					<div class="warning">Error deleting quota limits!</div>
+<?php
+					$db->rollBack();
+				}
+			}
+
+			# Check last query succeeded, if so continue
+			if ($res) {
+				$res = $db->exec("DELETE FROM quotas WHERE ID = ".$db->quote($_POST['quota_id']));
+				if ($res) {
+?>
+					<div class="notice">Quota deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting quota!</div>
+<?php
+					$db->rollBack();
+				}
+			}
+
+			# Commit if last transaction succeeded
+			if ($res) {
+				$db->commit();
+			}
+			
 		} else {
 ?>
 			<div class="notice">Quota not deleted, aborted by user</div>

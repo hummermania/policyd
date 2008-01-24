@@ -82,7 +82,6 @@ if (!isset($_POST['action']))
 			$sql = 'SELECT ID, Name, Priority, Description, Disabled FROM policies ORDER BY Priority ASC';
 			$res = $db->query($sql);
 
-			$i = 0;
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
@@ -93,7 +92,6 @@ if (!isset($_POST['action']))
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
-				$i++;
 			}
 ?>
 		</table>

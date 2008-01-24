@@ -78,7 +78,6 @@ printHeader(array(
 			$sql = 'SELECT ID, Name, Disabled FROM policy_groups ORDER BY Name';
 			$res = $db->query($sql);
 
-			$i = 0;
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
@@ -87,7 +86,6 @@ printHeader(array(
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
-				$i++;
 			}
 ?>
 		</table>
