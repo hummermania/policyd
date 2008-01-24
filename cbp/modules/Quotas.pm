@@ -215,6 +215,8 @@ sub check {
 						$qtrack->{'PolicyID'} = $policyID;
 						$qtrack->{'QuotaID'} = $quota->{'ID'};
 						$qtrack->{'LimitID'} = $limit->{'ID'};
+						$qtrack->{'Verdict'} = $quota->{'Verdict'};
+						$qtrack->{'VerdictData'} = $quota->{'Data'};
 
 						# If we've exceeded setup the qtrack which was exceeded
 						if ($hasExceeded) {
@@ -320,8 +322,9 @@ sub check {
 			my $pused =  sprintf('%.1f', ( $newCounters{$exceededQtrack->{'QuotasLimitsID'}} / $exceededQtrack->{'CounterLimit'} ) * 100);
 
 			# Log rejection to mail log
-			$server->maillog("module=Quotas, action=reject, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+			$server->maillog("module=Quotas, action=%s, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 						"counter=%s, quota=%s/%s (%s%%)",
+					$exceededQtrack->{'Verdict'},
 					$request->{'client_address'},
 					$request->{'sender'},
 					$request->{'recipient'},
@@ -334,8 +337,8 @@ sub check {
 					$exceededQtrack->{'CounterLimit'},
 					$pused);
 
-			$verdict = "REJECT";
-			$verdict_data = $hasExceeded;
+			$verdict = $exceededQtrack->{'Verdict'},
+			$verdict_data = (defined($exceededQtrack->{'VerdictData'}) && $exceededQtrack->{'VerdictData'} ne "") ? $exceededQtrack->{'VerdictData'} : $hasExceeded;
 		}
 
 	#
@@ -512,7 +515,9 @@ sub getQuotas
 		SELECT
 			ID,
 			Period, 
-			Track
+			Track,
+			Verdict,
+			Data
 
 		FROM
 			quotas
