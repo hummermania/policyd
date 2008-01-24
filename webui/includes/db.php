@@ -2,8 +2,6 @@
 
 require_once('includes/config.php');
 
-require_once 'MDB2.php';
-
 
 # Connect to DB
 function connect_db()
