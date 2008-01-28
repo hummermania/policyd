@@ -67,9 +67,9 @@ sub Error
 
 
 
-# Return policy based on criteria
-# Args:
-# 	
+# Return a hash of policies matches
+# Returns:
+# 	Hash - indexed by policy priority, the value is an array of policy ID's
 sub getPolicy
 {
     my ($sourceIP,$emailFrom,$emailTo) = @_;
@@ -100,8 +100,6 @@ sub getPolicy
 	while (my $row = $sth->fetchrow_hashref()) {
 		push(@policyACLs,$row);
 	}
-
-	DBFreeRes($sth);
 
 	# Process the ACL's
 	foreach my $policyACL (@policyACLs) {
@@ -267,7 +265,6 @@ sub getGroupMembers
 	while (my $row = $sth->fetchrow_hashref()) {
 		push(@groupMembers,$row);
 	}
-	DBFreeRes($sth);
 
 	# Loop with results
 	my @res;

@@ -102,6 +102,7 @@ sub check {
 			}
 			my $row = $sth->fetchrow_hashref();
 			DBFreeRes($sth);
+
 			# If no result, next
 			next if (!$row);
 

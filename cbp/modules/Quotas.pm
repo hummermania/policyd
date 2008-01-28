@@ -533,7 +533,6 @@ sub getQuotas
 	while (my $quota = $sth->fetchrow_hashref()) {
 		push(@res,$quota);
 	}
-	DBFreeRes($sth);
 
 	return \@res;
 }
@@ -656,7 +655,6 @@ sub getLimits
 	while (my $qtrack = $sth->fetchrow_hashref()) {
 		push(@{$list},$qtrack);
 	}
-	DBFreeRes($sth);
 
 	return $list;
 }
