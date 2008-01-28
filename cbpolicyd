@@ -307,7 +307,6 @@ sub process_request {
 					}
 				}
 			}
-			DBFreeRes($sth);
 
 			# Build final policy list
 			my $policyHash;
@@ -319,6 +318,7 @@ sub process_request {
 			$request{'_recipient_policy'} = \%recipientToPolicy;
 		}
 
+#		use Data::Dumper;
 #		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
 #		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Policies:\n".Dumper($request{'_policy'}));
 
