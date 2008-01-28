@@ -1,0 +1,139 @@
+
+/* Amavisd-new integration for Policyd */
+
+CREATE TABLE amavis (
+	ID			@SERIAL_TYPE@,
+
+	PolicyID		@SERIAL_REF_TYPE@,
+
+	Name			TINYTEXT NOT NULL,
+
+/*
+Mode of operation (the _m columns):
+
+	This is done with the _m column names
+
+	0 - Inherit
+	1 - Merge  (only valid for lists)
+	2 - Overwrite 
+
+*/
+
+
+	/* Bypass options */
+	bypass_virus_checks	SMALLINT,
+	bypass_virus_checks_m	SMALLINT NOT NULL DEFAULT '0',
+
+	bypass_banned_checks	SMALLINT,
+	bypass_banned_checks_m	SMALLINT NOT NULL DEFAULT '0',
+
+	bypass_spam_checks	SMALLINT,
+	bypass_spam_checks_m	SMALLINT NOT NULL DEFAULT '0',
+
+	bypass_header_checks	SMALLINT,
+	bypass_header_checks_m	SMALLINT NOT NULL DEFAULT '0',
+
+
+	/* Anti-spam options: NULL = inherit */
+	spam_tag_level		FLOAT,
+	spam_tag_level_m	SMALLINT NOT NULL DEFAULT '0',
+
+	spam_tag2_level		FLOAT,
+	spam_tag2_level_m	SMALLINT NOT NULL DEFAULT '0',
+
+	spam_tag3_level		FLOAT,
+	spam_tag3_level_m	SMALLINT NOT NULL DEFAULT '0',
+
+	spam_kill_level		FLOAT,
+	spam_kill_level_m	SMALLINT NOT NULL DEFAULT '0',
+
+	spam_dsn_cutoff_level	FLOAT,
+	spam_dsn_cutoff_level_m	SMALLINT NOT NULL DEFAULT '0',
+
+	spam_quarantine_cutoff_level	FLOAT,
+	spam_quarantine_cutoff_level_m	SMALLINT NOT NULL DEFAULT '0',
+
+	spam_modifies_subject	SMALLINT,
+	spam_modifies_subject_m	SMALLINT NOT NULL DEFAULT '0',
+
+	spam_tag_subject	TINYTEXT,  /* _SCORE_ is the score, _REQD_ is the required score */
+	spam_tag_subject_m	SMALLINT NOT NULL DEFAULT '0',
+	
+	spam_tag2_subject	TINYTEXT,
+	spam_tag2_subject_m	SMALLINT NOT NULL DEFAULT '0',
+	
+	spam_tag3_subject	TINYTEXT,
+	spam_tag3_subject_m	SMALLINT NOT NULL DEFAULT '0',
+
+
+	/* General checks: NULL = inherit */
+	max_message_size	BIGINT,
+	max_message_size_m	SMALLINT NOT NULL DEFAULT '0',
+
+	banned_files		TEXT,
+	banned_files_m		SMALLINT NOT NULL DEFAULT '0',
+
+
+	/* Whitelist & blacklist */
+	sender_whitelist	TEXT,
+	sender_whitelist_m	SMALLINT NOT NULL DEFAULT '0',
+
+	sender_blacklist	TEXT,
+	sender_blacklist_m	SMALLINT NOT NULL DEFAULT '0',
+
+
+	/* Admin notifications */
+	notify_admin_newvirus	TINYTEXT,
+	notify_admin_newvirus_m	SMALLINT NOT NULL DEFAULT '0',
+
+	notify_admin_virus	TINYTEXT,
+	notify_admin_virus_m	SMALLINT NOT NULL DEFAULT '0',
+
+	notify_admin_spam	TINYTEXT,
+	notify_admin_spam_m	SMALLINT NOT NULL DEFAULT '0',
+
+	notify_admin_banned_file	TINYTEXT,
+	notify_admin_banned_file_m	SMALLINT NOT NULL DEFAULT '0',
+
+	notify_admin_bad_header	TINYTEXT,
+	notify_admin_bad_header_m	SMALLINT NOT NULL DEFAULT '0',
+
+
+	/* Quarantine options */
+	quarantine_virus	TINYTEXT,
+	quarantine_virus_m	SMALLINT NOT NULL DEFAULT '0',
+
+	quarantine_banned_file	TINYTEXT,
+	quarantine_banned_file_m	SMALLINT NOT NULL DEFAULT '0',
+
+	quarantine_bad_header	TINYTEXT,
+	quarantine_bad_header_m	SMALLINT NOT NULL DEFAULT '0',
+	
+	quarantine_spam		TINYTEXT,
+	quarantine_spam_m	SMALLINT NOT NULL DEFAULT '0',
+
+
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+/*
+INSERT INTO amavis 
+	(
+		PolicyID,
+		Name,
+		max_message_size,max_message_size_m,
+		bypass_banned_checks, bypass_banned_checks_m
+	) 
+	VALUES 
+	(
+		1,
+		'Default system amavis policy',
+		100000,2,
+		1,2
+	);
+*/
+
