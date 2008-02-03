@@ -1,7 +1,7 @@
 
 /* Amavisd-new integration for Policyd */
 
-CREATE TABLE amavis (
+CREATE TABLE amavis_rules (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
@@ -120,8 +120,7 @@ Mode of operation (the _m columns):
 	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
-/*
-INSERT INTO amavis 
+INSERT INTO amavis_rules
 	(
 		PolicyID,
 		Name,
@@ -135,5 +134,4 @@ INSERT INTO amavis
 		100000,2,
 		1,2
 	);
-*/
 
