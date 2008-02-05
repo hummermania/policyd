@@ -51,7 +51,7 @@ if ($_POST['action'] == "add") {
 				<td class="entrytitle">Track</td>
 				<td>
 					<select id="quota_track" name="quota_track"
-							onChange="
+							onchange="
 								var myobj = document.getElementById('quota_track');
 								var myobj2 = document.getElementById('quota_trackextra');
 

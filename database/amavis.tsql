@@ -67,7 +67,7 @@ Mode of operation (the _m columns):
 
 
 	/* General checks: NULL = inherit */
-	max_message_size	BIGINT,
+	max_message_size	BIGINT,  /* in Kbyte */
 	max_message_size_m	SMALLINT NOT NULL DEFAULT '0',
 
 	banned_files		TEXT,

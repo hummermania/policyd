@@ -58,6 +58,11 @@ function printHeader($params = NULL)
 		    					<li><a href="quotas-main.php">Configure</a></li>
 							</ul>
 					
+							<p>Amavis Integration</p>
+							<ul>
+		    					<li><a href="amavis-main.php">Configure</a></li>
+							</ul>
+
 							<p>Postfix Integration</p>
 							<ul>
 				    			<li><a href="postfix-main.php">Configure</a></li>
@@ -65,11 +70,6 @@ function printHeader($params = NULL)
 		    					<li><a href="postfix-queue-main.php">Hold Queue</a></li>
 							</ul>
 					
-							<p>Amavis Integration</p>
-							<ul>
-		    					<li><a href="amavis-main.php">Configure</a></li>
-							</ul>
-
 	    					<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />
 						</td>
 
