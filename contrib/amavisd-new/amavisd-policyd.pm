@@ -27,8 +27,8 @@ my $DB_user = "";
 my $DB_pass = "";
 
 
-# This is the amavis policy options we can use
-my %policyOptions = (
+# This is the amavis rule options we can use
+my %ruleOptions = (
 	'boolean' =>  [ qw(
 			bypass_virus_checks
 			bypass_banned_checks
@@ -116,7 +116,6 @@ sub new {
 sub process_policy {
 	my($self,$conn,$msginfo,$pbn) = @_;
   	do_log(-2,"CUSTOM: process_policy");
-  	do_log(-2,"CUSTOM: done process_policy");
 
 	# Loop with recipients
     foreach my $r (@{$msginfo->per_recip_data}) {
@@ -128,8 +127,8 @@ sub process_policy {
 			next;
 		}
 
-		# Start with a blank policy
-		my %amavisPolicy = ();
+		# Start with a blank config
+		my %amavisConfig = ();
 
 
 		# Loop with priorities
@@ -139,24 +138,22 @@ sub process_policy {
 
 			# Loop with policies
 			foreach my $policyID (@{$res->{$priority}}) {
-					do_log(-2,"CUSTOM POLICY   => policy $policyID");
-
 					# Grab amavis policyID
-					my $amavisDBPolicy = $self->getAmavisPolicy($policyID);
+					my $amavisRule = $self->getAmavisRule($policyID);
 	
 					# If no amavis policyID, next...
-					if (!$amavisDBPolicy) {
-						do_log(-2,"CUSTOM POLICY no amavis policy for ID '$policyID'");
+					if (!$amavisRule) {
+						do_log(-2,"CUSTOM POLICY no amavis rule for policy ID '$policyID'");
 						next;
 					}
 
 
 					use Data::Dumper;
 					do_log(-2,"CUSTOM POLICY for (%s;%s;%s)",$msginfo->client_addr,$msginfo->sender,$r->recip_addr);
-					do_log(-2,"CUSTOM POLICY dump: ".Dumper($amavisDBPolicy));
+					do_log(-2,"CUSTOM POLICY rule dump: ".Dumper($amavisRule));
 
 					# Loop with variable types
-					foreach my $vartype (keys %policyOptions) {
+					foreach my $vartype (keys %ruleOptions) {
 
 							do_log(-2,"CUSTOM POLICY     => ".Dumper($vartype));
 
@@ -170,99 +167,99 @@ sub process_policy {
 						if ($vartype eq "boolean") {
 
 							# Loop with variables
-							foreach my $varname (@{$policyOptions{$vartype}}) {
+							foreach my $varname (@{$ruleOptions{$vartype}}) {
 								do_log(-2,"CUSTOM POLICY: boolean     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
-								if ($amavisDBPolicy->{$varname."_m"} eq "0") {
+								if ($amavisRule->{$varname."_m"} eq "0") {
 
 								# Mode 2 is overwrite
-								} elsif ($amavisDBPolicy->{$varname."_m"} eq "2") {
-									$amavisPolicy{$varname} = $amavisDBPolicy->{$varname};
+								} elsif ($amavisRule->{$varname."_m"} eq "2") {
+									$amavisConfig{$varname} = $amavisRule->{$varname};
 
 								# All other modes including mode 1 (merge) is invalid
 								} else {
 									do_log(0,"policyd/process_policy: Mode '%s' for amavis policy '%s' variable '%s'  is invalid as its a boolean",
-											$amavisDBPolicy->{$varname."_m"},$policyID,$varname);
+											$amavisRule->{$varname."_m"},$policyID,$varname);
 								}
 							}
 
 						# Floats
 						} elsif ($vartype eq "float") {
 							# Loop with variables
-							foreach my $varname (@{$policyOptions{$vartype}}) {
+							foreach my $varname (@{$ruleOptions{$vartype}}) {
 								do_log(-2,"CUSTOM POLICY: float     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
-								if ($amavisDBPolicy->{$varname."_m"} eq "0") {
+								if ($amavisRule->{$varname."_m"} eq "0") {
 
 								# Mode 2 is overwrite
-								} elsif ($amavisDBPolicy->{$varname."_m"} eq "2") {
-									$amavisPolicy{$varname} = $amavisDBPolicy->{$varname};
+								} elsif ($amavisRule->{$varname."_m"} eq "2") {
+									$amavisConfig{$varname} = $amavisRule->{$varname};
 
 								# All other modes including mode 1 (merge) is invalid
 								} else {
 									do_log(0,"policyd/process_policy: Mode '%s' for amavis policy '%s' variable '%s'  is invalid as its a float",
-											$amavisDBPolicy->{$varname."_m"},$policyID,$varname);
+											$amavisRule->{$varname."_m"},$policyID,$varname);
 								}
 							}
 
 						# Text
 						} elsif ($vartype eq "text") {
 							# Loop with variables
-							foreach my $varname (@{$policyOptions{$vartype}}) {
+							foreach my $varname (@{$ruleOptions{$vartype}}) {
 								do_log(-2,"CUSTOM POLICY: text     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
-								if ($amavisDBPolicy->{$varname."_m"} eq "0") {
+								if ($amavisRule->{$varname."_m"} eq "0") {
 
 								# Mode 2 is overwrite
-								} elsif ($amavisDBPolicy->{$varname."_m"} eq "2") {
-									$amavisPolicy{$varname} = $amavisDBPolicy->{$varname};
+								} elsif ($amavisRule->{$varname."_m"} eq "2") {
+									$amavisConfig{$varname} = $amavisRule->{$varname};
 
 								# All other modes including mode 1 (merge) is invalid
 								} else {
 									do_log(0,"policyd/process_policy: Mode '%s' for amavis policy '%s' variable '%s'  is invalid as its a text",
-											$amavisDBPolicy->{$varname."_m"},$policyID,$varname);
+											$amavisRule->{$varname."_m"},$policyID,$varname);
 								}
 							}
 
 						# Integers
 						} elsif ($vartype eq "integer") {
 							# Loop with variables
-							foreach my $varname (@{$policyOptions{$vartype}}) {
+							foreach my $varname (@{$ruleOptions{$vartype}}) {
 								do_log(-2,"CUSTOM POLICY: integer     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
-								if ($amavisDBPolicy->{$varname."_m"} eq "0") {
+								if ($amavisRule->{$varname."_m"} eq "0") {
 
 								# Mode 2 is overwrite
-								} elsif ($amavisDBPolicy->{$varname."_m"} eq "2") {
-									$amavisPolicy{$varname} = $amavisDBPolicy->{$varname};
+								} elsif ($amavisRule->{$varname."_m"} eq "2") {
+									$amavisConfig{$varname} = $amavisRule->{$varname};
 
 								# All other modes including mode 1 (merge) is invalid
 								} else {
 									do_log(0,"policyd/process_policy: Mode '%s' for amavis policy '%s' variable '%s'  is invalid as its a integer",
-											$amavisDBPolicy->{$varname."_m"},$policyID,$varname);
+											$amavisRule->{$varname."_m"},$policyID,$varname);
 								}
 							}
 
 						# Text list (array)
 						} elsif ($vartype eq "textlist") {
 							# Loop with variables
-							foreach my $varname (@{$policyOptions{$vartype}}) {
+							foreach my $varname (@{$ruleOptions{$vartype}}) {
 								do_log(-2,"CUSTOM POLICY: integer     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
-								if ($amavisDBPolicy->{$varname."_m"} eq "0") {
+								if ($amavisRule->{$varname."_m"} eq "0") {
 
 								# Mode 1 is merge
-								} elsif ($amavisDBPolicy->{$varname."_m"} eq "1") {
-									my @items = split /,/, $amavisDBPolicy->{$varname};
+								} elsif ($amavisRule->{$varname."_m"} eq "1") {
+									my @items = split /,/, $amavisRule->{$varname};
 
 									# If we already have a list, add to end of it
-									if (defined($amavisDBPolicy->{$varname})) {
-										push(@items,@{$amavisDBPolicy->{$varname}});
+									if (defined($amavisRule->{$varname})) {
+										push(@items,@{$amavisRule->{$varname}});
 									}
 
 									# Loop and get unique
@@ -272,17 +269,17 @@ sub process_policy {
 									}
 
 									# Only store the key list we have
-									$amavisPolicy{$varname} = keys %uniqItems;
+									$amavisConfig{$varname} = keys %uniqItems;
 
 
 								# Mode 2 is overwrite
-								} elsif ($amavisDBPolicy->{$varname."_m"} eq "2") {
-									$amavisPolicy{$varname} = $amavisDBPolicy->{$varname};
+								} elsif ($amavisRule->{$varname."_m"} eq "2") {
+									$amavisConfig{$varname} = $amavisRule->{$varname};
 
 								# All other modes including mode 1 (merge) is invalid
 								} else {
 									do_log(0,"policyd/process_policy: Mode '%s' for amavis policy '%s' variable '%s'  is invalid as its a text list",
-											$amavisDBPolicy->{$varname."_m"},$policyID,$varname);
+											$amavisRule->{$varname."_m"},$policyID,$varname);
 								}
 							}
 
@@ -292,7 +289,7 @@ sub process_policy {
 			}
 		}
 
-		do_log(-2,"CUSTOM AMAVIS POLICY     => ".Dumper(\%amavisPolicy));
+		do_log(-2,"CUSTOM AMAVIS POLICY     => ".Dumper(\%amavisConfig));
 
 		# Check bypass
 		#
@@ -300,7 +297,7 @@ sub process_policy {
 		# send to the recip regardless of the result
 
 		# Check for virus bypass
-		if (defined($amavisPolicy{'bypass_virus_checks'})) {
+		if (defined($amavisConfig{'bypass_virus_checks'})) {
 			push(@{$pbn->{'bypass_virus_checks_maps'}},\{
 					$r->recip_addr	=> 1
 			});
@@ -309,7 +306,7 @@ sub process_policy {
 			});
 		}
 		# Check for banned file/filetype bypass
-		if (defined($amavisPolicy{'bypass_banned_checks'})) {
+		if (defined($amavisConfig{'bypass_banned_checks'})) {
 			push(@{$pbn->{'bypass_banned_checks_maps'}},\{
 					$r->recip_addr	=> 1
 			});
@@ -318,7 +315,7 @@ sub process_policy {
 			});
 		}
 		# Check for spam bypass
-		if (defined($amavisPolicy{'bypass_spam_checks'})) {
+		if (defined($amavisConfig{'bypass_spam_checks'})) {
 			push(@{$pbn->{'bypass_spam_checks_maps'}},\{
 					$r->recip_addr	=> 1
 			});
@@ -327,7 +324,7 @@ sub process_policy {
 			});
 		}
 		# Check for header bypass
-		if (defined($amavisPolicy{'bypass_header_checks'})) {
+		if (defined($amavisConfig{'bypass_header_checks'})) {
 			push(@{$pbn->{'bypass_header_checks_maps'}},\{
 					$r->recip_addr	=> 1
 			});
@@ -339,44 +336,44 @@ sub process_policy {
 		# Spam levels
 
 		# Check if we have a tag level
-		if (defined($amavisPolicy{'spam_tag_level'})) {
+		if (defined($amavisConfig{'spam_tag_level'})) {
 			push(@{$pbn->{'spam_tag_level_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_tag_level'}
+					$r->recip_addr	=> $amavisConfig{'spam_tag_level'}
 			});
 		}
 
 		# Check if we have a tag2 level
-		if (defined($amavisPolicy{'spam_tag2_level'})) {
+		if (defined($amavisConfig{'spam_tag2_level'})) {
 			push(@{$pbn->{'spam_tag2_level_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_tag2_level'}
+					$r->recip_addr	=> $amavisConfig{'spam_tag2_level'}
 			});
 		}
 
 		# Check if we have a tag3 level
-		if (defined($amavisPolicy{'spam_tag3_level'})) {
+		if (defined($amavisConfig{'spam_tag3_level'})) {
 			push(@{$pbn->{'spam_tag3_level_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_tag3_level'}
+					$r->recip_addr	=> $amavisConfig{'spam_tag3_level'}
 			});
 		}
 
 		# Check if we have a kill level
-		if (defined($amavisPolicy{'spam_kill_level'})) {
+		if (defined($amavisConfig{'spam_kill_level'})) {
 			push(@{$pbn->{'spam_kill_level_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_kill_level'}
+					$r->recip_addr	=> $amavisConfig{'spam_kill_level'}
 			});
 		}
 
 		# Check if we have a dsn_cutoff level
-		if (defined($amavisPolicy{'spam_dsn_cutoff_level'})) {
+		if (defined($amavisConfig{'spam_dsn_cutoff_level'})) {
 			push(@{$pbn->{'spam_dsn_cutoff_level_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_dsn_cutoff_level'}
+					$r->recip_addr	=> $amavisConfig{'spam_dsn_cutoff_level'}
 			});
 		}
 
 		# Check if we have a quarantine_cutoff level
-		if (defined($amavisPolicy{'spam_quarantine_cutoff_level'})) {
+		if (defined($amavisConfig{'spam_quarantine_cutoff_level'})) {
 			push(@{$pbn->{'spam_quarantine_cutoff_level_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_quarantine_cutoff_level'}
+					$r->recip_addr	=> $amavisConfig{'spam_quarantine_cutoff_level'}
 			});
 		}
 
@@ -384,47 +381,47 @@ sub process_policy {
 		# Spam subject stuff
 
 		# Check for spam modifies subject
-		if (defined($amavisPolicy{'spam_modifies_subject'})) {
+		if (defined($amavisConfig{'spam_modifies_subject'})) {
 			push(@{$pbn->{'spam_modifies_subj_maps'}},\{
 					$r->recip_addr	=> 1
 			});
 		}
 
 		# Check for spam tag subject
-		if (defined($amavisPolicy{'spam_tag_subject'})) {
+		if (defined($amavisConfig{'spam_tag_subject'})) {
 			push(@{$pbn->{'spam_subject_tag_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_tag_subject'}
+					$r->recip_addr	=> $amavisConfig{'spam_tag_subject'}
 			});
 		}
 
 		# Check for spam tag2 subject
-		if (defined($amavisPolicy{'spam_tag2_subject'})) {
+		if (defined($amavisConfig{'spam_tag2_subject'})) {
 			push(@{$pbn->{'spam_subject_tag2_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_tag2_subject'}
+					$r->recip_addr	=> $amavisConfig{'spam_tag2_subject'}
 			});
 		}
 
 		# Check for spam tag3 subject
-		if (defined($amavisPolicy{'spam_tag3_subject'})) {
+		if (defined($amavisConfig{'spam_tag3_subject'})) {
 			push(@{$pbn->{'spam_subject_tag3_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'spam_tag3_subject'}
+					$r->recip_addr	=> $amavisConfig{'spam_tag3_subject'}
 			});
 		}
 
 		# General checks
 
 		# Check if we have a message size limit, if so push it in
-		if (defined($amavisPolicy{'max_message_size'})) {
+		if (defined($amavisConfig{'max_message_size'})) {
 			push(@{$pbn->{'message_size_limit_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'max_message_size'}
+					$r->recip_addr	=> ( $amavisConfig{'max_message_size'} * 1024 )
 			});
 		}
 
 		# FIXME
 		# Check if we have a list of banned files
-		if (defined($amavisPolicy{'banned_files'})) {
+		if (defined($amavisConfig{'banned_files'})) {
 #			push(@{$pbn->{'banned_filename_maps'}},\{
-#					$r->recip_addr	=> $amavisPolicy{'banned_files'}
+#					$r->recip_addr	=> $amavisConfig{'banned_files'}
 #			});
 		}
 
@@ -432,16 +429,16 @@ sub process_policy {
 		# Whitelist & blacklist
 		
 		# Check if we have a list of sender whitelists
-		if (defined($amavisPolicy{'sender_whitelist'})) {
+		if (defined($amavisConfig{'sender_whitelist'})) {
 			push(@{$pbn->{'per_recip_whitelist_sender_lookup_tables'}},\{
-					$r->recip_addr	=> $amavisPolicy{'sender_whitelist'}
+					$r->recip_addr	=> $amavisConfig{'sender_whitelist'}
 			});
 		}
 		
 		# Check if we have a list of sender blacklists
-		if (defined($amavisPolicy{'sender_blacklist'})) {
+		if (defined($amavisConfig{'sender_blacklist'})) {
 			push(@{$pbn->{'per_recip_blacklist_sender_lookup_tables'}},\{
-					$r->recip_addr	=> $amavisPolicy{'sender_blacklist'}
+					$r->recip_addr	=> $amavisConfig{'sender_blacklist'}
 			});
 		}
 
@@ -449,37 +446,37 @@ sub process_policy {
 		# Admin notifications
 		
 		# Check if we have a list of new virus admins
-		if (defined($amavisPolicy{'notify_admin_newvirus'})) {
+		if (defined($amavisConfig{'notify_admin_newvirus'})) {
 			push(@{$pbn->{'newvirus_admin_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'notify_admin_newvirus'}
+					$r->recip_addr	=> $amavisConfig{'notify_admin_newvirus'}
 			});
 		}
 		
 		# Check if we have a list of virus admins
-		if (defined($amavisPolicy{'notify_admin_virus'})) {
+		if (defined($amavisConfig{'notify_admin_virus'})) {
 			push(@{$pbn->{'virus_admin_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'notify_admin_virus'}
+					$r->recip_addr	=> $amavisConfig{'notify_admin_virus'}
 			});
 		}
 		
 		# Check if we have a list of spam admins
-		if (defined($amavisPolicy{'notify_admin_spam'})) {
+		if (defined($amavisConfig{'notify_admin_spam'})) {
 			push(@{$pbn->{'spam_admin_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'notify_admin_spam'}
+					$r->recip_addr	=> $amavisConfig{'notify_admin_spam'}
 			});
 		}
 		
 		# Check if we have a list of banned file admins
-		if (defined($amavisPolicy{'notify_admin_banned_file'})) {
+		if (defined($amavisConfig{'notify_admin_banned_file'})) {
 			push(@{$pbn->{'banned_admin_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'notify_admin_banned_file'}
+					$r->recip_addr	=> $amavisConfig{'notify_admin_banned_file'}
 			});
 		}
 		
 		# Check if we have a list of bad header admins
-		if (defined($amavisPolicy{'notify_admin_bad_header'})) {
+		if (defined($amavisConfig{'notify_admin_bad_header'})) {
 			push(@{$pbn->{'bad_header_admin_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'notify_admin_bad_header'}
+					$r->recip_addr	=> $amavisConfig{'notify_admin_bad_header'}
 			});
 		}
 
@@ -487,48 +484,49 @@ sub process_policy {
 		# Quarantine options
 		
 		# Check if we must quarantine a virus
-		if (defined($amavisPolicy{'quarantine_virus'})) {
+		if (defined($amavisConfig{'quarantine_virus'})) {
 			push(@{$pbn->{'virus_quarantine_to_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'quarantine_virus'}
+					$r->recip_addr	=> $amavisConfig{'quarantine_virus'}
 			});
 		}
 
 		# Check if we must quarantine a banned file
-		if (defined($amavisPolicy{'quarantine_banned_file'})) {
+		if (defined($amavisConfig{'quarantine_banned_file'})) {
 			push(@{$pbn->{'banned_quarantine_to_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'quarantine_banned_file'}
+					$r->recip_addr	=> $amavisConfig{'quarantine_banned_file'}
 			});
 		}
 
 		# Check if we must quarantine a banned header
-		if (defined($amavisPolicy{'quarantine_bad_header'})) {
+		if (defined($amavisConfig{'quarantine_bad_header'})) {
 			push(@{$pbn->{'bad_header_quarantine_to_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'quarantine_bad_header'}
+					$r->recip_addr	=> $amavisConfig{'quarantine_bad_header'}
 			});
 		}
 
 		# Check if we must quarantine spam
-		if (defined($amavisPolicy{'quarantine_spam'})) {
+		if (defined($amavisConfig{'quarantine_spam'})) {
 			push(@{$pbn->{'spam_quarantine_to_maps'}},\{
-					$r->recip_addr	=> $amavisPolicy{'quarantine_spam'}
+					$r->recip_addr	=> $amavisConfig{'quarantine_spam'}
 			});
 		}
 
 
 	}
 
+  	do_log(-2,"CUSTOM: done process_policy");
 	return $pbn;
 };
 
 
 
-# Get amavis policy
-sub getAmavisPolicy
+# Get amavis rule
+sub getAmavisRule
 {
 	my ($self,$policyID) = @_;
 
 	
-	# Query amavis 
+	# Query amavis rules table
 	my $sth = DBSelect("
 		SELECT 
 			ID,
@@ -538,8 +536,8 @@ sub getAmavisPolicy
 
 
 			spam_tag_level, spam_tag2_level, spam_tag3_level, spam_kill_level, spam_dsn_cutoff_level, spam_quarantine_cutoff_level,
-			spam_modifies_subject, spam_tag_subject, spam_tag2_subject, spam_tag3_subject,
 			spam_tag_level_m, spam_tag2_level_m, spam_tag3_level_m, spam_kill_level_m, spam_dsn_cutoff_level_m, spam_quarantine_cutoff_level_m,
+			spam_modifies_subject, spam_tag_subject, spam_tag2_subject, spam_tag3_subject,
 			spam_modifies_subject_m, spam_tag_subject_m, spam_tag2_subject_m, spam_tag3_subject_m,
 
 
@@ -560,7 +558,7 @@ sub getAmavisPolicy
 
 
 		FROM
-			amavis
+			amavis_rules
 
 		WHERE
 			PolicyID = ".DBQuote($policyID)."
