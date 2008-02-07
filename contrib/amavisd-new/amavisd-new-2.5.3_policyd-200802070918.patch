@@ -1,0 +1,34 @@
+# Author: Nigel Kukard  <nkukard@lbsd.net>
+
+Support for custom policy change function
+
+--- amavisd	2007-12-12 11:28:26.000000000 +0000
++++ amavisd.policyd	2008-02-07 09:18:34.000000000 +0000
+@@ -7332,6 +7332,7 @@
+ sub checks      { my($self,$conn,$msginfo)  = @_; undef }
+ sub before_send { my($self,$conn,$msginfo)  = @_; undef }
+ sub mail_done   { my($self,$conn,$msginfo)  = @_; undef }
++sub process_policy   { my($self,$conn,$msginfo,$pbn)  = @_; return $pbn }
+ 
+ 1;
+ 
+@@ -8650,6 +8651,19 @@
+     if (ref $custom_object)
+       { do_log(5,"Custom hooks enabled"); section_time($which_section) }
+ 
++    # Check if we need to do last minute policy changes
++    if (ref $custom_object) {
++      $which_section = "custom-process_policy";
++      eval {
++        my $new_policy_bank = $custom_object->process_policy($conn,$msginfo,\%current_policy_bank); 1;
++	%current_policy_bank = %{ $new_policy_bank };
++      } or do {
++        my($eval_stat) = $@ ne '' ? $@ : "errno=$!";  chomp $eval_stat;
++        do_log(-1,"custom process_policy error: %s", $eval_stat);
++      };
++      section_time($which_section);
++    }
++
+     # update message count and mesage size snmp-like counters
+     snmp_count('InMsgs');
+     snmp_count('InMsgsNullRPath')  if $sender eq '';

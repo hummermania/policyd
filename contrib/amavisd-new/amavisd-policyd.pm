@@ -81,6 +81,13 @@ my %ruleOptions = (
 
 BEGIN {
 	import Amavis::Util qw(do_log);
+	import Amavis::rfc2821_2822_Tools qw(parse_message_id);
+	import Amavis::Conf qw(
+		D_REJECT
+		D_BOUNCE
+		D_DISCARD
+		D_PASS
+	);
 
 	# Use cluebringer modules
 	use cbp::config;
@@ -115,7 +122,7 @@ sub new {
 
 sub process_policy {
 	my($self,$conn,$msginfo,$pbn) = @_;
-  	do_log(-2,"CUSTOM: process_policy");
+
 
 	# Loop with recipients
     foreach my $r (@{$msginfo->per_recip_data}) {
@@ -134,8 +141,6 @@ sub process_policy {
 		# Loop with priorities
 		foreach my $priority (sort {$b <=> $a} keys %{$res}) {
 					
-			do_log(-2,"CUSTOM POLICY priority $priority");
-
 			# Loop with policies
 			foreach my $policyID (@{$res->{$priority}}) {
 					# Grab amavis policyID
@@ -147,28 +152,14 @@ sub process_policy {
 						next;
 					}
 
-
-					use Data::Dumper;
-					do_log(-2,"CUSTOM POLICY for (%s;%s;%s)",$msginfo->client_addr,$msginfo->sender,$r->recip_addr);
-					do_log(-2,"CUSTOM POLICY rule dump: ".Dumper($amavisRule));
-
 					# Loop with variable types
 					foreach my $vartype (keys %ruleOptions) {
-
-							do_log(-2,"CUSTOM POLICY     => ".Dumper($vartype));
-
-						# _m - 0 (ignore)
-						# _m - 1 (inherit)
-						# _m - 2 (merge)
-						# _m - 3 (overwrite)
-
 
 						# Start with checking booleans
 						if ($vartype eq "boolean") {
 
 							# Loop with variables
 							foreach my $varname (@{$ruleOptions{$vartype}}) {
-								do_log(-2,"CUSTOM POLICY: boolean     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
 								if ($amavisRule->{$varname."_m"} eq "0") {
@@ -188,7 +179,6 @@ sub process_policy {
 						} elsif ($vartype eq "float") {
 							# Loop with variables
 							foreach my $varname (@{$ruleOptions{$vartype}}) {
-								do_log(-2,"CUSTOM POLICY: float     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
 								if ($amavisRule->{$varname."_m"} eq "0") {
@@ -208,7 +198,6 @@ sub process_policy {
 						} elsif ($vartype eq "text") {
 							# Loop with variables
 							foreach my $varname (@{$ruleOptions{$vartype}}) {
-								do_log(-2,"CUSTOM POLICY: text     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
 								if ($amavisRule->{$varname."_m"} eq "0") {
@@ -228,7 +217,6 @@ sub process_policy {
 						} elsif ($vartype eq "integer") {
 							# Loop with variables
 							foreach my $varname (@{$ruleOptions{$vartype}}) {
-								do_log(-2,"CUSTOM POLICY: integer     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
 								if ($amavisRule->{$varname."_m"} eq "0") {
@@ -248,14 +236,13 @@ sub process_policy {
 						} elsif ($vartype eq "textlist") {
 							# Loop with variables
 							foreach my $varname (@{$ruleOptions{$vartype}}) {
-								do_log(-2,"CUSTOM POLICY: integer     => $varname");
 
 								# We ignore state 0, which is ignore/inherit
 								if ($amavisRule->{$varname."_m"} eq "0") {
 
 								# Mode 1 is merge
 								} elsif ($amavisRule->{$varname."_m"} eq "1") {
-									my @items = split /,/, $amavisRule->{$varname};
+									my @items = split /[,;\s+]/, $amavisRule->{$varname};
 
 									# If we already have a list, add to end of it
 									if (defined($amavisRule->{$varname})) {
@@ -288,8 +275,6 @@ sub process_policy {
 					}
 			}
 		}
-
-		do_log(-2,"CUSTOM AMAVIS POLICY     => ".Dumper(\%amavisConfig));
 
 		# Check bypass
 		#
@@ -417,12 +402,46 @@ sub process_policy {
 			});
 		}
 
-		# FIXME
 		# Check if we have a list of banned files
 		if (defined($amavisConfig{'banned_files'})) {
-#			push(@{$pbn->{'banned_filename_maps'}},\{
-#					$r->recip_addr	=> $amavisConfig{'banned_files'}
-#			});
+			my @banned_files = split(/[,;\s]+/,$amavisConfig{'banned_files'});
+
+			my @banned_ext;
+			my @banned_type;
+			foreach my $bf (@banned_files) {
+				# Check for file extension
+				if ($bf =~ /^\./) {
+					$bf =~ s/^\.//;
+					push(@banned_ext,$bf);
+				# Check for content type
+				} elsif ($bf =~ /^\S+\//) {
+					# Fix *
+					$bf =~ s/\*$/.*/;
+					push(@banned_type,$bf);
+				}
+			}
+
+			# Build half the regex
+			my $banned_ext_re = join('|',@banned_ext);
+			my $banned_type_re = join('|',@banned_type);
+
+			my @re_list;
+
+			# Check vars we just created
+			if ($banned_ext_re ne "") {
+				$banned_ext_re = "^\\.($banned_ext_re)\$";
+				$banned_ext_re = qr"$banned_ext_re"i;
+				push(@re_list,$banned_ext_re);
+			}
+			if ($banned_type_re ne "") {
+				$banned_type_re = "^($banned_type_re)\$";
+				$banned_type_re = qr"$banned_type_re"i;
+				push(@re_list,$banned_type_re);
+			}
+
+			push(@{$pbn->{'banned_filename_maps'}},\{
+					$r->recip_addr	=>  [ Amavis::Lookup::RE->new(@re_list) ]
+			});
 		}
 
 
@@ -513,10 +532,48 @@ sub process_policy {
 
 
 	}
-
-  	do_log(-2,"CUSTOM: done process_policy");
+		
 	return $pbn;
 };
+
+
+
+# Mail logging
+sub amail_done
+{
+	my($self,$conn,$msginfo) = @_;
+  
+	my($mail_id) = $msginfo->mail_id;
+	my($spam_level) = $msginfo->spam_level;
+  my($sid) = $msginfo->sender_maddr_id;
+      my($m_id) = $msginfo->orig_header_fields->{'message-id'};
+      my($m_id) = parse_message_id($m_id) if $m_id ne ''; # strip CFWS, take #1
+      my($subj) = $msginfo->orig_header_fields->{'subject'};
+      my($from) = $msginfo->orig_header_fields->{'from'};  # raw full field
+      my($rfc2822_from)   = $msginfo->rfc2822_from;  # undef, scalar or listref
+      my($rfc2822_sender) = $msginfo->rfc2822_sender;  # undef or scalar
+      $rfc2822_from = join(', ',@$rfc2822_from)  if ref $rfc2822_from;
+      my($os_fp) = $msginfo->client_os_fingerprint;
+	  my $size = $msginfo->msg_size;
+
+      # insert per-recipient records into table msgrcpt
+      for my $r (@{$msginfo->per_recip_data}) {
+        my($rid) = $r->recip_maddr_id;
+        my($dest,$resp) = ($r->recip_destiny, $r->recip_smtp_response);
+          my $blacklist_sender = $r->recip_blacklisted_sender ? 'Y' : 'N';
+          my $blacklist_recipient = $r->recip_whitelisted_sender ? 'Y' : 'N';
+		  my $score = $spam_level+$r->recip_score_boost;
+  			do_log(-2,"CUSTOM: mail_id: $mail_id, rid: $rid, dest: $dest, resp: $resp, black_sender: $blacklist_sender, black_recip: $blacklist_recipient, spam_level: $score, sid: $sid, mm_id: $m_id, subj: $subj, from: $from ($rfc2822_from), to: ".$r->recip_addr.", os_fp: $os_fp");
+  			do_log(-2,"CUSTOM DBLOG: mail_id: $mail_id, from: $from, to: ".$r->recip_addr.", subject: $subj, size: $size, status: $resp");
+      }
+      my($q_to) = $msginfo->quarantined_to;  # ref to a list of quar. locations
+      if (!defined($q_to) || !@$q_to) { 
+		undef $q_to;
+	} else {
+        $q_to = $q_to->[0];  # keep only the first quarantine location
+    }
+
+}
 
 
 
