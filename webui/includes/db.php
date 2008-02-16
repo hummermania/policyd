@@ -25,5 +25,27 @@ function connect_db()
 }
 
 
+# Connect to postfix DB
+function connect_postfix_db()
+{
+	global $DB_POSTFIX_DSN;
+	global $DB_POSTFIX_USER;
+	global $DB_POSTFIX_PASS;
+
+	try {
+		$dbh = new PDO($DB_POSTFIX_DSN, $DB_POSTFIX_USER, $DB_POSTFIX_PASS, array(
+			PDO::ATTR_PERSISTENT => false
+		));
+
+		$dbh->setAttribute(PDO::ATTR_CASE,PDO::CASE_LOWER);
+
+	} catch (PDOException $e) {
+		die("Error conneting to Postfix DB: " . $e->getMessage());
+	}
+
+	return $dbh;
+}
+
+
 # vim: ts=4
 ?>

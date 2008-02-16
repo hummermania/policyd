@@ -65,9 +65,10 @@ function printHeader($params = NULL)
 
 							<p>Postfix Integration</p>
 							<ul>
-				    			<li><a href="postfix-main.php">Configure</a></li>
-		    					<li><a href="postfix-vda-main.php">Mailbox Quotas</a></li>
-		    					<li><a href="postfix-queue-main.php">Hold Queue</a></li>
+		    					<li><a href="postfix-transports-main.php">Transports</a></li>
+		    					<li><a href="postfix-mailboxes-main.php">Mailboxes</a></li>
+		    					<li><a href="postfix-aliases-main.php">Aliases</a></li>
+		    					<li><a href="postfix-distribution-groups-main.php">Distribution Groups</a></li>
 							</ul>
 					
 	    					<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />
