@@ -1,9 +1,14 @@
 <?php
 
+include_once("includes/config.php");
+
+
 
 # Print out HTML header
 function printHeader($params = NULL)
 {
+	global $DB_POSTFIX_DSN;
+
 
     # Pull in params
     if (!is_null($params)) {
@@ -62,15 +67,21 @@ function printHeader($params = NULL)
 							<ul>
 		    					<li><a href="amavis-main.php">Configure</a></li>
 							</ul>
-
-							<p>Postfix Integration</p>
-							<ul>
-		    					<li><a href="postfix-transports-main.php">Transports</a></li>
-		    					<li><a href="postfix-mailboxes-main.php">Mailboxes</a></li>
-		    					<li><a href="postfix-aliases-main.php">Aliases</a></li>
-		    					<li><a href="postfix-distribution-groups-main.php">Distribution Groups</a></li>
-							</ul>
-					
+<?php
+							# Check if postfix DSN is set
+							if (isset($DB_POSTFIX_DSN) && !empty($DB_POSTFIX_DSN)) 
+							{
+?>
+								<p>Postfix Integration</p>
+								<ul>
+		    						<li><a href="postfix-transports-main.php">Transports</a></li>
+		    						<li><a href="postfix-mailboxes-main.php">Mailboxes</a></li>
+		    						<li><a href="postfix-aliases-main.php">Aliases</a></li>
+		    						<li><a href="postfix-distgroups-main.php">Distribution Groups</a></li>
+								</ul>
+<?php
+							}
+?>					
 	    					<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />
 						</td>
 
