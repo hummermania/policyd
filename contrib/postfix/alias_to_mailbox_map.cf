@@ -1,0 +1,11 @@
+hosts=localhost
+user=postfix
+password=test
+dbname=postfix
+
+
+
+query=  SELECT Mailbox
+		FROM mailboxes
+	WHERE
+		Mailbox = '%s'

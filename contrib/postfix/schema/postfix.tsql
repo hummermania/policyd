@@ -1,0 +1,122 @@
+
+/* Postfix tables */
+
+CREATE TABLE transports (
+	ID			@SERIAL_TYPE@,
+
+	DomainName		VARCHAR(255) NOT NULL UNIQUE,
+
+	Type			SMALLINT NOT NULL,  /* 1 = virtual, 2 = smtp */
+
+        Transport		VARCHAR(1024),  /* example.com     or   server.example.com */ 
+
+	PTransport		VARCHAR(1024),  /* Postfix transport */
+
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL
+
+) @CREATE_TABLE_SUFFIX@;
+
+
+INSERT INTO transports (DomainName,Type,Transport,PTransport) VALUES ('example.com',1,'example.com','virtual:example.com');
+
+
+
+
+CREATE TABLE mailboxes (
+	ID			@SERIAL_TYPE@,
+
+	TransportID		@SERIAL_REF_TYPE@,
+
+	Address			VARCHAR(255),  /* User part of email address */
+
+	Mailbox			VARCHAR(255) NOT NULL UNIQUE,  /* Full email address, this is also the username */
+	Password		VARCHAR(128),  /* Password for mailbox */
+
+	/* Maildir =   transports.Type == 1    ->   'virtual:/' + transports.Transport + '/' + mailboxes.Mailbox */
+
+	Quota			INT,  /* In Mbyte, select where Quota IS NOT NULL  */
+
+	Name			TINYTEXT NOT NULL,
+
+
+	BCC			VARCHAR(255),  /* select where BCC IS NOT NULL */
+
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL,
+
+
+	FOREIGN KEY (TransportID) REFERENCES transports(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO mailboxes (TransportID,Address,Mailbox,Password,Quota,Name,BCC,Comment,Disabled) VALUES 
+	(1,'test','test@example.com','tst123',5,'joe soap','test2@example.com','test user 1',0);
+
+INSERT INTO mailboxes (TransportID,Address,Mailbox,Password,Quota,Name,BCC,Comment,Disabled) VALUES 
+	(1,'test2','test2@example.com','tst123',5,'jill soap',NULL,'test user 2',0);
+
+
+
+
+CREATE TABLE distribution_groups (
+	ID			@SERIAL_TYPE@,
+
+	TransportID		@SERIAL_REF_TYPE@,
+
+	Address			VARCHAR(255),  /* User part of email address */
+	
+	MailAddress		VARCHAR(255) UNIQUE,  /* Full email address */
+	
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL,
+
+	FOREIGN KEY (TransportID) REFERENCES transports(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO distribution_groups (TransportID,Address,MailAddress,Disabled) VALUES
+	(1,'dist1','dist1@example.com',0);
+
+
+
+CREATE TABLE distribution_group_members (
+	ID			@SERIAL_TYPE@,
+
+	DistributionGroupID	@SERIAL_REF_TYPE@,
+
+	Goto			VARCHAR(255),  /* Full email address */
+
+	Disabled		SMALLINT NOT NULL,
+
+	FOREIGN KEY (DistributionGroupID) REFERENCES distribution_groups(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO distribution_group_members (DistributionGroupID,Goto,Disabled) VALUES
+	(1,'test@example.com',0);
+INSERT INTO distribution_group_members (DistributionGroupID,Goto,Disabled) VALUES
+	(1,'test2@example.com',0);
+
+
+
+CREATE TABLE aliases (
+	ID			@SERIAL_TYPE@,
+
+	TransportID		@SERIAL_REF_TYPE@,
+
+	Address			VARCHAR(255),  /* User part of email address */
+	
+	MailAddress		VARCHAR(255) UNIQUE,  /* Full email address */
+	
+	Goto			VARCHAR(255),  /* Full email address */
+
+	Disabled		SMALLINT NOT NULL,
+
+	FOREIGN KEY (TransportID) REFERENCES transports(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO aliases (TransportID,Address,MailAddress,Goto,Disabled) VALUES
+	(1,'alias1','alias1@example.com','test2@example.com',0);
+
+

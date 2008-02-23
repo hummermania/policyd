@@ -1,0 +1,11 @@
+hosts=localhost
+user=postfix
+password=test
+dbname=postfix
+
+query=	SELECT BCC
+		FROM mailboxes
+	WHERE 
+		Mailbox = '%s'
+		AND BCC IS NOT NULL
+		AND Disabled = 0

@@ -1,0 +1,10 @@
+hosts=localhost
+user=postfix
+password=test
+dbname=postfix
+
+query=	SELECT Goto
+		FROM aliases
+	WHERE 
+		MailAddress = '%s'
+		AND Disabled = 0

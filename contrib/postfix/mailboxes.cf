@@ -1,0 +1,12 @@
+hosts=localhost
+user=postfix
+password=test
+dbname=postfix
+
+query=  SELECT CONCAT(transports.Transport,'/',mailboxes.Address,'/')
+		FROM mailboxes, transports
+	WHERE
+		mailboxes.Mailbox = '%s'
+		AND transports.ID = mailboxes.TransportID
+		AND transports.Disabled = 0
+		AND mailboxes.Disabled = 0

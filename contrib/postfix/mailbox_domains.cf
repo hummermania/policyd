@@ -1,0 +1,6 @@
+hosts=localhost
+user=postfix
+password=test
+dbname=postfix
+
+query=SELECT DomainName FROM transports WHERE DomainName = '%s' AND Type = 1

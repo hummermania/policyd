@@ -1,0 +1,9 @@
+hosts=localhost
+user=postfix
+password=test
+dbname=postfix
+
+query=	SELECT ( Quota * 1024 * 1024 )
+		FROM mailboxes
+	WHERE 
+		Mailbox = '%s'

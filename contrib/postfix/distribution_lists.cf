@@ -1,0 +1,12 @@
+hosts=localhost
+user=postfix
+password=test
+dbname=postfix
+
+query=	SELECT distribution_lists.Goto
+		FROM distribution_groups, distribution_lists
+	WHERE 
+		distribution_groups.MailAddress  = '%s'
+		AND distribution_lists.DistributionGroupID = distribution_groups.ID
+		AND distribution_groups.Disabled = 0
+		AND distribution_lists.Disabled = 0

@@ -1,0 +1,6 @@
+hosts=localhost
+user=postfix
+password=test
+dbname=postfix
+
+query=SELECT PTransport FROM transports WHERE DomainName = '%s'
