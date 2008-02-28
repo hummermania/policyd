@@ -1,0 +1,91 @@
+/* Helo checking */
+
+/*
+    NULL means to inherit
+*/
+CREATE TABLE checkhelo (
+	ID			@SERIAL_TYPE@,
+
+	PolicyID		@SERIAL_REF_TYPE@,
+
+	Name			TINYTEXT NOT NULL,
+
+
+	/* Blacklisting, we want to reject people impersonating us */
+	UseBlacklist			SMALLINT,  /* Checks blacklist table */
+	BlacklistPeriod			BIGINT,  /* Period to keep the host blacklisted for, if not set or 0
+						    the check will be live */	
+
+	/* Random helo prevention */
+	UseHRP				SMALLINT,  /* Use helo randomization prevention */
+	HRPPeriod			BIGINT,  /* Period/window we check for random helo's */
+	HRPLimit			BIGINT,  /* Our limit for the number of helo's is this */
+
+	/* RFC compliance options */
+	RejectInvalid			SMALLINT,  /* Reject invalid HELO */
+	RejectIP			SMALLINT,  /* Reject if HELO is an IP */
+	RejectUnresolvable		SMALLINT,  /* Reject unresolvable HELO */
+
+
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
+/* Blacklisted HELO's */
+CREATE TABLE checkhelo_blacklist (
+	ID			@SERIAL_TYPE@,
+
+	Helo			VARCHAR(255) NOT NULL,
+
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	UNIQUE (Helo)
+) @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
+	('127.0.0.1','Blacklist hosts claiming to be 127.0.0.1');
+
+INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
+	('[127.0.0.1]','Blacklist hosts claiming to be [127.0.0.1]');
+
+INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
+	('localhost','Blacklist hosts claiming to be localhost');
+
+INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
+	('localhost.localdomain','Blacklist hosts claiming to be localhost.localdomain');
+
+
+
+/* Whitelisted CIDR's */
+CREATE TABLE checkhelo_whitelist (
+	ID			@SERIAL_TYPE@,
+
+	Address			VARCHAR(64) NOT NULL,  /* In CIDR format */
+
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	UNIQUE (Address)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
+/* Helo tracking table */
+CREATE TABLE checkhelo_tracking (
+	ID			@SERIAL_TYPE@,
+
+	Address			VARCHAR(255) NOT NULL,
+	Helo			VARCHAR(255) NOT NULL,
+	LastUpdate		BIGINT UNSIGNED NOT NULL,
+
+	UNIQUE (Address,Helo)
+) @CREATE_TABLE_SUFFIX@;
+

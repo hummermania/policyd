@@ -279,9 +279,10 @@ sub check {
 					}
 					
 					# Log create to mail log
-					$server->maillog("module=Quotas, action=create, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+					$server->maillog("module=Quotas, action=create, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 								"counter=%s, quota=%s/%s (%s%%)",
 							$request->{'client_address'},
+							$request->{'helo_name'},
 							$request->{'sender'},
 							$request->{'recipient'},
 							$qtrack->{'PolicyID'},
@@ -296,9 +297,10 @@ sub check {
 				# If we updated ...
 				} else {
 					# Log update to mail log
-					$server->maillog("module=Quotas, action=update, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+					$server->maillog("module=Quotas, action=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 								"counter=%s, quota=%s/%s (%s%%)",
 							$request->{'client_address'},
+							$request->{'helo_name'},
 							$request->{'sender'},
 							$request->{'recipient'},
 							$qtrack->{'PolicyID'},
@@ -322,10 +324,11 @@ sub check {
 			my $pused =  sprintf('%.1f', ( $newCounters{$exceededQtrack->{'QuotasLimitsID'}} / $exceededQtrack->{'CounterLimit'} ) * 100);
 
 			# Log rejection to mail log
-			$server->maillog("module=Quotas, action=%s, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+			$server->maillog("module=Quotas, action=%s, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 						"counter=%s, quota=%s/%s (%s%%)",
 					$exceededQtrack->{'Verdict'},
 					$request->{'client_address'},
+					$request->{'helo_name'},
 					$request->{'sender'},
 					$request->{'recipient'},
 					$exceededQtrack->{'PolicyID'},
@@ -416,9 +419,10 @@ sub check {
 									my $pused =  sprintf('%.1f', ( $qtrack->{'Counter'} / $limit->{'CounterLimit'} ) * 100);
 
 									# Log update to mail log
-									$server->maillog("module=Quotas, action=update, host=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
+									$server->maillog("module=Quotas, action=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 												"counter=%s, quota=%s/%s (%s%%)",
 											$request->{'client_address'},
+											$request->{'helo_name'},
 											$request->{'sender'},
 											$emailAddy,
 											$policyID,

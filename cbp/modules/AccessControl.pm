@@ -61,12 +61,6 @@ sub init {
 }
 
 
-# Destroy
-sub finish {
-}
-
-
-
 # Check the request
 sub check {
 	my ($server,$request) = @_;
