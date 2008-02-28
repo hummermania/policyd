@@ -63,6 +63,13 @@ function printHeader($params = NULL)
 		    					<li><a href="quotas-main.php">Configure</a></li>
 							</ul>
 					
+							<p>HELO/EHLO Checks</p>
+							<ul>
+		    					<li><a href="checkhelo-main.php">Configure</a></li>
+		    					<li><a href="checkhelo-blacklist-main.php">Blacklist</a></li>
+		    					<li><a href="checkhelo-whitelist-main.php">Whitelist</a></li>
+							</ul>
+					
 							<p>Amavis Integration</p>
 							<ul>
 		    					<li><a href="amavis-main.php">Configure</a></li>
