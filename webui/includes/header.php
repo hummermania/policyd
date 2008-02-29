@@ -70,6 +70,11 @@ function printHeader($params = NULL)
 		    					<li><a href="checkhelo-whitelist-main.php">Whitelist</a></li>
 							</ul>
 					
+							<p>SPF Checks</p>
+							<ul>
+		    					<li><a href="checkspf-main.php">Configure</a></li>
+							</ul>
+					
 							<p>Amavis Integration</p>
 							<ul>
 		    					<li><a href="amavis-main.php">Configure</a></li>
