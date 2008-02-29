@@ -1,0 +1,29 @@
+
+/* SPF checking */
+
+/*
+    NULL means to inherit
+*/
+CREATE TABLE checkspf (
+	ID			@SERIAL_TYPE@,
+
+	PolicyID		@SERIAL_REF_TYPE@,
+
+	Name			TINYTEXT NOT NULL,
+
+	/* Do we want to use SPF?  1 or 0 */
+	UseSPF				SMALLINT,
+	/* Reject when SPF fails */
+	RejectFailedSPF			SMALLINT,
+	/* Add SPF header */
+	AddSPFHeader			SMALLINT,
+
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
