@@ -134,7 +134,7 @@ sub check {
 		# Get result
 		my $result = $spf_server->process($rqst);
 	
-		$server->log(LOG_DEBUG,"[CHECKSPF] SPF result: ".Dumper($result->local_explanation));
+		$server->log(LOG_DEBUG,"[CHECKSPF] SPF result: ".$result->local_explanation);
 
 		# Make reason more pretty
 		(my $reason = $result->local_explanation) =~ s/:/,/;
