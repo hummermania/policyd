@@ -1,0 +1,85 @@
+# Snippet of main.cf showing how to configure policyd and the unsupported postfix integration module
+
+
+
+# This disables the vrfy command which can be used by spammers to verify if an email addy exists
+disable_vrfy_command=yes
+
+## Make sure envelope addies contain  <>
+strict_rfc821_envelopes=yes
+
+# Be more strict about how many errors we can get before we give up on the client
+smtpd_soft_error_limit=5
+smtpd_hard_error_limit=10
+
+#smtpd_etrn_restrictions=
+#                permit_mynetworks,
+#                reject
+
+# Require sending server helo to us
+smtpd_helo_required=yes
+
+smtpd_delay_reject=no
+
+smtpd_recipient_restrictions=
+	reject_non_fqdn_recipient,
+	reject_unknown_recipient_domain,
+	permit_mynetworks,
+	reject_unauth_destination,
+	check_policy_service inet:127.0.0.1:10031
+
+smtpd_end_of_data_restrictions=
+	check_policy_service inet:127.0.0.1:10031
+
+
+content_filter = smtp-amavis:[127.0.0.1]:10024
+
+
+
+# Transport maps, virtual: or  smtp:hostnamehere  
+transport_maps=proxy:mysql:/etc/mail/mysql/transports.cf
+relay_domains=proxy:mysql:/etc/mail/mysql/relay_domains.cf
+# Virtual users
+virtual_mailbox_domains=proxy:mysql:/etc/mail/mysql/mailbox_domains.cf
+virtual_mailbox_maps=proxy:mysql:/etc/mail/mysql/mailboxes.cf
+virtual_uid_maps=static:10000
+virtual_gid_maps=static:10001
+virtual_mailbox_base=/var/vmail
+# Virtual aliases
+virtual_alias_maps=
+	proxy:mysql:/etc/mail/mysql/alias_to_mailbox_map.cf,
+	proxy:mysql:/etc/mail/mysql/distribution_lists.cf,
+	proxy:mysql:/etc/mail/mysql/aliases.cf
+
+# Main limits
+message_size_limit=10000000
+
+# Quotas
+virtual_mailbox_limit=100000000
+virtual_mailbox_limit_maps=proxy:mysql:/etc/mail/mysql/quotas.cf
+virtual_mailbox_limit_override=yes
+virtual_maildir_extended=yes
+virtual_mailbox_limit_inbox=yes
+virtual_create_maildirsize=yes
+virtual_overquota_bounce=yes
+virtual_trash_count=yes
+virtual_maildir_limit_message=Mailbox has exceeded quota, please try again later.
+
+recipient_bcc_maps=
+	proxy:mysql:/etc/mail/mysql/bcc.cf
+
+proxy_read_maps =  
+	proxy:unix:passwd.byname,
+	proxy:mysql:/etc/mail/mysql/aliases.cf,
+	proxy:mysql:/etc/mail/mysql/alias_to_mailbox_map.cf,
+	proxy:mysql:/etc/mail/mysql/bcc.cf,
+	proxy:mysql:/etc/mail/mysql/distribution_lists.cf,
+	proxy:mysql:/etc/mail/mysql/mailbox_domains.cf,
+	proxy:mysql:/etc/mail/mysql/mailboxes.cf,
+	proxy:mysql:/etc/mail/mysql/quotas.cf
+	proxy:mysql:/etc/mail/mysql/relay_domains.cf,
+	proxy:mysql:/etc/mail/mysql/transports.cf
+
+
+
+
