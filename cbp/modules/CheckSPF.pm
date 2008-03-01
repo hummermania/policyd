@@ -139,7 +139,7 @@ sub check {
 		# Make reason more pretty
 		my $reason;
 		(my $local_reason = $result->local_explanation) =~ s/:/,/;
-		if ($result->can('authority_explanation') {
+		if ($result->can('authority_explanation')) {
 			$reason = $result->authority_explanation . "; $local_reason";
 		} else {
 			$reason = $local_reason;

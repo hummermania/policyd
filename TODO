@@ -1,154 +1,20 @@
-
 Use prefork, we cannot guarantee how long the plugins/modules will take to run and don't want to holdup other queries
-
 
 --------------
 
 Immediate requirements:
 
-_*Policies*_
 
-Policies will be implemented in the following manner and apply to all
-the features described in this document.
+* SASL username support, add to table so we can use in amavis aswell
 
+* Add function to modules  cleanup(), this should cleanup accounting info
 
-The policies types are as follows...
+* Add removal of tracking information in each webui remove request
+- Groups, delete members
+- Quotas, delete tracking
+- HELO checks, delete tracking
+- Policies, delete ACL's
 
-    *
-      System policy. This is the default system policy.
-
-    *
-      Domain policy. This is the policy for a specific domain.
-
-    *
-      Group policy. This policy allows customized settings for groups,
-      this overrides the domain policy and system policy respectively.
-
-    *
-      User policy. This policy allows customized settings for a specific
-      user. This overrides the group policy, domain policy and system
-      policy respectively.
-
-
-_*Access Control (Allow/Block)*_
-
-    *
-      Allow blocking of email in/out of XYZ based on sender, recipient
-      or group.
-
-    *
-      Allow blocking of attachment types in/out of XYZ based on sender,
-      recipient or group.
-
-
-_*Quotas (Quotas)*_
-
-    *
-      Mailbox size quotas.  (Implemented in Postfix)
-
-    *
-      Number and cumulative size of mails per day, week, month delivered
-      to user or group.
-
-    *
-      Number and cumulative size of mails per day, week, month user or
-      group sends out of XYZ
-
-    *
-      Number and cumulative size of mails per day, week, month user or
-      group sends inside XYZ
-
-
-_*Message Sizes (Restriction)*_
-
-    *
-      Size of message that the user or group receives.
-
-    *
-      Size of message that the user or group sends out of XYZ.
-
-    *
-      Size of message that the user or group sends inside XYZ.
-
-
-_*Message Content*_
-
-    *
-      Analysis of email content, including identification of certain
-      embedded pornographic material and spam. (Amavisd-new)
-
-    *
-      Attachment analysis, including Bayesian scanning of images to
-      facilitate the detection of banned content. (Amavisd-new)
-
-
-
-_*Email Forwarding (Forward)*_
-
-    *
-      Support forwarding of mail inside XYZ (distribution list). (MySQL table in postfix)
-
-    *
-      Support forwarding of email outside XYZ. (As per above)
-
-    *
-      Recipient number limits.
-
-
-
-_*Rejection Reasons*_
-
-All rejections of mail will by default be done in the manner defined by
-RFC and best common practise, with the option of sending to a user or
-distribution list (group) instead.  (By default)
-
-
-
-_*Logs*_
-
-    *
-      Logs will include date, time, size, sender, receiver and action taken. (I case of policy server, just log properly)
-
-    *
-      Logs to include subject & attachment information.  (Ignore this)
-
-    *
-      Log files to be rotated weekly, compressed and stored for a
-      specified period of time. Logs are kept by default for one month.  (Logrotate)
-
-
-
-_*Statistics*_
-
-    *
-      Provide statistics per recipient, per group, all users, date,
-      time, size, sender, recipient and action.  (Need a web interface)
-
-    *
-      Provide statistics for subject of email & attachment types. (Ignore this)
-
-
-
-
-
---------------
-
-Database abstraction layer ontop of DBI .... totally abstract SQL, something like postfix's DB layer?
-
-
-We want it to be abstracted so its easy to change how queries are done, threaded, unthreaded ... whatever
-
-getRecord?
-putRecord?
-delRecord?
-
-May allow us to switch between PreFork, Multiplex ... etc easily.
-
-
---------------
-
-Module results must be worked out and a consistent interface provided and the code written to ultimately decide
-what to do.
 
 --------------
 
@@ -156,16 +22,8 @@ what to do.
 
 * Recipient throttling
 
-* Throttling based on X msgs per Y time and also Z size over Y time and
-also max message size
-
 * Spamtrap where the IP address get blacklisted for configurable time
 period per trap
-
-* Blacklist Helo where the IP address get blacklisted for configurable
-time period per helo
-
-* Blacklist if helo changes X times in Y period of time on same IP
 
 * Sender blacklisting
  
@@ -180,13 +38,6 @@ time period per helo
 * Greylisting abuse blacklisting & auto greylist-whitelisting for good
 hosts
  
-* SPF DNS checking
-
-* Multi-treaded application for high volume servers
-
-* Connect to multiple SQL DB's, i.e. MySQL, PostgreSQL, Oracle, SQLite
-and etc.
-
 * IPv6
 
 * Per receipient email address whitelists & blacklists?
