@@ -1,0 +1,36 @@
+Installing Policyd v2.
+
+
+1. Setup MySQL  (or whichever database you plan to use)
+
+a. In database/ run...
+$ for i in  core.tsql access_control.tsql quotas.tsql amavis.tsql checkhelo.tsql checkspf.tsql
+$ do 
+$        ./convert-tsql mysql $i
+$ done > policyd.mysql
+
+b. Load policyd.mysql into MySQL
+
+
+2. Adjust cbpolicyd.conf with your MySQL database details
+
+
+3. Install the webui/*  into your apache directory, check out   includes/config.php  and adjust the MySQL server details.
+
+
+4. Setup Postfix to use cbpolicyd...
+Add the following Postfix config...
+	check_policy_service inet:127.0.0.1:10031
+in BOTH  smtpd_recipient_restrictions and smtpd_end_of_data_restrictions.
+
+
+5. Copy your amavisd from /usr/sbin/amavisd and patch it with contrib/amavisd-new-2.5.3_policyd-200802070918.patch like this...
+$ patch < contrib/amavisd-new-2.5.3_policyd-200802070918.patch
+After this change your initscripts to start the patched amavisd.
+
+
+6. Copy amavisd-policyd.pm where you see fit, and add this configuration line to your amavisd.conf file...
+include_config_files('/path/to/amavisd-policyd.pm');
+
+
+7. Fire everything up and browse to the web gui to configure
