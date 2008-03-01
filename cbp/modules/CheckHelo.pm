@@ -236,7 +236,7 @@ sub check {
 						$request->{'sender'},
 						$request->{'recipient'});
 
-				return("REJECT","Invalid HELO/EHLO, '".$request->{'helo_name'}."' must be a FQDN or an address literal, not an IP address");
+				return("REJECT","Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$request->{'helo_name'}."'");
 			}
 
 		# Address literal is valid
@@ -269,7 +269,7 @@ sub check {
 								$request->{'sender'},
 								$request->{'recipient'});
 
-						return("REJECT","Invalid HELO/EHLO, no A or MX records found for '".$request->{'helo_name'}."'");
+						return("REJECT","Invalid HELO/EHLO; No A or MX records found for '".$request->{'helo_name'}."'");
 					}
 
 				} else {
@@ -283,7 +283,7 @@ sub check {
 								$request->{'sender'},
 								$request->{'recipient'});
 
-						return("REJECT","Invalid HELO/EHLO, cannot resolve '".$request->{'helo_name'}."', no such domain");
+						return("REJECT","Invalid HELO/EHLO; Cannot resolve '".$request->{'helo_name'}."', no such domain");
 
 					} elsif ($res->errorstring eq "NOERROR") {
 
@@ -293,7 +293,7 @@ sub check {
 								$request->{'sender'},
 								$request->{'recipient'});
 
-						return("REJECT","Invalid HELO/EHLO, cannot resolve '".$request->{'helo_name'}."'  no records found");
+						return("REJECT","Invalid HELO/EHLO; Cannot resolve '".$request->{'helo_name'}."', no records found");
 
 					} elsif ($res->errorstring eq "SERVFAIL") {
 
@@ -303,7 +303,7 @@ sub check {
 								$request->{'sender'},
 								$request->{'recipient'});
 
-						return("DEFER_IF_PERMIT","Invalid HELO/EHLO: Failure while trying to resolve '".$request->{'helo_name'}."'");
+						return("DEFER_IF_PERMIT","Invalid HELO/EHLO; Failure while trying to resolve '".$request->{'helo_name'}."'");
 
 					} else {
 						$server->log(LOG_ERR,"[CHECKHELO] Unknown error resolving '".$request->{'helo_name'}."': ".$res->errorstring);
@@ -352,7 +352,7 @@ sub check {
 					$request->{'sender'},
 					$request->{'recipient'});
 
-			return("REJECT","Invalid HELO/EHLO, blacklisted");
+			return("REJECT","Invalid HELO/EHLO; Blacklisted");
 		}
 	}
 
@@ -405,7 +405,7 @@ sub check {
 									$request->{'sender'},
 									$request->{'recipient'});
 
-							return("REJECT","Invalid HELO/EHLO, HRP limit exceeded");
+							return("REJECT","Invalid HELO/EHLO; HRP limit exceeded");
 						}
 
 					} else {
