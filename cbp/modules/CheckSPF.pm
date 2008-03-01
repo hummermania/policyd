@@ -117,9 +117,10 @@ sub check {
 			} # while (my $row = $sth->fetchrow_hashref())
 		} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
 	} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}})
+	$server->log(LOG_DEBUG,"[CHECKSPF] SPF policy: ".Dumper($policy));
 
 	# Check if we must use SPF
-	if (defined($policy{'UseSPF'}) && $policy{'UseSPF'} == 1) {
+	if (defined($policy{'UseSPF'}) && $policy{'UseSPF'} eq "1") {
 		# Create SPF request
 		my $rqst = Mail::SPF::Request->new(
 				'scope' => 'mfrom', # or 'helo', 'pra'
@@ -130,6 +131,8 @@ sub check {
 
 		# Get result
 		my $result = $spf_server->process($rqst);
+	
+		$server->log(LOG_DEBUG,"[CHECKSPF] SPF result: ".Dumper($result->local_explanation));
 
 		# Make reason more pretty
 		(my $reason = $result->local_explanation) =~ s/:/,/;
@@ -147,9 +150,9 @@ sub check {
 			my $action = "none";
 
 			# Check if we need to reject
-			if (defined($policy{'RejectFailedSPF'}) && $policy{'RejectFailedSPF'} == 1) {
+			if (defined($policy{'RejectFailedSPF'}) && $policy{'RejectFailedSPF'} eq "1") {
 				$action = "reject";
-			} elsif (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} == 1) {
+			} elsif (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} eq "1") {
 				$action = "add_header";
 			}
 
@@ -171,7 +174,7 @@ sub check {
 			my $action = "none";
 
 			# Check if we need to add a header
-			if (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} == 1) {
+			if (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} eq "1") {
 				$action = "add_header";
 			}
 
@@ -191,7 +194,7 @@ sub check {
 			my $action = "none";
 
 			# Check if we need to add a header
-			if (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} == 1) {
+			if (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} eq "1") {
 				$action = "add_header";
 			}
 
@@ -211,9 +214,9 @@ sub check {
 			my $action = "none";
 
 			# Check if we need to reject
-			if (defined($policy{'RejectFailedSPF'}) && $policy{'RejectFailedSPF'} == 1) {
+			if (defined($policy{'RejectFailedSPF'}) && $policy{'RejectFailedSPF'} eq "1") {
 				$action = "reject";
-			} elsif (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} == 1) {
+			} elsif (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} eq "1") {
 				$action = "add_header";
 			}
 
@@ -235,9 +238,9 @@ sub check {
 			my $action = "none";
 
 			# Check if we need to reject
-			if (defined($policy{'RejectFailedSPF'}) && $policy{'RejectFailedSPF'} == 1) {
+			if (defined($policy{'RejectFailedSPF'}) && $policy{'RejectFailedSPF'} eq "1") {
 				$action = "defer";
-			} elsif (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} == 1) {
+			} elsif (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} eq "1") {
 				$action = "add_header";
 			}
 

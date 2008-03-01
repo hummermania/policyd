@@ -222,13 +222,13 @@ sub check {
 	}
 
 	# Check if we need to reject invalid HELO's
-	if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} == 1) {
+	if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} eq "1") {
 
 		# Check if helo is an IP address
 		if ($request->{'helo_name'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
 
 			# Check if we must reject IP address HELO's
-			if (defined($policy{'RejectIP'}) && $policy{'RejectIP'} == 1) {
+			if (defined($policy{'RejectIP'}) && $policy{'RejectIP'} eq "1") {
 
 				$server->maillog("module=CheckHelo, action=reject, host=%s, from=%s, to=%s, reason=ip_not_allowed",
 						$request->{'client_address'},
@@ -246,7 +246,7 @@ sub check {
 		} elsif ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/) {
 
 			# Check if we must reject unresolvable HELO's
-			if (defined($policy{'RejectUnresolvable'}) && $policy{'RejectUnresolvable'} == 1) {
+			if (defined($policy{'RejectUnresolvable'}) && $policy{'RejectUnresolvable'} eq "1") {
 				my $res = Net::DNS::Resolver->new;
 				my $query = $res->search($request->{'helo_name'});
 
@@ -310,12 +310,12 @@ sub check {
 				 		return undef;
 					}
 				} # if ($query)
-			} # if (defined($policy{'RejectUnresolvable'}) && $policy{'RejectUnresolvable'} == 1) {
+			} # if (defined($policy{'RejectUnresolvable'}) && $policy{'RejectUnresolvable'} eq "1") {
 		} # elsif ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/)
-	} # if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} == 1)
+	} # if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} eq "1")
 
 	# Check if we must use the blacklist or not
-	if (defined($policy{'UseBlacklist'}) && $policy{'UseBlacklist'} == 1) {
+	if (defined($policy{'UseBlacklist'}) && $policy{'UseBlacklist'} eq "1") {
 		my $start = 0;
 
 		# Check period for blacklisting
@@ -357,7 +357,7 @@ sub check {
 	}
 
 	# Check if we must use HRP
-	if (defined($policy{'UseHRP'}) && $policy{'UseHRP'} == 1) {
+	if (defined($policy{'UseHRP'}) && $policy{'UseHRP'} eq "1") {
 
 		# Check if HRPPeriod is defined
 		if (defined($policy{'HRPPeriod'})) {
