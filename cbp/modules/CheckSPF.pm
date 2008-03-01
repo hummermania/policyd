@@ -137,7 +137,13 @@ sub check {
 		$server->log(LOG_DEBUG,"[CHECKSPF] SPF result: ".$result->local_explanation);
 
 		# Make reason more pretty
-		(my $reason = $result->local_explanation) =~ s/:/,/;
+		my $reason;
+		(my $local_reason = $result->local_explanation) =~ s/:/,/;
+		if ($result->can('authority_explanation') {
+			$reason = $result->authority_explanation . "; $local_reason";
+		} else {
+			$reason = $local_reason;
+		}
 
 		# Intended action is accept
 		if ($result->code eq "pass") {
