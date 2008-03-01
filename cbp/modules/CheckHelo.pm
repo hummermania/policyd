@@ -311,7 +311,11 @@ sub check {
 					}
 				} # if ($query)
 			} # if (defined($policy{'RejectUnresolvable'}) && $policy{'RejectUnresolvable'} eq "1") {
-		} # elsif ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/)
+
+		# Reject blatent RFC violation
+		} else { # elsif ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/)
+			return("REJECT","Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$request->{'helo_name'}."'");
+		}
 	} # if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} eq "1")
 
 	# Check if we must use the blacklist or not
