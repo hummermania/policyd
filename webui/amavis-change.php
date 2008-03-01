@@ -903,7 +903,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>Access Rule Update Results</h1>
+	<h1>Amavis Rule Update Results</h1>
 <?
 	$updates = array();
 
@@ -1099,6 +1099,7 @@ if ($_POST['action'] == "change") {
 		} else {
 ?>
 			<div class="warning">Error updating Amavis rule!</div>
+			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 		}
 

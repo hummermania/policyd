@@ -81,6 +81,7 @@ if ($_POST['action'] == "delete") {
 			} else {
 ?>
 				<div class="warning">Error deleting HELO/EHLO check!</div>
+				<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
 			}
 		} else {
@@ -92,7 +93,7 @@ if ($_POST['action'] == "delete") {
 	# Warn
 	} else {
 ?>
-		<div class="warning">Invocation error, no access control ID</div>
+		<div class="warning">Invocation error, no HELO/EHLO ID</div>
 <?php
 	}
 

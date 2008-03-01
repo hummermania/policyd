@@ -82,6 +82,7 @@ if ($_POST['action'] == "delete") {
 			} else {
 ?>
 				<div class="warning">Error deleting policy group member!</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 			}
 		} else {

@@ -93,9 +93,9 @@ if ($_POST['action'] == "delete") {
 				}
 
 			} else {
-				print_r($db->errorInfo());
 ?>
 				<div class="warning">Error selecting quota limit IDs!</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 			}
 
@@ -122,9 +122,9 @@ if ($_POST['action'] == "delete") {
 					<div class="notice">Quota tracking info deleted</div>
 <?php
 				} else {
-					print_r($db->errorInfo());
 ?>
 					<div class="warning">Error deleting quota tracking info!</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 					$db->rollBack();
 				}
@@ -151,9 +151,9 @@ if ($_POST['action'] == "delete") {
 					<div class="notice">Quota limits deleted</div>
 <?php
 				} else {
-					print_r($db->errorInfo());
 ?>
 					<div class="warning">Error deleting quota limits!</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 					$db->rollBack();
 				}
@@ -169,6 +169,7 @@ if ($_POST['action'] == "delete") {
 				} else {
 ?>
 					<div class="warning">Error deleting quota!</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 					$db->rollBack();
 				}

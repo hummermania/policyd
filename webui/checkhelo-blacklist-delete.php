@@ -81,6 +81,7 @@ if ($_POST['action'] == "delete") {
 			} else {
 ?>
 				<div class="warning">Error deleting HELO/EHLO blacklist!</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 			}
 		} else {
@@ -110,4 +111,3 @@ printFooter();
 
 # vim: ts=4
 ?>
-

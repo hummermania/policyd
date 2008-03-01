@@ -73,15 +73,38 @@ if ($_POST['action'] == "delete") {
 	if (isset($_POST['policy_group_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM policy_groups WHERE ID = ".$db->quote($_POST['policy_group_id']));
+			$db->beginTransaction();
+
+			$res = $db->exec("DELETE FROM policy_group_members WHERE PolicyGroupID = ".$db->quote($_POST['policy_group_id']));
 			if ($res) {
 ?>
-				<div class="notice">Policy group deleted</div>
+				<div class="notice">Policy group members deleted</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting policy group!</div>
+				<div class="warning">Error deleting policy group members!</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
+				$db->rollback();
+			}
+
+			if ($res) {
+				$res = $db->exec("DELETE FROM policy_groups WHERE ID = ".$db->quote($_POST['policy_group_id']));
+				if ($res) {
+?>
+					<div class="notice">Policy group deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting policy group!</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+					$db->rollback();
+				}
+			}
+
+			if ($res) {
+				$db->commit();
 			}
 		} else {
 ?>

@@ -88,6 +88,7 @@ if ($_POST['action'] == "add") {
 		} else {
 ?>
 			<div class="warning">Failed to create HELO/EHLO whitelisting</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
 		}
 

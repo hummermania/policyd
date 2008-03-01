@@ -230,7 +230,7 @@ if ($_POST['action'] == "change") {
 		} elseif ($_POST['checkspf_usespf'] == "2") {
 			$usespf = 1;
 		} elseif ($_POST['checkspf_usespf'] == "3") {
-			$usespf = 0;
+			$usespf = 2;
 		}
 		array_push($updates,"UseSPF = ".$db->quote($usespf));
 	}
@@ -240,7 +240,7 @@ if ($_POST['action'] == "change") {
 		} elseif ($_POST['checkspf_rejectfailed'] == "2") {
 			$rejectfailed = 1;
 		} elseif ($_POST['checkspf_rejectfailed'] == "3") {
-			$rejectfailed = 0;
+			$rejectfailed = 2;
 		}
 		array_push($updates,"RejectFailedSPF = ".$db->quote($rejectfailed));
 	}
@@ -250,7 +250,7 @@ if ($_POST['action'] == "change") {
 		} elseif ($_POST['checkspf_addheader'] == "2") {
 			$addheader = 1;
 		} elseif ($_POST['checkspf_addheader'] == "3") {
-			$addheader = 0;
+			$addheader = 2;
 		}
 		array_push($updates,"AddSPFHeader = ".$db->quote($addheader));
 	}

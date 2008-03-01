@@ -121,6 +121,7 @@ if ($_POST['action'] == "change") {
 		} else {
 ?>
 			<div class="warning">Error updating policy group!</div>
+			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 		}
 

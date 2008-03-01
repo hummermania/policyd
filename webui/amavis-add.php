@@ -716,7 +716,7 @@ if ($_POST['action'] == "add") {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Access Control Add Results</h1>
+	<h1>Amavis Rule Add Results</h1>
 
 <?php
 	# Check name
@@ -915,11 +915,12 @@ if ($_POST['action'] == "add") {
 		$res = $stmt->execute($dbinfo);
 		if ($res) {
 ?>
-			<div class="notice">Access control created</div>
+			<div class="notice">Amavis rule created</div>
 <?php
 		} else {
 ?>
-			<div class="warning">Failed to create access control</div>
+			<div class="warning">Failed to create Amavis rule</div>
+			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 		}
 

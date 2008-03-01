@@ -435,6 +435,7 @@ if ($_POST['action'] == "change") {
 		} else {
 ?>
 			<div class="warning">Error updating HELO/EHLO check!</div>
+			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 		}
 

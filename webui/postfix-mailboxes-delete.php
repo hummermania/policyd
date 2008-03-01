@@ -81,6 +81,7 @@ if ($_POST['action'] == "delete") {
 			} else {
 ?>
 				<div class="warning">Error deleting mailbox!</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 			}
 		} else {

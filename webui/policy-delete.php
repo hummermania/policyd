@@ -1,5 +1,5 @@
 <?php
-# Module: CheckHelo (whitelist) delete
+# Module: Policy delete
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to whitelist" => "checkhelo-whitelist-main.php",
+			"Back to policies" => "policy-main.php",
 		),
 ));
 
@@ -39,15 +39,15 @@ printHeader(array(
 # Display delete confirm screen
 if ($_POST['action'] == "delete") {
 
-	# Check a whitelisting was selected
-	if (isset($_POST['whitelist_id'])) {
+	# Check a policy was selected
+	if (isset($_POST['policy_id'])) {
 ?>
-		<h1>Delete HELO/EHLO whitelist</h1>
+		<h1>Delete Policy</h1>
 
-		<form action="checkhelo-whitelist-delete.php" method="post">
+		<form action="policy-delete.php" method="post">
 			<div>
 				<input type="hidden" name="action" value="delete2" />
-				<input type="hidden" name="whitelist_id" value="<?php echo $_POST['whitelist_id']; ?>" />
+				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
 			</div>
 			
 			<div class="textcenter">
@@ -59,7 +59,7 @@ if ($_POST['action'] == "delete") {
 <?php
 	} else {
 ?>
-		<div class="warning">No HELO/EHLO whitelisting selected</div>
+		<div class="warning">No policy selected</div>
 <?php
 	}
 	
@@ -68,32 +68,55 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>HELO/EHLO Whitelist Delete Results</h1>
+	<h1>Policy Delete Results</h1>
 <?
-	if (isset($_POST['whitelist_id'])) {
+	if (isset($_POST['policy_id'])) {
+		
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM checkhelo_whitelist WHERE ID = ".$db->quote($_POST['whitelist_id']));
+			$db->beginTransaction();
+
+			$res = $db->exec("DELETE FROM policy_acls WHERE PolicyID = ".$db->quote($_POST['policy_id']));
 			if ($res) {
 ?>
-				<div class="notice">HELO/EHLO whitelist deleted</div>
+				<div class="notice">Policy ACL's deleted</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting HELO/EHLO whitelist!</div>
+				<div class="warning">Error deleting policy!</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
+				$db->rollback();
+			}
+
+			if ($res) {
+				$res = $db->exec("DELETE FROM policies WHERE ID = ".$db->quote($_POST['policy_id']));
+				if ($res) {
+?>
+					<div class="notice">Policy deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting policy!</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+					$db->rollback();
+				}
+			}
+
+			if ($res) {
+				$db->commit();
 			}
 		} else {
 ?>
-			<div class="notice">HELO/EHLO whitelist not deleted, aborted by user</div>
+			<div class="notice">Policy not deleted, aborted by user</div>
 <?php
 		}
 
 	# Warn
 	} else {
 ?>
-		<div class="warning">Invocation error, no whitelist ID</div>
+		<div class="warning">Invocation error, no policy ID</div>
 <?php
 	}
 

@@ -145,6 +145,7 @@ if ($_POST['action'] == "change") {
 	} else {
 ?>
 		<div class="warning">No changes made to HELO/EHLO whitelisting</div>
+		<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 	}
 

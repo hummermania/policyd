@@ -10,8 +10,8 @@ $DB_DSN="sqlite:////tmp/cluebringer.sqlite";
 #$DB_USER="";
 #$DB_PASS="";
 
-#$DB_POSTFIX_DSN="mysql:host=localhost;dbname=postfix";
-#$DB_POSTFIX_USER="root";
+$DB_POSTFIX_DSN="mysql:host=localhost;dbname=postfix";
+$DB_POSTFIX_USER="root";
 #$DB_POSTFIX_PASS="";
 
 ?>

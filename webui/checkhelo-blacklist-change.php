@@ -39,7 +39,7 @@ printHeader(array(
 # Display change screen
 if ($_POST['action'] == "change") {
 
-	# Check a access control was selected
+	# Check a checkhelo blacklist was selected
 	if (isset($_POST['blacklist_id'])) {
 		# Prepare statement
 		$stmt = $db->prepare('
@@ -139,6 +139,7 @@ if ($_POST['action'] == "change") {
 		} else {
 ?>
 			<div class="warning">Error updating HELO/EHLO blacklisting!</div>
+			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 		}
 
