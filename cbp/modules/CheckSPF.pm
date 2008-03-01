@@ -76,7 +76,10 @@ sub check {
 
 	# We only valid in the RCPT state
 	return undef if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
-	
+
+	# We cannot do SPF on <>
+	return undef if (!defined($request->{'sender'}) || $request->{'sender'} eq "");
+
 	# Policy we're about to build
 	my %policy;
 	
@@ -117,7 +120,6 @@ sub check {
 			} # while (my $row = $sth->fetchrow_hashref())
 		} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
 	} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}})
-	$server->log(LOG_DEBUG,"[CHECKSPF] SPF policy: ".Dumper($policy));
 
 	# Check if we must use SPF
 	if (defined($policy{'UseSPF'}) && $policy{'UseSPF'} eq "1") {
@@ -164,7 +166,7 @@ sub check {
 
 			# Check if we need to reject
 			if ($action eq "reject") {
-				return("REJECT","Failed SPF check: $reason");
+				return("REJECT","Failed SPF check; $reason");
 			} elsif ($action eq "add_header") {
 				return("PREPEND",$result->received_spf_header);
 			}
@@ -228,7 +230,7 @@ sub check {
 
 			# Check if we need to reject
 			if ($action eq "reject") {
-				return("REJECT","Failed SPF check: $reason");
+				return("REJECT","Failed SPF check; $reason");
 			} elsif ($action eq "add_header") {
 				return("PREPEND",$result->received_spf_header);
 			}
