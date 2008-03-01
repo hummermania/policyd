@@ -108,7 +108,7 @@ CREATE TABLE policy_group_members (
 	Comment			VARCHAR(1024),
 
 
-	FOREIGN KEY (ID) REFERENCES groups(ID)
+	FOREIGN KEY (PolicyGroupID) REFERENCES policy_groups(ID)
 )  @CREATE_TABLE_SUFFIX@;
 
 INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (1,"10.0.0.0/8");
