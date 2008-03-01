@@ -697,6 +697,32 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
+				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Interception</td>
+			</tr>
+			<tr>
+				<td class="entrytitle">BCC To</td>
+				<td>
+					<select name="amavis_bcc_to_mode" id="amavis_bcc_to_mode"
+						onchange="
+							var myobjs = document.getElementById('amavis_bcc_to_mode');
+							var myobji = document.getElementById('amavis_bcc_to');
+
+							if (myobjs.selectedIndex == 0) {
+								myobji.disabled = true;
+								myobji.value = 'n/a';
+							} else if (myobjs.selectedIndex != 0) {
+								myobji.disabled = false;
+								myobji.value = '';
+							}
+					">
+						<option value="0" selected="selected">Inherit</option>
+						<option value="2">Override</option>
+					</select>
+					<input type="text" name="amavis_bcc_to" id="amavis_bcc_to" 
+							disabled="disabled" value="n/a" />
+				</td>
+			</tr>
+			<tr>
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">&nbsp;</td>
 			</tr>
 			<tr>
@@ -816,6 +842,11 @@ if ($_POST['action'] == "add") {
 				$_POST['amavis_quarantine_bad_header'] : '');
 		$dbinfo = array_merge($dbinfo,$res);
 		
+		# Interception	
+		$res = process_post_value($_POST['amavis_bcc_to_mode'],isset($_POST['amavis_bcc_to']) ? 
+				$_POST['amavis_bcc_to'] : '');
+		$dbinfo = array_merge($dbinfo,$res);
+		
 		# And stuff we need at end
 		array_push($dbinfo,$_POST['amavis_comment']);
 
@@ -859,6 +890,8 @@ if ($_POST['action'] == "add") {
 					quarantine_spam, quarantine_spam_m,
 					quarantine_banned_file, quarantine_banned_file_m,
 					quarantine_bad_header, quarantine_bad_header_m,
+					
+					bcc_to, bcc_to_m,
 
 					Comment,
 
@@ -900,6 +933,8 @@ if ($_POST['action'] == "add") {
 					?,?,
 					?,?,
 					?,?,
+					?,?,
+					
 					?,?,
 
 					?,

@@ -193,6 +193,8 @@ if ($_POST['action'] == "change") {
 				amavis_rules.quarantine_spam, amavis_rules.quarantine_spam_m,
 				amavis_rules.quarantine_banned_file, amavis_rules.quarantine_banned_file_m,
 				amavis_rules.quarantine_bad_header, amavis_rules.quarantine_bad_header_m,
+				
+				amavis_rules.bcc_to, amavis_rules.bcc_to_m,
 
 				amavis_rules.Comment, 
 				amavis_rules.Disabled,
@@ -866,6 +868,33 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
+					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Interception</td>
+				</tr>
+				<tr>
+					<td class="entrytitle">BCC To</td>
+					<td class="oldval"><?php echo decode_db_value($row->bcc_to_m,$row->bcc_to) ?></td>
+					<td>
+						<select name="amavis_bcc_to_mode" id="amavis_bcc_to_mode"
+							onchange="
+								var myobjs = document.getElementById('amavis_bcc_to_mode');
+								var myobji = document.getElementById('amavis_bcc_to');
+	
+								if (myobjs.selectedIndex != 2) {
+									myobji.disabled = true;
+									myobji.value = 'n/a';
+								} else if (myobjs.selectedIndex == 2) {
+									myobji.disabled = false;
+									myobji.value = '';
+								}
+						">
+							<option value="">--</option>
+							<option value="0">Inherit</option>
+							<option value="2">Override</option>
+						</select>
+						<input type="text" name="amavis_bcc_to" id="amavis_bcc_to" disabled="disabled" value="n/a" />
+					</td>
+				</tr>
+				<tr>
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">&nbsp;</td>
 				</tr>
 				<tr>
@@ -1075,6 +1104,14 @@ if ($_POST['action'] == "change") {
 	if (isset($_POST['amavis_quarantine_bad_header_mode']) && $_POST['amavis_quarantine_bad_header_mode'] != "") {
 		$res = process_post_value('quarantine_bad_header',$_POST['amavis_quarantine_bad_header_mode'],
 				isset($_POST['amavis_quarantine_bad_header']) ? $_POST['amavis_quarantine_bad_header'] : ''
+		);
+		$updates = array_merge($updates,$res);
+	}
+
+	# Interception
+	if (isset($_POST['amavis_bcc_to_mode']) && $_POST['amavis_bcc_to_mode'] != "") {
+		$res = process_post_value('bcc_to',$_POST['amavis_bcc_to_mode'],
+				isset($_POST['amavis_bcc_to']) ? $_POST['amavis_bcc_to'] : ''
 		);
 		$updates = array_merge($updates,$res);
 	}

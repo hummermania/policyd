@@ -56,6 +56,8 @@ my %ruleOptions = (
 			quarantine_banned_file
 			quarantine_bad_header
 			quarantine_spam
+			
+			bcc_to
 	) ],
 
 	'integer' => [ qw(
@@ -531,6 +533,14 @@ sub process_policy {
 		}
 
 
+		# Interception
+		
+		# Email addy to BCC to
+		if (defined($amavisConfig{'bcc_to'})) {
+			$pbn->{'always_bcc'} = $amavisConfig{'bcc_to'}
+		}
+		
+
 	}
 		
 	return $pbn;
@@ -545,34 +555,31 @@ sub amail_done
   
 	my($mail_id) = $msginfo->mail_id;
 	my($spam_level) = $msginfo->spam_level;
-  my($sid) = $msginfo->sender_maddr_id;
-      my($m_id) = $msginfo->orig_header_fields->{'message-id'};
-      my($m_id) = parse_message_id($m_id) if $m_id ne ''; # strip CFWS, take #1
-      my($subj) = $msginfo->orig_header_fields->{'subject'};
-      my($from) = $msginfo->orig_header_fields->{'from'};  # raw full field
-      my($rfc2822_from)   = $msginfo->rfc2822_from;  # undef, scalar or listref
-      my($rfc2822_sender) = $msginfo->rfc2822_sender;  # undef or scalar
-      $rfc2822_from = join(', ',@$rfc2822_from)  if ref $rfc2822_from;
-      my($os_fp) = $msginfo->client_os_fingerprint;
-	  my $size = $msginfo->msg_size;
+	my($sid) = $msginfo->sender_maddr_id;
+	my($m_id) = $msginfo->orig_header_fields->{'message-id'};
+	my($m_id) = parse_message_id($m_id) if $m_id ne ''; # strip CFWS, take #1
+	my($subj) = $msginfo->orig_header_fields->{'subject'};
+	my($from) = $msginfo->orig_header_fields->{'from'};  # raw full field
+	my($rfc2822_from)   = $msginfo->rfc2822_from;  # undef, scalar or listref
+	my($rfc2822_sender) = $msginfo->rfc2822_sender;  # undef or scalar
+	$rfc2822_from = join(', ',@$rfc2822_from)  if ref $rfc2822_from;
+	my($os_fp) = $msginfo->client_os_fingerprint;
+	my $size = $msginfo->msg_size;
 
-      # insert per-recipient records into table msgrcpt
-      for my $r (@{$msginfo->per_recip_data}) {
-        my($rid) = $r->recip_maddr_id;
-        my($dest,$resp) = ($r->recip_destiny, $r->recip_smtp_response);
-          my $blacklist_sender = $r->recip_blacklisted_sender ? 'Y' : 'N';
-          my $blacklist_recipient = $r->recip_whitelisted_sender ? 'Y' : 'N';
-		  my $score = $spam_level+$r->recip_score_boost;
-  			do_log(-2,"CUSTOM: mail_id: $mail_id, rid: $rid, dest: $dest, resp: $resp, black_sender: $blacklist_sender, black_recip: $blacklist_recipient, spam_level: $score, sid: $sid, mm_id: $m_id, subj: $subj, from: $from ($rfc2822_from), to: ".$r->recip_addr.", os_fp: $os_fp");
-  			do_log(-2,"CUSTOM DBLOG: mail_id: $mail_id, from: $from, to: ".$r->recip_addr.", subject: $subj, size: $size, status: $resp");
-      }
-      my($q_to) = $msginfo->quarantined_to;  # ref to a list of quar. locations
-      if (!defined($q_to) || !@$q_to) { 
-		undef $q_to;
-	} else {
-        $q_to = $q_to->[0];  # keep only the first quarantine location
-    }
-
+	# insert per-recipient records into table msgrcpt
+	for my $r (@{$msginfo->per_recip_data}) {
+		my($rid) = $r->recip_maddr_id;
+		my($dest,$resp) = ($r->recip_destiny, $r->recip_smtp_response);
+		my $blacklist_sender = $r->recip_blacklisted_sender ? 'Y' : 'N';
+		my $blacklist_recipient = $r->recip_whitelisted_sender ? 'Y' : 'N';
+		my $score = $spam_level+$r->recip_score_boost;
+		do_log(-2,"CUSTOM: mail_id: $mail_id, rid: $rid, dest: $dest, ".
+				"resp: $resp, black_sender: $blacklist_sender, black_recip: ".
+				"$blacklist_recipient, spam_level: $score, sid: $sid, mm_id: ".
+				"$m_id, subj: $subj, from: $from ($rfc2822_from), to: ".
+				$r->recip_addr.", os_fp: $os_fp");
+		do_log(-2,"CUSTOM DBLOG: mail_id: $mail_id, from: $from, to: ".$r->recip_addr.", subject: $subj, size: $size, status: $resp");
+	}
 }
 
 
@@ -611,8 +618,10 @@ sub getAmavisRule
 		
 
 			quarantine_virus, quarantine_banned_file, quarantine_bad_header, quarantine_spam,
-			quarantine_virus_m, quarantine_banned_file_m, quarantine_bad_header_m, quarantine_spam_m
-
+			quarantine_virus_m, quarantine_banned_file_m, quarantine_bad_header_m, quarantine_spam_m,
+			
+			bcc_to,
+			bcc_to_m
 
 		FROM
 			amavis_rules
@@ -622,12 +631,13 @@ sub getAmavisRule
 			AND Disabled = 0
 	");
 	if (!$sth) {
-		do_log(-1,"[QUOTAS] Failed to query amavis: ".cbp::dblayer::Error());
+		do_log(-1,"[AMAVIS] Failed to query amavis: ".cbp::dblayer::Error());
 		return;
 	}
 
 	my $row = $sth->fetchrow_hashref();
-
+use Data::Dumper;
+do_log(-1,"[AMAVIS] ".Dumper($row));
 	DBFreeRes($sth);
 
 	return $row;

@@ -113,6 +113,11 @@ Mode of operation (the _m columns):
 	quarantine_spam_m	SMALLINT NOT NULL DEFAULT '0',
 
 
+	/* Interception options */
+	bcc_to			TINYTEXT,
+	bcc_to_m		SMALLINT NOT NULL DEFAULT '0',
+
+
 	Comment			VARCHAR(1024),
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
