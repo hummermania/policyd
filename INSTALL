@@ -32,5 +32,10 @@ After this change your initscripts to start the patched amavisd.
 6. Copy amavisd-policyd.pm where you see fit, and add this configuration line to your amavisd.conf file...
 include_config_files('/path/to/amavisd-policyd.pm');
 
+7. Edit the top of amavisd-policyd.pm and change ...
+use lib('/root/cluebringer-trunk');  # to point to the directory which contains cbp/
+
+my $DB_dsn = "DBI:SQLite:dbname=/tmp/cluebringer.sqlite";  # to point to your MySQL DB
+
 
 7. Fire everything up and browse to the web gui to configure
