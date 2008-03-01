@@ -262,12 +262,21 @@ sub check {
 
 		# Intended action is accept
 		} elsif ($result->code eq "none") {
-			$server->maillog("module=CheckSPF, action=add_header, host=%s, helo=%s, from=%s, to=%s, reason=none",
+			my $action = "none";
+
+			if (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} eq "1") {
+				$action = "add_header";
+			}
+
+			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=no_spf_record",
 					$request->{'client_address'},
 					$request->{'helo_name'},
 					$request->{'sender'},
 					$request->{'recipient'});
 
+			if ($action eq "add_header") {
+				return("PREPEND",$result->received_spf_header);
+			}
 		}
 	}
 
