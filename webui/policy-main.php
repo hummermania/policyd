@@ -63,7 +63,7 @@ if (!isset($_POST['action']))
 				<option value="add">Add</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
-				<option value="delete">Delete (not implemented yet)</option>
+				<option value="delete">Delete</option>
 				<option value="acls">ACLs</option>
 			</select> 
 		</div>

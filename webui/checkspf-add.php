@@ -85,7 +85,7 @@ if ($_POST['action'] == "add") {
 			<tr>
 				<td class="entrytitle">Add SPF Header</td>
 				<td>
-					<select name="checkspf_addspfheader">
+					<select name="checkspf_addheader">
 						<option value="0" selected="selected">Inherit</option>
 						<option value="1">Yes</option>
 						<option value="2">No</option>
@@ -134,7 +134,7 @@ if ($_POST['action'] == "add") {
 				$useSPF = 1;
 				break;
 			case "2":
-				$useSPF = 0;
+				$useSPF = 2;
 				break;
 		}
 
@@ -147,7 +147,7 @@ if ($_POST['action'] == "add") {
 				$rejectFailed = 1;
 				break;
 			case "2":
-				$rejectFailed = 0;
+				$rejectFailed = 2;
 				break;
 		}
 
@@ -160,7 +160,7 @@ if ($_POST['action'] == "add") {
 				$addHeader = 1;
 				break;
 			case "2":
-				$addHeader = 0;
+				$addHeader = 2;
 				break;
 		}
 
@@ -182,6 +182,7 @@ if ($_POST['action'] == "add") {
 		} else {
 ?>
 			<div class="warning">Failed to create SPF check</div>
+			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 		}
 
