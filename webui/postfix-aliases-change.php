@@ -111,6 +111,9 @@ if ($_POST['action'] == "change") {
 	if (!empty($_POST['postfix_alias_goto'])) {
 		array_push($updates ,"Goto = ".$db->quote($_POST['postfix_alias_goto']));
 	}
+	if (isset($_POST['postfix_alias_disabled']) && $_POST['postfix_alias_disabled'] != "") {
+		array_push($updates ,"Disabled = ".$db->quote($_POST['postfix_alias_disabled']));
+	}
 
 	# Check if we have updates
 	if (sizeof($updates) > 0) {

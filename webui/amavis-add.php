@@ -850,8 +850,6 @@ if ($_POST['action'] == "add") {
 		# And stuff we need at end
 		array_push($dbinfo,$_POST['amavis_comment']);
 
-		var_dump($dbinfo);
-
 		$stmt = $db->prepare("
 			INSERT INTO amavis_rules
 				(
