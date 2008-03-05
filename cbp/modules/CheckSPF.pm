@@ -67,27 +67,27 @@ sub init {
 }
 
 
-# Check the request
+# Do our check
 sub check {
-	my ($server,$request) = @_;
+	my ($server,$sessionData) = @_;
 
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
 
 	# We only valid in the RCPT state
-	return undef if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
+	return undef if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
 
 	# We cannot do SPF on <>
-	return undef if (!defined($request->{'sender'}) || $request->{'sender'} eq "");
+	return undef if (!defined($sessionData->{'Sender'}) || $sessionData->{'Sender'} eq "");
 
 	# Policy we're about to build
 	my %policy;
 	
 	# Loop with priorities, high to low
-	foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}}) {
+	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
 
 		# Loop with policies
-		foreach my $policyID (@{$request->{'_policy'}->{$priority}}) {
+		foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
 			my $sth = DBSelect("
 				SELECT
@@ -118,17 +118,17 @@ sub check {
 					$policy{'AddSPFHeader'} = $row->{'AddSPFHeader'};
 				}
 			} # while (my $row = $sth->fetchrow_hashref())
-		} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
-	} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}})
+		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
+	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}})
 
 	# Check if we must use SPF
 	if (defined($policy{'UseSPF'}) && $policy{'UseSPF'} eq "1") {
 		# Create SPF request
 		my $rqst = Mail::SPF::Request->new(
 				'scope' => 'mfrom', # or 'helo', 'pra'
-				'identity' => $request->{'sender'},
-				'ip_address' => $request->{'client_address'},
-				'helo_identity' => $request->{'helo_name'}, # optional,
+				'identity' => $sessionData->{'Sender'},
+				'ip_address' => $sessionData->{'ClientAddress'},
+				'helo_identity' => $sessionData->{'Helo'}, # optional,
 		);
 
 		# Get result
@@ -148,10 +148,10 @@ sub check {
 		# Intended action is accept
 		if ($result->code eq "pass") {
 			$server->maillog("module=CheckSPF, action=none, host=%s, helo=%s, from=%s, to=%s, reason=pass",
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'});
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
 		# Intended action is reject
 		} elsif ($result->code eq "fail") {
@@ -165,10 +165,10 @@ sub check {
 			}
 
 			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=fail",
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'});
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
 			# Check if we need to reject
 			if ($action eq "reject") {
@@ -187,10 +187,10 @@ sub check {
 			}
 
 			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=softfail",
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'});
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
 			# Check if we need to add a header
 			if ($action eq "add_header") {
@@ -207,10 +207,10 @@ sub check {
 			}
 
 			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=neutral",
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'});
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
 			# Check if we need to add a header
 			if ($action eq "add_header") {
@@ -229,10 +229,10 @@ sub check {
 			}
 
 			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=permerror",
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'});
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
 			# Check if we need to reject
 			if ($action eq "reject") {
@@ -253,10 +253,10 @@ sub check {
 			}
 
 			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=temperror",
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'});
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
 			# Check if we need to defer
 			if ($action eq "defer") {
@@ -275,10 +275,10 @@ sub check {
 			}
 
 			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=no_spf_record",
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'});
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
 			if ($action eq "add_header") {
 				return("PREPEND",$result->received_spf_header);

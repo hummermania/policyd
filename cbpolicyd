@@ -36,11 +36,9 @@ use Sys::Syslog;
 
 use cbp::logging;
 
-use cbp::dblayer;
 use cbp::dbilayer;
 use cbp::cache;
-
-use cbp::policies qw(getPolicy);
+use cbp::tracking;
 
 
 # Override configuration
@@ -238,7 +236,7 @@ sub process_request {
 	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 	my %request;
-
+$self->log(LOG_DEBUG,"HELOO");
 	# Eval to catch sig ALRM
 	eval {
 		local $SIG{'ALRM'} = sub { die "Timed Out!\n" };
@@ -261,7 +259,7 @@ sub process_request {
 
 	# Check results
 	if ($@ =~ /timed out/i) {
-		# FIXME: Log message we timed out
+		# We timed out
 		$self->log(LOG_NOTICE,"[CBPOLICYD] Timed out!");
 		return;
 	} elsif (keys %request < 1) {
@@ -273,106 +271,28 @@ sub process_request {
 		# Internal data
 		$request{'_timestamp'} = time();
 		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
+		
+		
+		use Data::Dumper;
+		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
+
+		# Update session data
+		my $sessionData = getSessionDataFromRequest($self,\%request);
+		# FIXME: FAIL IF WE HIT -1
+		updateSessionData($self,$sessionData);
+		# FIXME: FAIL IF WE HIT -1
 
 
-		# Pull in policy, by this time we should have all the info we need
-		if ($request{'protocol_state'} eq "RCPT") {
-			my $policy = getPolicy($request{'client_address'},$request{'sender'},$request{'recipient'});
-			if (!defined($policy)) {
-				$self->log(LOG_ERR,"[CBPOLICYD] Failed to retrieve policy: ".cbp::policies::Error());
-			}
-			$request{'_policy'} = $policy;
-
-
-		# Restore policies	
-		} elsif ($request{'protocol_state'} eq "END-OF-MESSAGE") {
-			my $sth = DBSelect("
-				SELECT
-					Recipient,Policies
-				FROM
-					session_tracking
-				WHERE
-					Instance = ".DBQuote($request{'instance'})."
-			");
-			my %rawPolicies;
-			my %recipientToPolicy;
-			# Build policy str list and recipients list
-			while (my $row = $sth->fetchrow_hashref()) {
-				# Loop with policies
-				foreach my $policy (split(/;/,$row->{'Policies'})) {
-					my ($prio,$pids) = ( $policy =~ /(\d+)=(.*)/ );
-					foreach my $pid (split(/,/,$pids)) {
-						$rawPolicies{$prio}{$pid} = 1;
-						push(@{$recipientToPolicy{$prio}{$row->{'Recipient'}}},$pid);
-					}
-				}
-			}
-
-			# Build final policy list
-			my $policyHash;
-			foreach my $prio (keys %rawPolicies) {
-				$policyHash->{$prio} = [ keys %{$rawPolicies{$prio}} ] ;
-			}
-
-			$request{'_policy'} = $policyHash;
-			$request{'_recipient_policy'} = \%recipientToPolicy;
-		}
-
-#		use Data::Dumper;
-#		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
-#		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Policies:\n".Dumper($request{'_policy'}));
+		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] SessionData:\n".Dumper($sessionData));
 
 		# Check the data we have
-		my $verdict = $self->do_work(\%request);
+		my $verdict = $self->do_work($sessionData);
 
-		# Check if state is RCPT and we not rejecting, dropping or redirecting message
-		if ($request{'protocol_state'} eq "RCPT" && !($verdict =~ /action=(REJECT|DISCARD|REDIRECT)/)) {
-			# SAVE POLICY DATE PER RECEIPT, WE WANT TO RESTORE FOR THE E-O-M
-
-			my $policyStr;
-			foreach my $priority (keys %{$request{'_policy'}}) {
-				$policyStr .= sprintf('%s=%s;',$priority,join(',',@{$request{'_policy'}->{$priority}}));
-			}
-
-			# Chop off trailing ;
-			chop($policyStr) if (defined($policyStr));
-
-			# Record tracking info
-			my $sth = DBDo("
-					INSERT INTO session_tracking 
-						(Instance,Timestamp,Recipient,Policies) 
-					VALUES
-						(
-							".DBQuote($request{'instance'}).",
-							".DBQuote($request{'_timestamp'}).",
-							".DBQuote($request{'recipient'}).",
-							".DBQuote($policyStr)."
-						)
-			");
-			if (!$sth) {
-				$self->log(LOG_ERR,"[CBPOLICYD] Failed to record sessing tracking info: ".cbp::dblayer::Error());
-			}
-
-		# When we done and we got E-O-M, nuke tracking
-		} elsif ($request{'protocol_state'} eq "END-OF-MESSAGE") {
-			my $sth = DBDo("
-					DELETE FROM 
-						session_tracking 
-					WHERE
-						Instance = ".DBQuote($request{'instance'})."
-			");
-			if (!$sth) {
-				$self->log(LOG_ERR,"[CBPOLICYD] Failed to remove sessing tracking info: ".cbp::dblayer::Error());
-			}
-		}
-		
 		# Grab result & check, DUNNO if no data
 		print("$verdict\n");
 		print("\n");
 
 	}
-
-
 }
 
 

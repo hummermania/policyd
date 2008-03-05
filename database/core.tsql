@@ -122,14 +122,34 @@ INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,"@example.com"
 CREATE TABLE session_tracking (
 	ID			@SERIAL_TYPE@,
 
-	Instance		VARCHAR(255) NOT NULL,
+	Instance		VARCHAR(255),
+	QueueID			VARCHAR(255),
 
 	Timestamp		BIGINT NOT NULL,
 
-	Recipient		VARCHAR(255) NOT NULL,
+	ClientAddress		VARCHAR(64),
+	ClientName		VARCHAR(255),
+	ClientReverseName	VARCHAR(255),
 
-	Policies		VARCHAR(1024)
+	Protocol		VARCHAR(255),
 
+	EncryptionProtocol	VARCHAR(255),
+	EncryptionCipher	VARCHAR(255),
+	EncryptionKeySize	VARCHAR(255),
+
+	SASLMethod		VARCHAR(255),
+	SASLSender		VARCHAR(255),
+	SASLUsername		VARCHAR(255),
+
+	Helo			VARCHAR(255),
+
+	Sender			VARCHAR(255),
+
+	Size			@BIG_INTEGER@,
+
+	RecipientData		TEXT,  /* Policy state information */
+
+	UNIQUE (Instance)
 )  @CREATE_TABLE_SUFFIX@;
 
 

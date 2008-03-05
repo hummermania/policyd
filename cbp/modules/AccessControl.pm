@@ -63,23 +63,23 @@ sub init {
 
 # Check the request
 sub check {
-	my ($server,$request) = @_;
+	my ($server,$sessionData) = @_;
 	
 
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
 
 	# We only valid in the RCPT state
-	return undef if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
+	return undef if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
 
 	# Our verdict and data
 	my ($verdict,$verdict_data);
 
-	# Loop with priorities, high to low
-	foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}}) {
+	# Loop with priorities, low to high
+	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}}) {
 
 		# Loop with policies
-		foreach my $policyID (@{$request->{'_policy'}->{$priority}}) {
+		foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}}) {
 
 			my $sth = DBSelect("
 				SELECT
@@ -104,12 +104,12 @@ sub check {
 			$verdict = $row->{'Verdict'};
 			$verdict_data = $row->{'Data'};
 
-		} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
+		} # foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}})
 
 		# Last if we found something
 		last if ($verdict);
 
-	} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}})
+	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_policy'}})
 
 	return ($verdict,$verdict_data);
 }

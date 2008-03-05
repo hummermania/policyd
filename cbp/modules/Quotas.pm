@@ -62,30 +62,26 @@ sub init {
 }
 
 
-# Destroy
-sub finish {
-}
 
 
-
-# Check the request
+# Do our checks
 sub check {
-	my ($server,$request) = @_;
+	my ($server,$sessionData) = @_;
 	
 
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
 
 	# We only valid in the RCPT and EOM state
-	if (!defined($request->{'protocol_state'})) {
+	if (!defined($sessionData->{'ProtocolState'})) {
 		return undef;
 	}
-	if ($request->{'protocol_state'} ne "RCPT" && $request->{'protocol_state'} ne "END-OF-MESSAGE") {
+	if ($sessionData->{'ProtocolState'} ne "RCPT" && $sessionData->{'ProtocolState'} ne "END-OF-MESSAGE") {
 		return undef;
 	}
 
 	# Check if we have any policies matched, if not just pass
-	if (!defined($request->{'_policy'})) {
+	if (!defined($sessionData->{'_Policy'})) {
 		return undef;
 	}
 
@@ -102,7 +98,7 @@ sub check {
 	#   we have exceeded our size quota. The Size quota is updated in the EOM
 	#   stage
 	#
-	if ($request->{'protocol_state'} eq "RCPT") {
+	if ($sessionData->{'ProtocolState'} eq "RCPT") {
 
 		# Key tracking list, if quotaExceeded is not undef, it will contain the msg
 		my %newCounters;  # Indexed by QuotaLimitsID
@@ -110,15 +106,15 @@ sub check {
 		my $hasExceeded;
 		my $exceededQtrack;
 
-		# Loop with priorities, high to low
-		foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}}) {
+		# Loop with priorities, low to high
+		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}}) {
 
 			# Last if we've exceeded
 			last if ($hasExceeded);
 
 
 			# Loop with each policyID
-			foreach my $policyID (@{$request->{'_policy'}->{$priority}}) {
+			foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}}) {
 
 				# Last if we've exceeded
 				last if ($hasExceeded);
@@ -137,7 +133,7 @@ sub check {
 					last if ($hasExceeded);
 
 					# Grab tracking keys
-					my $key = getKey($server,$quota,$request);
+					my $key = getKey($server,$quota,$sessionData);
 					if (!defined($key)) {
 						$server->log(LOG_WARN,"[QUOTAS] No key information found for quota ID '".$quota->{'ID'}."'");
 						next;
@@ -180,7 +176,7 @@ sub check {
 							if ($limitType eq "messagecount") {
 								# Check for violation
 								if ($qtrack->{'Counter'} > $limit->{'CounterLimit'}) {
-									$hasExceeded = "Policy rejection, message count quota exceeded";
+									$hasExceeded = "Policy rejection; Message count quota exceeded";
 								}
 								# Bump up limit
 								$newCounters{$qtrack->{'QuotasLimitsID'}}++;
@@ -189,7 +185,7 @@ sub check {
 							} elsif ($limitType eq "messagecumulativesize") {
 								# Check for violation
 								if ($qtrack->{'Counter'} > $limit->{'CounterLimit'}) {
-									$hasExceeded = "Policy rejection, cumulative message size quota exceeded";
+									$hasExceeded = "Policy rejection; Cumulative message size quota exceeded";
 								}
 							}
 	
@@ -228,11 +224,11 @@ sub check {
 	
 					}  # foreach my $limit (@{$limits})
 	
-				} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
+				} # foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}})
 
 			} # foreach my $quota (@{$quotas})
 
-		} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}})
+		} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}})
 
 		# If we have not exceeded, update
 		if (!$hasExceeded) {
@@ -281,10 +277,10 @@ sub check {
 					# Log create to mail log
 					$server->maillog("module=Quotas, action=create, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 								"counter=%s, quota=%s/%s (%s%%)",
-							$request->{'client_address'},
-							$request->{'helo_name'},
-							$request->{'sender'},
-							$request->{'recipient'},
+							$sessionData->{'ClientAddress'},
+							$sessionData->{'Helo'},
+							$sessionData->{'Sender'},
+							$sessionData->{'Recipient'},
 							$qtrack->{'PolicyID'},
 							$qtrack->{'QuotaID'},
 							$qtrack->{'LimitID'},
@@ -299,10 +295,10 @@ sub check {
 					# Log update to mail log
 					$server->maillog("module=Quotas, action=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 								"counter=%s, quota=%s/%s (%s%%)",
-							$request->{'client_address'},
-							$request->{'helo_name'},
-							$request->{'sender'},
-							$request->{'recipient'},
+							$sessionData->{'ClientAddress'},
+							$sessionData->{'Helo'},
+							$sessionData->{'Sender'},
+							$sessionData->{'Recipient'},
 							$qtrack->{'PolicyID'},
 							$qtrack->{'QuotaID'},
 							$qtrack->{'LimitID'},
@@ -327,10 +323,10 @@ sub check {
 			$server->maillog("module=Quotas, action=%s, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 						"counter=%s, quota=%s/%s (%s%%)",
 					$exceededQtrack->{'Verdict'},
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'},
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'},
 					$exceededQtrack->{'PolicyID'},
 					$exceededQtrack->{'QuotaID'},
 					$exceededQtrack->{'LimitID'},
@@ -348,18 +344,18 @@ sub check {
 	# END-OF-MESSAGE state
 	#   The Size quota is updated in this state
 	#
-	} elsif ($request->{'protocol_state'} eq "END-OF-MESSAGE") {
+	} elsif ($sessionData->{'ProtocolState'} eq "END-OF-MESSAGE") {
 
 		my @keys;
 
-		# Loop with priorities, high to low
-		foreach my $priority (sort {$b <=> $a} keys %{$request->{'_recipient_policy'}}) {
+		# Loop with email addies
+		foreach my $emailAddy (keys %{$sessionData->{'_Recipient_To_Policy'}}) {
 
-			# Loop with email addies
-			foreach my $emailAddy (keys %{$request->{'_recipient_policy'}{$priority}}) {
+			# Loop with priorities, low to high
+			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}}) {
 
 				# Loop with each policyID
-				foreach my $policyID (@{$request->{'_policy'}->{$priority}}) {
+				foreach my $policyID (@{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}{$priority}}) {
 
 					# Check if we got a quota or not
 					my $quotas = getQuotas($server,$policyID);
@@ -371,10 +367,10 @@ sub check {
 					foreach my $quota (@{$quotas}) {
 
 						# HACK: Fool getKey into thinking we actually do have a recipient
-						$request->{'recipient'} = $emailAddy;
+						$sessionData->{'Recipient'} = $emailAddy;
 	
 						# Grab tracking keys
-						my $key = getKey($server,$quota,$request);
+						my $key = getKey($server,$quota,$sessionData);
 						if (!defined($key)) {
 							$server->log(LOG_WARN,"[QUOTAS] No key information found for quota ID '".$quota->{'ID'}."'");
 							next;
@@ -398,7 +394,7 @@ sub check {
 								# Check if we're working with cumulative sizes
 								if (lc($limit->{'Type'}) eq "messagecumulativesize") {
 									# Bump up counter
-									$qtrack->{'Counter'} += $request->{'size'};
+									$qtrack->{'Counter'} += $sessionData->{'size'};
 									
 									# Update database
 									my $sth = DBDo("
@@ -421,9 +417,9 @@ sub check {
 									# Log update to mail log
 									$server->maillog("module=Quotas, action=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
 												"counter=%s, quota=%s/%s (%s%%)",
-											$request->{'client_address'},
-											$request->{'helo_name'},
-											$request->{'sender'},
+											$sessionData->{'ClientAddress'},
+											$sessionData->{'Helo'},
+											$sessionData->{'Sender'},
 											$emailAddy,
 											$policyID,
 											$quota->{'ID'},
@@ -439,9 +435,9 @@ sub check {
 	
 						} # foreach my $limit (@{$limits})
 					} # foreach my $quota (@{$quotas})
-				} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
-			} # foreach my $emailAddy (keys %{$request->{'_recipient_policy'}{$priority}})
-		} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_recipient_policy'}})
+				} # foreach my $policyID (@{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}{$priority}})
+			} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}})
+		} # foreach my $emailAddy (keys %{$sessionData->{'_Recipient_To_Policy'}})
 
 			
 	}
@@ -542,10 +538,10 @@ sub getQuotas
 }
 
 
-# Get key from request
+# Get key from session
 sub getKey
 {
-	my ($server,$quota,$request) = @_;
+	my ($server,$quota,$sessionData) = @_;
 
 
 	my $res;
@@ -564,7 +560,7 @@ sub getKey
 
 	# Check TrackSenderIP
 	} elsif ($method eq "senderip") {
-		my $key = getIPKey($spec,$request->{'client_address'});
+		my $key = getIPKey($spec,$sessionData->{'ClientAddress'});
 
 		# Check for no key
 		if (defined($key)) {
@@ -576,7 +572,7 @@ sub getKey
 
 	# Check TrackSender
 	} elsif ($method eq "sender") {
-		my $key = getEmailKey($spec,$request->{'sender'});
+		my $key = getEmailKey($spec,$sessionData->{'Sender'});
 	
 		# Check for no key
 		if (defined($key)) {
@@ -588,7 +584,7 @@ sub getKey
 
 	# Check TrackRecipient
 	} elsif ($method eq "recipient") {
-		my $key = getEmailKey($spec,$request->{'recipient'});
+		my $key = getEmailKey($spec,$sessionData->{'Recipient'});
 	
 		# Check for no key
 		if (defined($key)) {

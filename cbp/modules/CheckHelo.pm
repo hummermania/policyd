@@ -64,24 +64,24 @@ sub init {
 }
 
 
-# Check the request
+# Do our check
 sub check {
-	my ($server,$request) = @_;
+	my ($server,$sessionData) = @_;
 
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
 
 	# We only valid in the RCPT state
-	return undef if (!defined($request->{'protocol_state'}) || $request->{'protocol_state'} ne "RCPT");
+	return undef if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
 	
 	# Policy we're about to build
 	my %policy;
 
-	# Loop with priorities, high to low
-	foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}}) {
+	# Loop with priorities, low to high
+	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}}) {
 
 		# Loop with policies
-		foreach my $policyID (@{$request->{'_policy'}->{$priority}}) {
+		foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}}) {
 
 			my $sth = DBSelect("
 				SELECT
@@ -131,18 +131,18 @@ sub check {
 					$policy{'RejectUnresolvable'} = $row->{'RejectUnresolvable'};
 				}
 			} # while (my $row = $sth->fetchrow_hashref())
-		} # foreach my $policyID (@{$request->{'_policy'}->{$priority}})
-	} # foreach my $priority (sort {$b <=> $a} keys %{$request->{'_policy'}})
+		} # foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}})
+	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}})
 
 	# Insert/update HELO in database
 	my $sth = DBDo("
 		UPDATE
 			checkhelo_tracking
 		SET
-			LastUpdate = ".DBQuote($request->{'_timestamp'})."
+			LastUpdate = ".DBQuote($sessionData->{'Timestamp'})."
 		WHERE
-			Address = ".DBQuote($request->{'client_address'})."
-			AND Helo = ".DBQuote($request->{'helo_name'})."
+			Address = ".DBQuote($sessionData->{'ClientAddress'})."
+			AND Helo = ".DBQuote($sessionData->{'Helo'})."
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
@@ -155,19 +155,19 @@ sub check {
 				(Address,Helo,LastUpdate)
 			Values
 				(
-					".DBQuote($request->{'client_address'}).",
-					".DBQuote($request->{'helo_name'}).",
-					".DBQuote($request->{'_timestamp'})."
+					".DBQuote($sessionData->{'ClientAddress'}).",
+					".DBQuote($sessionData->{'Helo'}).",
+					".DBQuote($sessionData->{'Timestamp'})."
 				)
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
 			return undef;
 		}
-		$server->log(LOG_DEBUG,"[CHECKHELO] Recorded helo '".$request->{'helo_name'}."' from address '".$request->{'client_address'}."'");
+		$server->log(LOG_DEBUG,"[CHECKHELO] Recorded helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'");
 	# And just a bit of debug
 	} else {
-		$server->log(LOG_DEBUG,"[CHECKHELO] Updated timestamp for helo '".$request->{'helo_name'}."' from address '".$request->{'client_address'}."'");
+		$server->log(LOG_DEBUG,"[CHECKHELO] Updated timestamp for helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'");
 	}
 
 	# Are we whitelisted or not?
@@ -206,10 +206,10 @@ sub check {
 			# Check if IP is whitelisted
 			if ($ip_long >= $network_long && $ip_long <= $bcast_long) {
 				$server->maillog("module=CheckHelo, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
-						$request->{'client_address'},
-						$request->{'helo_name'},
-						$request->{'sender'},
-						$request->{'recipient'});
+						$sessionData->{'ClientAddress'},
+						$sessionData->{'Helo'},
+						$sessionData->{'Sender'},
+						$sessionData->{'Recipient'});
 				DBFreeRes($sth);
 				return undef;
 			}
@@ -225,30 +225,30 @@ sub check {
 	if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} eq "1") {
 
 		# Check if helo is an IP address
-		if ($request->{'helo_name'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+		if ($sessionData->{'Helo'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
 
 			# Check if we must reject IP address HELO's
 			if (defined($policy{'RejectIP'}) && $policy{'RejectIP'} eq "1") {
 
 				$server->maillog("module=CheckHelo, action=reject, host=%s, from=%s, to=%s, reason=ip_not_allowed",
-						$request->{'client_address'},
-						$request->{'helo_name'},
-						$request->{'sender'},
-						$request->{'recipient'});
+						$sessionData->{'ClientAddress'},
+						$sessionData->{'Helo'},
+						$sessionData->{'Sender'},
+						$sessionData->{'Recipient'});
 
-				return("REJECT","Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$request->{'helo_name'}."'");
+				return("REJECT","Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$sessionData->{'Helo'}."'");
 			}
 
 		# Address literal is valid
-		} elsif  ($request->{'helo_name'} =~ /^\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]$/) {
+		} elsif  ($sessionData->{'Helo'} =~ /^\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]$/) {
 
 		# Check if helo is a FQDN - Only valid characters in a domain is alnum and a -
-		} elsif ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/) {
+		} elsif ($sessionData->{'Helo'} =~ /^[\w-]+(\.[\w-]+)+$/) {
 
 			# Check if we must reject unresolvable HELO's
 			if (defined($policy{'RejectUnresolvable'}) && $policy{'RejectUnresolvable'} eq "1") {
 				my $res = Net::DNS::Resolver->new;
-				my $query = $res->search($request->{'helo_name'});
+				my $query = $res->search($sessionData->{'Helo'});
 
 				# If the query failed
 				if ($query) {
@@ -264,12 +264,12 @@ sub check {
 					if (!$found) {
 
 						$server->maillog("module=CheckHelo, action=reject, host=%s, from=%s, to=%s, reason=resolve_notfound",
-								$request->{'client_address'},
-								$request->{'helo_name'},
-								$request->{'sender'},
-								$request->{'recipient'});
+								$sessionData->{'ClientAddress'},
+								$sessionData->{'Helo'},
+								$sessionData->{'Sender'},
+								$sessionData->{'Recipient'});
 
-						return("REJECT","Invalid HELO/EHLO; No A or MX records found for '".$request->{'helo_name'}."'");
+						return("REJECT","Invalid HELO/EHLO; No A or MX records found for '".$sessionData->{'Helo'}."'");
 					}
 
 				} else {
@@ -278,43 +278,43 @@ sub check {
 					if ($res->errorstring eq "NXDOMAIN") {
 
 						$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=resolve_nxdomain",
-								$request->{'client_address'},
-								$request->{'helo_name'},
-								$request->{'sender'},
-								$request->{'recipient'});
+								$sessionData->{'ClientAddress'},
+								$sessionData->{'Helo'},
+								$sessionData->{'Sender'},
+								$sessionData->{'Recipient'});
 
-						return("REJECT","Invalid HELO/EHLO; Cannot resolve '".$request->{'helo_name'}."', no such domain");
+						return("REJECT","Invalid HELO/EHLO; Cannot resolve '".$sessionData->{'Helo'}."', no such domain");
 
 					} elsif ($res->errorstring eq "NOERROR") {
 
 						$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=resolve_noerror",
-								$request->{'client_address'},
-								$request->{'helo_name'},
-								$request->{'sender'},
-								$request->{'recipient'});
+								$sessionData->{'ClientAddress'},
+								$sessionData->{'Helo'},
+								$sessionData->{'Sender'},
+								$sessionData->{'Recipient'});
 
-						return("REJECT","Invalid HELO/EHLO; Cannot resolve '".$request->{'helo_name'}."', no records found");
+						return("REJECT","Invalid HELO/EHLO; Cannot resolve '".$sessionData->{'Helo'}."', no records found");
 
 					} elsif ($res->errorstring eq "SERVFAIL") {
 
 						$server->maillog("module=CheckHelo, action=defer_if_permit, host=%s, helo=%s, from=%s, to=%s, reason=resolve_servfail",
-								$request->{'client_address'},
-								$request->{'helo_name'},
-								$request->{'sender'},
-								$request->{'recipient'});
+								$sessionData->{'ClientAddress'},
+								$sessionData->{'Helo'},
+								$sessionData->{'Sender'},
+								$sessionData->{'Recipient'});
 
-						return("DEFER_IF_PERMIT","Invalid HELO/EHLO; Failure while trying to resolve '".$request->{'helo_name'}."'");
+						return("DEFER_IF_PERMIT","Invalid HELO/EHLO; Failure while trying to resolve '".$sessionData->{'Helo'}."'");
 
 					} else {
-						$server->log(LOG_ERR,"[CHECKHELO] Unknown error resolving '".$request->{'helo_name'}."': ".$res->errorstring);
+						$server->log(LOG_ERR,"[CHECKHELO] Unknown error resolving '".$sessionData->{'Helo'}."': ".$res->errorstring);
 				 		return undef;
 					}
 				} # if ($query)
 			} # if (defined($policy{'RejectUnresolvable'}) && $policy{'RejectUnresolvable'} eq "1") {
 
 		# Reject blatent RFC violation
-		} else { # elsif ($request->{'helo_name'} =~ /^[\w-]+(\.[\w-]+)+$/)
-			return("REJECT","Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$request->{'helo_name'}."'");
+		} else { # elsif ($sessionData->{'Helo'} =~ /^[\w-]+(\.[\w-]+)+$/)
+			return("REJECT","Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$sessionData->{'Helo'}."'");
 		}
 	} # if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} eq "1")
 
@@ -338,7 +338,7 @@ sub check {
 
 			WHERE
 				checkhelo_tracking.LastUpdate >= ".DBQuote($start)."
-				AND checkhelo_tracking.Address = ".DBQuote($request->{'client_address'})."
+				AND checkhelo_tracking.Address = ".DBQuote($sessionData->{'ClientAddress'})."
 				AND checkhelo_tracking.Helo = checkhelo_blacklist.Helo
 				AND checkhelo_blacklist.Disabled = 0
 		");
@@ -351,10 +351,10 @@ sub check {
 		# If count > 0 , then its blacklisted
 		if ($row->{'Count'} > 0) {
 			$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=blacklisted",
-					$request->{'client_address'},
-					$request->{'helo_name'},
-					$request->{'sender'},
-					$request->{'recipient'});
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
 			return("REJECT","Invalid HELO/EHLO; Blacklisted");
 		}
@@ -391,7 +391,7 @@ sub check {
 								checkhelo_tracking
 
 							WHERE
-								Address = ".DBQuote($request->{'client_address'})."
+								Address = ".DBQuote($sessionData->{'ClientAddress'})."
 								AND LastUpdate >= ".DBQuote($start)."
 						");
 						if (!$sth) {
@@ -404,10 +404,10 @@ sub check {
 						# If count > $limit , reject
 						if ($row->{'Count'} > $policy{'HRPLimit'}) {
 							$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=hrp_blacklisted",
-									$request->{'client_address'},
-									$request->{'helo_name'},
-									$request->{'sender'},
-									$request->{'recipient'});
+									$sessionData->{'ClientAddress'},
+									$sessionData->{'Helo'},
+									$sessionData->{'Sender'},
+									$sessionData->{'Recipient'});
 
 							return("REJECT","Invalid HELO/EHLO; HRP limit exceeded");
 						}

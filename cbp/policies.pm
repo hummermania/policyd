@@ -27,6 +27,8 @@ our (@ISA,@EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(
 	getPolicy
+	encodePolicyData
+	decodePolicyData
 );
 
 
@@ -341,6 +343,49 @@ sub emailAddressMatches
 	return $match;
 }
 
+
+# Encode policy data into session recipient data
+sub encodePolicyData
+{
+	my ($email,$policy) = @_;
+
+	# Generate...    recipient@domain#priority=policy_id,policy_id,policy_id;priority2=policy_id2,policy_id2/recipient2@...
+	my $ret = "$email#";
+	foreach my $priority (keys %{$policy}) {
+		$ret .= sprintf('%s=%s;',$priority,join(',',@{$policy->{$priority}}));
+	}
+
+	return $ret;
+}
+
+
+# Decode recipient data into policy data
+sub decodePolicyData
+{
+	my $recipientData = shift;
+
+
+	my %recipientToPolicy;
+	# Build policy str list and recipients list
+	foreach my $item (split(/\//,$recipientData)) {
+		# Skip over first /
+		next if ($item eq "");
+
+		my ($email,$rawPolicy) = ($item =~ /([^#]+)#(.*)/);
+		
+		# Loop with raw policies
+		foreach my $policy (split(/;/,$rawPolicy)) {
+			# Strip off priority and policy IDs
+			my ($prio,$policyIDs) = ( $policy =~ /(\d+)=(.*)/ );
+			# Pull off policyID's from string
+			foreach my $pid (split(/,/,$policyIDs)) {
+				push(@{$recipientToPolicy{$email}{$prio}},$pid);
+			}
+		}
+	}
+
+	return \%recipientToPolicy;
+}
 
 
 1;
