@@ -73,16 +73,32 @@ if ($_POST['action'] == "delete") {
 	if (isset($_POST['postfix_group_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM distribution_groups WHERE ID = ".$db->quote($_POST['postfix_group_id']));
-			if ($res) {
+			
+			$res = $db->exec("DELETE FROM distribution_group_members WHERE DistributionGroupID = ".$db->quote($_POST['postfix_group_id']));
+			if (!($res === FALSE)) {
 ?>
-				<div class="notice">Distribution group deleted</div>
+				<div class="notice">Distribution group members deleted</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting distribution group!</div>
+				<div class="warning">Error deleting distribution group members!</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
+				$db->rollback();
+			}
+
+			if (!($res === FALSE)) {
+				$res = $db->exec("DELETE FROM distribution_groups WHERE ID = ".$db->quote($_POST['postfix_group_id']));
+				if ($res) {
+?>
+					<div class="notice">Distribution group deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting distribution group!</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+				}
 			}
 		} else {
 ?>

@@ -76,7 +76,7 @@ if ($_POST['action'] == "delete") {
 			$db->beginTransaction();
 
 			$res = $db->exec("DELETE FROM policy_group_members WHERE PolicyGroupID = ".$db->quote($_POST['policy_group_id']));
-			if ($res) {
+			if (!($res === FALSE)) {
 ?>
 				<div class="notice">Policy group members deleted</div>
 <?php
@@ -88,7 +88,7 @@ if ($_POST['action'] == "delete") {
 				$db->rollback();
 			}
 
-			if ($res) {
+			if (!($res === FALSE)) {
 				$res = $db->exec("DELETE FROM policy_groups WHERE ID = ".$db->quote($_POST['policy_group_id']));
 				if ($res) {
 ?>

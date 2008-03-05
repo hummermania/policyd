@@ -117,7 +117,7 @@ if ($_POST['action'] == "delete") {
 					$res = $stmt->execute(array($id));
 				}
 
-				if ($res) {
+				if (!($res === FALSE)) {
 ?>
 					<div class="notice">Quota tracking info deleted</div>
 <?php
@@ -132,7 +132,7 @@ if ($_POST['action'] == "delete") {
 
 
 			# Check last query succeeded, if so continue
-			if ($res) {
+			if (!($res === FALSE)) {
 				$stmt = $db->prepare("
 						DELETE FROM 
 							quotas_limits 
