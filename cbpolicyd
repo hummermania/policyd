@@ -236,7 +236,6 @@ sub process_request {
 	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 	my %request;
-$self->log(LOG_DEBUG,"HELOO");
 	# Eval to catch sig ALRM
 	eval {
 		local $SIG{'ALRM'} = sub { die "Timed Out!\n" };
@@ -272,18 +271,23 @@ $self->log(LOG_DEBUG,"HELOO");
 		$request{'_timestamp'} = time();
 		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
 		
-		
-		use Data::Dumper;
-		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Request:\n".Dumper(\%request));
+		# Grab session data
+		my $sessionData = getSessionDataFromRequest($self,\%request);
+		if (ref $sessionData ne "HASH") {
+			$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error getting session data");
+			print("action=DUNNO");
+			return;
+		}
 
 		# Update session data
-		my $sessionData = getSessionDataFromRequest($self,\%request);
-		# FIXME: FAIL IF WE HIT -1
-		updateSessionData($self,$sessionData);
-		# FIXME: FAIL IF WE HIT -1
+		my $res = updateSessionData($self,$sessionData);
+		if ($res) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error updating session data");
+			print("action=DUNNO");
+			return;
+		}
 
-
-		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] SessionData:\n".Dumper($sessionData));
+		#$self->log(LOG_DEBUG,"[CBPOLICYD:$$] SessionData:\n".Dumper($sessionData));
 
 		# Check the data we have
 		my $verdict = $self->do_work($sessionData);

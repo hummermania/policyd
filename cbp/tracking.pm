@@ -256,9 +256,6 @@ sub updateSessionData
 	# Return if we have no ID, this would happen if we don't record rcpt info and jump direct to eom
 	return if (!defined($sessionData->{'ID'}));
 
-	use Data::Dumper;
-	$server->log(LOG_DEBUG,"USD: ".Dumper($sessionData));
-
 	# Return if we're not in RCPT state, in this case we shouldn't update the data
 	if ($sessionData->{'ProtocolState'} eq 'RCPT') {
 
