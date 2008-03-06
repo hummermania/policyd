@@ -32,7 +32,7 @@ printHeader(array(
 ));
 
 ?>
-	<h1>Policy Groups</h1>
+	<p class="pageheader">Policy Groups</p>
 
 	<form id="main_form" action="policy-group-main.php" method="post">
 

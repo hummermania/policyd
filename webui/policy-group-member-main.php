@@ -37,7 +37,7 @@ printHeader(array(
 if (isset($_REQUEST['policy_group_id'])) {
 
 ?>
-	<h1>Policy Group Members</h1>
+	<p class="pageheader">Policy Group Members</p>
 	
 <?php		
 

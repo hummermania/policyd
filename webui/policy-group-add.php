@@ -36,7 +36,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add")  {
 ?>
-	<h1>Add Policy Group</h1>
+	<p class="pageheader">Add Policy Group</p>
 <?php
 ?>
 		<form method="post" action="policy-group-add.php">
@@ -67,7 +67,7 @@ if ($_POST['action'] == "add")  {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Policy Group Add Results</h1>
+	<p class="pageheader">Policy Group Add Results</p>
 
 <?php
 

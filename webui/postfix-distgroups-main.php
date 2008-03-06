@@ -32,7 +32,7 @@ printHeader(array(
 ));
 
 ?>
-	<h1>Distribution Groups</h1>
+	<p class="pageheader">Distribution Groups</p>
 
 	<form id="main_form" action="postfix-distgroups-main.php" method="post">
 

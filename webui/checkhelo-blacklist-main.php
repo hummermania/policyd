@@ -34,7 +34,7 @@ printHeader(array(
 if (!isset($_POST['action']))
 {
 ?>
-	<h1>HELO/EHLO Blacklistings</h1>
+	<p class="pageheader">HELO/EHLO Blacklistings</p>
 
 	<form id="main_form" action="checkhelo-main.php" method="post">
 

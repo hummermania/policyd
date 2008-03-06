@@ -32,7 +32,7 @@ printHeader(array(
 ));
 
 ?>
-	<h1>Mailboxes</h1>
+	<p class="pageheader">Mailboxes</p>
 
 	<form id="main_form" action="postfix-mailboxes-main.php" method="post">
 

@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a quota was selected
 	if (isset($_POST['quota_id'])) {
 ?>
-		<h1>Delete Quota</h1>
+		<p class="pageheader">Delete Quota</p>
 
 		<form action="quotas-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Quota Delete Results</h1>
+	<p class="pageheader">Quota Delete Results</p>
 <?
 	if (isset($_POST['quota_id'])) {
 
@@ -86,7 +86,7 @@ if ($_POST['action'] == "delete") {
 
 			$limitIDs = array();
 
-			if ($res) {
+			if ($res !== FALSE) {
 				# Pull in limit ID's
 				while ($row = $res->fetchObject()) {
 					array_push($limitIDs,$row->id);
@@ -101,7 +101,7 @@ if ($_POST['action'] == "delete") {
 
 
 			# Check last query succeeded, if so continue
-			if ($res) {
+			if ($res !== FALSE) {
 				$db->beginTransaction();
 
 				$stmt = $db->prepare("
@@ -117,7 +117,7 @@ if ($_POST['action'] == "delete") {
 					$res = $stmt->execute(array($id));
 				}
 
-				if (!($res === FALSE)) {
+				if ($res !== FALSE) {
 ?>
 					<div class="notice">Quota tracking info deleted</div>
 <?php
@@ -132,7 +132,7 @@ if ($_POST['action'] == "delete") {
 
 
 			# Check last query succeeded, if so continue
-			if (!($res === FALSE)) {
+			if ($res !== FALSE) {
 				$stmt = $db->prepare("
 						DELETE FROM 
 							quotas_limits 
@@ -160,7 +160,7 @@ if ($_POST['action'] == "delete") {
 			}
 
 			# Check last query succeeded, if so continue
-			if ($res) {
+			if ($res !== FALSE) {
 				$res = $db->exec("DELETE FROM quotas WHERE ID = ".$db->quote($_POST['quota_id']));
 				if ($res) {
 ?>

@@ -45,7 +45,7 @@ if ($_POST['action'] == "change") {
 		# Prepare statement
 		$stmt = $db->prepare('SELECT ID, Goto, Disabled FROM distribution_group_members WHERE ID = ?');
 ?>
-		<h1>Update Distribution Group Member</h1>
+		<p class="pageheader">Update Distribution Group Member</p>
 
 		<form action="postfix-distgroups-member-change.php" method="post">
 			<div>
@@ -100,7 +100,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>Distribution Group Member Update Results</h1>
+	<p class="pageheader">Distribution Group Member Update Results</p>
 <?
 	$updates = array();
 

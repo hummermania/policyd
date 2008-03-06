@@ -43,7 +43,7 @@ if ($_POST['action'] == "delete") {
 	# Check a quota limit was selected
 	if (isset($_POST['quota_limit_id'])) {
 ?>
-		<h1>Delete Quota Limit</h1>
+		<p class="pageheader">Delete Quota Limit</p>
 
 		<form action="quotas-limits-delete.php" method="post">
 			<div>
@@ -70,7 +70,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Quota Limit Delete Results</h1>
+	<p class="pageheader">Quota Limit Delete Results</p>
 <?
 	if (isset($_POST['quota_limit_id'])) {
 

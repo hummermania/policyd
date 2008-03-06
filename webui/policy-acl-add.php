@@ -37,7 +37,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add")  {
 ?>
-	<h1>Add Policy ACL</h1>
+	<p class="pageheader">Add Policy ACL</p>
 <?php
 	if (!empty($_POST['policy_id'])) {
 ?>
@@ -78,7 +78,7 @@ if ($_POST['action'] == "add")  {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Policy ACL Add Results</h1>
+	<p class="pageheader">Policy ACL Add Results</p>
 
 <?php
 	# Check source and dest are not blank

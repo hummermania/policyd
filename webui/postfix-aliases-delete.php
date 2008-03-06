@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a Postfix alias was selected
 	if (isset($_POST['postfix_alias_id'])) {
 ?>
-		<h1>Delete Postfix Alias</h1>
+		<p class="pageheader">Delete Postfix Alias</p>
 
 		<form action="postfix-aliases-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Postfix Alias Delete Results</h1>
+	<p class="pageheader">Postfix Alias Delete Results</p>
 <?
 	if (isset($_POST['postfix_alias_id'])) {
 

@@ -54,7 +54,7 @@ if ($_POST['action'] == "change") {
 				checkhelo_blacklist.ID = ?
 			');
 ?>
-		<h1>Update HELO/EHLO Blacklist</h1>
+		<p class="pageheader">Update HELO/EHLO Blacklist</p>
 
 		<form action="checkhelo-blacklist-change.php" method="post">
 			<div>
@@ -113,7 +113,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>HELO/EHLO Blacklisting Update Results</h1>
+	<p class="pageheader">HELO/EHLO Blacklisting Update Results</p>
 <?
 	$updates = array();
 

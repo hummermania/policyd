@@ -34,7 +34,7 @@ printHeader(array(
 if (!isset($_POST['action']))
 {
 ?>
-	<h1>Quota List</h1>
+	<p class="pageheader">Quota List</p>
 
 	<form id="main_form" action="quotas-main.php" method="post">
 

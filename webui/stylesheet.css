@@ -40,6 +40,7 @@ body{
 	background: #000000 url('images/bg.jpg') bottom center repeat-x;
 	text-align: center;
 	font-size: 150%;
+	font-weight: bold;
 }
 
 
@@ -73,7 +74,7 @@ body{
 }
 
 #menu ul {
-    	margin-top: 0px;
+	margin-top: 0px;
 	list-style: url(images/bullet.jpg) disc;
 }
 
@@ -93,6 +94,7 @@ body{
 #footer{
 	background: #000000 url('images/bg.jpg') top center repeat-x;
 	text-align: center;
+	font-weight: bold;
 }
 
 #footer a, a:link {
@@ -164,6 +166,18 @@ body{
 	vertical-align: top;
 }
 
+/*
+ * Main window content
+ */
+.pageheader {
+	background-color: #999999;
+	color: #000000;
+	width: 100%;
+	border: 1px solid black;
+	text-align: center;
+	font-weight: bold;
+	font-size: 110%;
+}
 
 /* 
  * Results table 

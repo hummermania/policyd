@@ -34,7 +34,7 @@ printHeader(array(
 if (!isset($_POST['action']))
 {
 ?>
-	<h1>Policy List</h1>
+	<p class="pageheader">Policy List</p>
 
 	<form id="main_form" action="policy-main.php" method="post">
 

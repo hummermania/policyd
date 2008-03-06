@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a blacklisting was selected
 	if (isset($_POST['blacklist_id'])) {
 ?>
-		<h1>Delete HELO/EHLO blacklist</h1>
+		<p class="pageheader">Delete HELO/EHLO blacklist</p>
 
 		<form action="checkhelo-blacklist-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>HELO/EHLO Blacklist Delete Results</h1>
+	<p class="pageheader">HELO/EHLO Blacklist Delete Results</p>
 <?
 	if (isset($_POST['blacklist_id'])) {
 

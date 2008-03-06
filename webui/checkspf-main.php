@@ -34,7 +34,7 @@ printHeader(array(
 if (!isset($_POST['action']))
 {
 ?>
-	<h1>SPF Checks</h1>
+	<p class="pageheader">SPF Checks</p>
 
 	<form id="main_form" action="checkspf-main.php" method="post">
 

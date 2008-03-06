@@ -57,7 +57,7 @@ if ($_POST['action'] == "change") {
 				AND policies.ID = checkspf.PolicyID
 			');
 ?>
-		<h1>Update SPF Check</h1>
+		<p class="pageheader">Update SPF Check</p>
 
 		<form action="checkspf-change.php" method="post">
 			<div>
@@ -214,7 +214,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>SPF Check Update Results</h1>
+	<p class="pageheader">SPF Check Update Results</p>
 <?
 	$updates = array();
 

@@ -98,7 +98,7 @@ function process_post_list($option,$value) {
 
 if ($_POST['action'] == "add") {
 ?>
-	<h1>Add Amavis Rule</h1>
+	<p class="pageheader">Add Amavis Rule</p>
 
 	<form method="post" action="amavis-add.php">
 		<div>
@@ -742,7 +742,7 @@ if ($_POST['action'] == "add") {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Amavis Rule Add Results</h1>
+	<p class="pageheader">Amavis Rule Add Results</p>
 
 <?php
 	# Check name

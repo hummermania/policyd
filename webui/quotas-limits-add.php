@@ -37,7 +37,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add")  {
 ?>
-	<h1>Add Quota Limit</h1>
+	<p class="pageheader">Add Quota Limit</p>
 <?php
 	if (!empty($_POST['quota_id'])) {
 ?>
@@ -83,7 +83,7 @@ if ($_POST['action'] == "add")  {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Quota Limit Add Results</h1>
+	<p class="pageheader">Quota Limit Add Results</p>
 
 <?php
 	# Check we have a limit

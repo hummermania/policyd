@@ -43,7 +43,7 @@ if ($_POST['action'] == "delete") {
 	# Check a policy group member was selected
 	if (isset($_POST['policy_group_member_id'])) {
 ?>
-		<h1>Delete Policy Group Member</h1>
+		<p class="pageheader">Delete Policy Group Member</p>
 
 		<form action="policy-group-member-delete.php" method="post">
 			<div>
@@ -69,7 +69,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Policy Group Member Delete Results</h1>
+	<p class="pageheader">Policy Group Member Delete Results</p>
 <?
 	if (isset($_POST['policy_group_member_id'])) {
 

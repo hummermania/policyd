@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a SPF check was selected
 	if (isset($_POST['checkspf_id'])) {
 ?>
-		<h1>Delete SPF Check</h1>
+		<p class="pageheader">Delete SPF Check</p>
 
 		<form action="checkspf-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>SPF Check Delete Results</h1>
+	<p class="pageheader">SPF Check Delete Results</p>
 <?
 	if (isset($_POST['checkspf_id'])) {
 

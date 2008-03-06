@@ -36,7 +36,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add") {
 ?>
-	<h1>Add SPF Check</h1>
+	<p class="pageheader">Add SPF Check</p>
 
 	<form method="post" action="checkspf-add.php">
 		<div>
@@ -109,7 +109,7 @@ if ($_POST['action'] == "add") {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>SPF Check Add Results</h1>
+	<p class="pageheader">SPF Check Add Results</p>
 
 <?php
 	# Check name

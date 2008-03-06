@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a Postfix mailbox was selected
 	if (isset($_POST['postfix_mailbox_id'])) {
 ?>
-		<h1>Delete Mailbox</h1>
+		<p class="pageheader">Delete Mailbox</p>
 
 		<form action="postfix-mailboxes-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Mailbox Delete Results</h1>
+	<p class="pageheader">Mailbox Delete Results</p>
 <?
 	if (isset($_POST['postfix_mailbox_id'])) {
 

@@ -47,7 +47,7 @@ if ($_POST['action'] == "change") {
 		$res = $stmt->execute(array($_POST['quota_limit_id']));
 		$row = $stmt->fetchObject();
 ?>
-		<h1>Update Quota Limit</h1>
+		<p class="pageheader">Update Quota Limit</p>
 
 		<form action="quotas-limits-change.php" method="post">
 			<div>
@@ -113,7 +113,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>Policy Update Results</h1>
+	<p class="pageheader">Policy Update Results</p>
 <?
 	# Check a quota was selected
 	if (isset($_POST['quota_limit_id'])) {

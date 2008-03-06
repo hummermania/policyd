@@ -36,7 +36,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add")  {
 ?>
-	<h1>Add Postfix Alias</h1>
+	<p class="pageheader">Add Postfix Alias</p>
 <?php
 ?>
 		<form method="post" action="postfix-aliases-add.php">
@@ -82,7 +82,7 @@ if ($_POST['action'] == "add")  {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Postfix Alias Add Results</h1>
+	<p class="pageheader">Postfix Alias Add Results</p>
 
 <?php
 	# Prepare statement

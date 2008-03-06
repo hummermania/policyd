@@ -36,7 +36,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add") {
 ?>
-	<h1>Add Access Control</h1>
+	<p class="pageheader">Add Access Control</p>
 
 	<form method="post" action="accesscontrol-add.php">
 		<div>
@@ -95,7 +95,7 @@ if ($_POST['action'] == "add") {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Access Control Add Results</h1>
+	<p class="pageheader">Access Control Add Results</p>
 
 <?php
 	# Check name

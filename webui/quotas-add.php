@@ -36,7 +36,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add") {
 ?>
-	<h1>Add Quota</h1>
+	<p class="pageheader">Add Quota</p>
 
 	<form method="post" action="quotas-add.php">
 		<div>
@@ -126,7 +126,7 @@ if ($_POST['action'] == "add") {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Quota Add Results</h1>
+	<p class="pageheader">Quota Add Results</p>
 
 <?php
 	# Check policy id

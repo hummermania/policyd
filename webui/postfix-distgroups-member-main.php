@@ -37,7 +37,7 @@ printHeader(array(
 if (isset($_REQUEST['postfix_group_id'])) {
 
 ?>
-	<h1>Distribution Group Members</h1>
+	<p class="pageheader">Distribution Group Members</p>
 	
 <?php		
 

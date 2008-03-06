@@ -36,7 +36,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add") {
 ?>
-	<h1>Add HELO/EHLO Blacklist</h1>
+	<p class="pageheader">Add HELO/EHLO Blacklist</p>
 
 	<form method="post" action="checkhelo-blacklist-add.php">
 		<div>
@@ -64,7 +64,7 @@ if ($_POST['action'] == "add") {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>HELO/EHLO Blacklist Add Results</h1>
+	<p class="pageheader">HELO/EHLO Blacklist Add Results</p>
 
 <?php
 	# Check name

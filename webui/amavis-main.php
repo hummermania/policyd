@@ -34,7 +34,7 @@ printHeader(array(
 if (!isset($_POST['action']))
 {
 ?>
-	<h1>Amavis Rule List</h1>
+	<p class="pageheader">Amavis Rule List</p>
 
 	<form id="main_form" action="amavis-main.php" method="post">
 

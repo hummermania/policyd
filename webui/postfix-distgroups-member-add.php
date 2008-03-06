@@ -37,7 +37,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add")  {
 ?>
-	<h1>Add Distribution Group Member</h1>
+	<p class="pageheader">Add Distribution Group Member</p>
 <?php
 ?>
 		<form method="post" action="postfix-distgroups-member-add.php">
@@ -64,7 +64,7 @@ if ($_POST['action'] == "add")  {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Distribution Group Member Add Results</h1>
+	<p class="pageheader">Distribution Group Member Add Results</p>
 
 <?php
 

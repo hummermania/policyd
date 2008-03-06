@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a policy group was selected
 	if (isset($_POST['policy_group_id'])) {
 ?>
-		<h1>Delete Policy Group</h1>
+		<p class="pageheader">Delete Policy Group</p>
 
 		<form action="policy-group-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Policy Group Delete Results</h1>
+	<p class="pageheader">Policy Group Delete Results</p>
 <?
 	if (isset($_POST['policy_group_id'])) {
 
@@ -76,7 +76,7 @@ if ($_POST['action'] == "delete") {
 			$db->beginTransaction();
 
 			$res = $db->exec("DELETE FROM policy_group_members WHERE PolicyGroupID = ".$db->quote($_POST['policy_group_id']));
-			if (!($res === FALSE)) {
+			if ($res !== FALSE) {
 ?>
 				<div class="notice">Policy group members deleted</div>
 <?php
@@ -88,7 +88,7 @@ if ($_POST['action'] == "delete") {
 				$db->rollback();
 			}
 
-			if (!($res === FALSE)) {
+			if ($res !== FALSE) {
 				$res = $db->exec("DELETE FROM policy_groups WHERE ID = ".$db->quote($_POST['policy_group_id']));
 				if ($res) {
 ?>

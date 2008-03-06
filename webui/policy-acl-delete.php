@@ -43,7 +43,7 @@ if ($_POST['action'] == "delete") {
 	# Check a policy was selected
 	if (isset($_POST['policy_acl_id'])) {
 ?>
-		<h1>Delete Policy ACL</h1>
+		<p class="pageheader">Delete Policy ACL</p>
 
 		<form action="policy-acl-delete.php" method="post">
 			<div>
@@ -70,7 +70,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Policy ACL Delete Results</h1>
+	<p class="pageheader">Policy ACL Delete Results</p>
 <?
 	if (isset($_POST['policy_acl_id'])) {
 

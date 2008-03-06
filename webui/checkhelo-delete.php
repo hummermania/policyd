@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a helo/helo check was selected
 	if (isset($_POST['checkhelo_id'])) {
 ?>
-		<h1>Delete HELO/EHLO Check</h1>
+		<p class="pageheader">Delete HELO/EHLO Check</p>
 
 		<form action="checkhelo-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>HELO/EHLO Check Delete Results</h1>
+	<p class="pageheader">HELO/EHLO Check Delete Results</p>
 <?
 	if (isset($_POST['checkhelo_id'])) {
 

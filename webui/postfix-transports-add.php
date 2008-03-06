@@ -36,7 +36,7 @@ printHeader(array(
 
 if ($_POST['action'] == "add")  {
 ?>
-	<h1>Add Postfix Transport</h1>
+	<p class="pageheader">Add Postfix Transport</p>
 <?php
 ?>
 		<form method="post" action="postfix-transports-add.php">
@@ -87,7 +87,7 @@ if ($_POST['action'] == "add")  {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<h1>Postfix Transport Add Results</h1>
+	<p class="pageheader">Postfix Transport Add Results</p>
 
 <?php
 

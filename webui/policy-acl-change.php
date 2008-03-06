@@ -47,7 +47,7 @@ if ($_POST['action'] == "change") {
 		$res = $stmt->execute(array($_POST['policy_acl_id']));
 		$row = $stmt->fetchObject();
 ?>
-		<h1>Update Policy ACL</h1>
+		<p class="pageheader">Update Policy ACL</p>
 
 		<form action="policy-acl-change.php" method="post">
 			<div>
@@ -107,7 +107,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>Policy Update Results</h1>
+	<p class="pageheader">Policy Update Results</p>
 <?
 	# Check a policy was selected
 	if (isset($_POST['policy_acl_id'])) {

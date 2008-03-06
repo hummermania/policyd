@@ -43,7 +43,7 @@ if ($_POST['action'] == "delete") {
 	# Check a postfix group member was selected
 	if (isset($_POST['postfix_group_member_id'])) {
 ?>
-		<h1>Delete Distribution Group Member</h1>
+		<p class="pageheader">Delete Distribution Group Member</p>
 
 		<form action="postfix-distgroups-member-delete.php" method="post">
 			<div>
@@ -69,7 +69,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Distribution Group Member Delete Results</h1>
+	<p class="pageheader">Distribution Group Member Delete Results</p>
 <?
 	if (isset($_POST['postfix_group_member_id'])) {
 

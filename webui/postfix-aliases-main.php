@@ -32,7 +32,7 @@ printHeader(array(
 ));
 
 ?>
-	<h1>Postfix Aliases</h1>
+	<p class="pageheader">Postfix Aliases</p>
 
 	<form id="main_form" action="postfix-aliases-main.php" method="post">
 

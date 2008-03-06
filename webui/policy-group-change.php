@@ -44,7 +44,7 @@ if ($_POST['action'] == "change") {
 		# Prepare statement
 		$stmt = $db->prepare('SELECT ID, Name, Disabled FROM policy_groups WHERE ID = ?');
 ?>
-		<h1>Update Policy Group</h1>
+		<p class="pageheader">Update Policy Group</p>
 
 		<form action="policy-group-change.php" method="post">
 			<div>
@@ -98,7 +98,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>Policy Group Update Results</h1>
+	<p class="pageheader">Policy Group Update Results</p>
 <?
 	$updates = array();
 

@@ -44,7 +44,7 @@ if ($_POST['action'] == "change") {
 		# Prepare statement
 		$stmt = $db->prepare('SELECT ID, MailAddress, Goto, Disabled FROM aliases WHERE ID = ?');
 ?>
-		<h1>Update Postfix Alias</h1>
+		<p class="pageheader">Update Postfix Alias</p>
 
 		<form action="postfix-aliases-change.php" method="post">
 			<div>
@@ -104,7 +104,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>Policy Group Update Results</h1>
+	<p class="pageheader">Policy Group Update Results</p>
 <?
 	$updates = array();
 

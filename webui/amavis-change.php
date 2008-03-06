@@ -209,7 +209,7 @@ if ($_POST['action'] == "change") {
 				AND policies.ID = amavis_rules.PolicyID
 			');
 ?>
-		<h1>Update Amavis Rule</h1>
+		<p class="pageheader">Update Amavis Rule</p>
 
 		<form action="amavis-change.php" method="post">
 			<div>
@@ -932,7 +932,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>Amavis Rule Update Results</h1>
+	<p class="pageheader">Amavis Rule Update Results</p>
 <?
 	$updates = array();
 

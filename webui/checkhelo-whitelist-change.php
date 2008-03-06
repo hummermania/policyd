@@ -54,7 +54,7 @@ if ($_POST['action'] == "change") {
 				checkhelo_whitelist.ID = ?
 			');
 ?>
-		<h1>Update HELO/EHLO Whitelist</h1>
+		<p class="pageheader">Update HELO/EHLO Whitelist</p>
 
 		<form action="checkhelo-whitelist-change.php" method="post">
 			<div>
@@ -113,7 +113,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>HELO/EHLO Whitelisting Update Results</h1>
+	<p class="pageheader">HELO/EHLO Whitelisting Update Results</p>
 <?
 	$updates = array();
 

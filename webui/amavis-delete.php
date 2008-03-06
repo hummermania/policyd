@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a amavis rule was selected
 	if (isset($_POST['amavis_id'])) {
 ?>
-		<h1>Delete Amavis Rule</h1>
+		<p class="pageheader">Delete Amavis Rule</p>
 
 		<form action="amavis-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Amavis Rule Delete Results</h1>
+	<p class="pageheader">Amavis Rule Delete Results</p>
 <?
 	if (isset($_POST['amavis_id'])) {
 

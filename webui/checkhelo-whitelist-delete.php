@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a whitelisting was selected
 	if (isset($_POST['whitelist_id'])) {
 ?>
-		<h1>Delete HELO/EHLO whitelist</h1>
+		<p class="pageheader">Delete HELO/EHLO whitelist</p>
 
 		<form action="checkhelo-whitelist-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>HELO/EHLO Whitelist Delete Results</h1>
+	<p class="pageheader">HELO/EHLO Whitelist Delete Results</p>
 <?
 	if (isset($_POST['whitelist_id'])) {
 

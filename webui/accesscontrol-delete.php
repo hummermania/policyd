@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a access control was selected
 	if (isset($_POST['accesscontrol_id'])) {
 ?>
-		<h1>Delete Access Control</h1>
+		<p class="pageheader">Delete Access Control</p>
 
 		<form action="accesscontrol-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Access Control Delete Results</h1>
+	<p class="pageheader">Access Control Delete Results</p>
 <?
 	if (isset($_POST['accesscontrol_id'])) {
 

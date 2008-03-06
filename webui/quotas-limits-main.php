@@ -41,7 +41,7 @@ if (isset($_REQUEST['quota_id'])) {
 	$quota_stmt->execute(array($_REQUEST['quota_id']));
 	$row = $quota_stmt->fetchObject();
 ?>
-	<h1>Quota Limits</h1>
+	<p class="pageheader">Quota Limits</p>
 
 	<form id="main_form" action="quotas-limits-main.php" method="post">
 		<div>

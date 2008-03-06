@@ -42,7 +42,7 @@ if ($_POST['action'] == "delete") {
 	# Check a policy was selected
 	if (isset($_POST['policy_id'])) {
 ?>
-		<h1>Delete Policy</h1>
+		<p class="pageheader">Delete Policy</p>
 
 		<form action="policy-delete.php" method="post">
 			<div>
@@ -68,7 +68,7 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<h1>Policy Delete Results</h1>
+	<p class="pageheader">Policy Delete Results</p>
 <?
 	if (isset($_POST['policy_id'])) {
 		

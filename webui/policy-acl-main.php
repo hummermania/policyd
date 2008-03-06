@@ -37,7 +37,7 @@ printHeader(array(
 if (isset($_REQUEST['policy_id'])) {
 
 ?>
-	<h1>Policy ACLs</h1>
+	<p class="pageheader">Policy ACLs</p>
 	
 <?php		
 

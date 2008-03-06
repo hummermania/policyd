@@ -65,7 +65,7 @@ if ($_POST['action'] == "change") {
 				AND policies.ID = checkhelo.PolicyID
 			');
 ?>
-		<h1>Update HELO/EHLO Check</h1>
+		<p class="pageheader">Update HELO/EHLO Check</p>
 
 		<form action="checkhelo-change.php" method="post">
 			<div>
@@ -324,7 +324,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>HELO/EHLO Update Results</h1>
+	<p class="pageheader">HELO/EHLO Update Results</p>
 <?
 	$updates = array();
 

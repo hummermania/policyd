@@ -34,7 +34,7 @@ printHeader(array(
 if (!isset($_POST['action']))
 {
 ?>
-	<h1>Access Control List</h1>
+	<p class="pageheader">Access Control List</p>
 
 	<form id="main_form" action="accesscontrol-main.php" method="post">
 

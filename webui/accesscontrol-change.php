@@ -57,7 +57,7 @@ if ($_POST['action'] == "change") {
 				AND policies.ID = access_control.PolicyID
 			');
 ?>
-		<h1>Update Access Control</h1>
+		<p class="pageheader">Update Access Control</p>
 
 		<form action="accesscontrol-change.php" method="post">
 			<div>
@@ -152,7 +152,7 @@ if ($_POST['action'] == "change") {
 # SQL Updates
 } elseif ($_POST['action'] == "change2") {
 ?>
-	<h1>Access Control Update Results</h1>
+	<p class="pageheader">Access Control Update Results</p>
 <?
 	$updates = array();
 

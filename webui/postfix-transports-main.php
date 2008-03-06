@@ -32,7 +32,7 @@ printHeader(array(
 ));
 
 ?>
-	<h1>Postfix Transports</h1>
+	<p class="pageheader">Postfix Transports</p>
 
 	<form id="main_form" action="postfix-transports-main.php" method="post">
 
