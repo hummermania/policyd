@@ -82,7 +82,7 @@ CREATE TABLE checkhelo_whitelist (
 CREATE TABLE checkhelo_tracking (
 	ID			@SERIAL_TYPE@,
 
-	Address			VARCHAR(255) NOT NULL,
+	Address			VARCHAR(64) NOT NULL,
 	Helo			VARCHAR(255) NOT NULL,
 	LastUpdate		BIGINT UNSIGNED NOT NULL,
 
