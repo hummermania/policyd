@@ -32,6 +32,7 @@ use Net::DNS::Resolver;
 # User plugin info
 our $pluginInfo = {
 	name 			=> "HELO/EHLO Check Plugin",
+	priority		=> 80,
 	check 			=> \&check,
 	init		 	=> \&init,
 };
@@ -145,7 +146,7 @@ sub check {
 			AND Helo = ".DBQuote($sessionData->{'Helo'})."
 	");
 	if (!$sth) {
-		$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Database update failed: ".cbp::dblayer::Error());
 		return undef;
 	}
 	# If we didn't update anything, insert
@@ -167,11 +168,10 @@ sub check {
 		$server->log(LOG_DEBUG,"[CHECKHELO] Recorded helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'");
 	# And just a bit of debug
 	} else {
-		$server->log(LOG_DEBUG,"[CHECKHELO] Updated timestamp for helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'");
+		$server->log(LOG_DEBUG,"[CHECKHELO] Updated timestamp for helo '".$sessionData->{'Helo'}."' from address '".
+				$sessionData->{'ClientAddress'}."'");
 	}
 
-	# Are we whitelisted or not?
-	my $whitelisted = 0;
 	# Check if we whitelisted or not...
 	$sth = DBSelect("
 		SELECT
@@ -189,22 +189,15 @@ sub check {
 	}
 	# Loop with whitelist and calculate
 	while (my $row = $sth->fetchrow_hashref()) {
-		# Check if this is a valid cidr or IP
-		if ($row->{'Address'} =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))?$/) {
-			my $ip = $1;
-			my $mask = ( defined($2) && $2 > 1 && $2 <= 32 ) ? $2 : 32;
-
-			# Pull long for IP we going to test
-			my $ip_long = ip_to_long($ip);
-			# Convert mask to longs
-			my $mask_long = ipbits_to_mask($mask);
-			# AND with mask to get network addy
-			my $network_long = $ip_long & $mask_long;
-			# AND with mask to get broadcast addy
-			my $bcast_long = $ip_long & ~$mask_long;
 		
+		# Parse CIDR into its various peices
+		my $parsedIP = parseCIDR($row->{'Address'});
+
+		# Check if this is a valid cidr or IP
+		if (ref $parsedIP eq "HASH") {
+
 			# Check if IP is whitelisted
-			if ($ip_long >= $network_long && $ip_long <= $bcast_long) {
+			if ($parsedIP->{'IP_Long'} >= $parsedIP->{'Network_Long'} && $parsedIP->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
 				$server->maillog("module=CheckHelo, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
