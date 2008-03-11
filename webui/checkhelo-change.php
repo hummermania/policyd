@@ -119,7 +119,7 @@ if ($_POST['action'] == "change") {
 								case 1:
 									echo "Yes";
 									break;
-								case 2:
+								case 0:
 									echo "No";
 									break;
 								default:
@@ -161,7 +161,7 @@ if ($_POST['action'] == "change") {
 								case 1:
 									echo "Yes";
 									break;
-								case 2:
+								case 0:
 									echo "No";
 									break;
 								default:
@@ -215,7 +215,7 @@ if ($_POST['action'] == "change") {
 								case 1:
 									echo "Yes";
 									break;
-								case 2:
+								case 0:
 									echo "No";
 									break;
 								default:
@@ -242,7 +242,7 @@ if ($_POST['action'] == "change") {
 								case 1:
 									echo "Yes";
 									break;
-								case 2:
+								case 0:
 									echo "No";
 									break;
 								default:
@@ -269,7 +269,7 @@ if ($_POST['action'] == "change") {
 								case 1:
 									echo "Yes";
 									break;
-								case 2:
+								case 0:
 									echo "No";
 									break;
 								default:
