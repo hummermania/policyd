@@ -359,7 +359,6 @@ sub check {
 						WHERE
 							TrackKey = ".DBQuote($key)."
 							AND FirstSeen >= ".DBQuote($addedTime)."
-							AND Authenticated != 1
 					");
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
@@ -383,7 +382,7 @@ sub check {
 								WHERE
 									TrackKey = ".DBQuote($key)."
 									AND FirstSeen >= ".DBQuote($addedTime)."
-									AND Authenticated == 1
+									AND Authenticated = 1
 							");
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
@@ -553,7 +552,6 @@ sub check {
 						WHERE
 							TrackKey = ".DBQuote($key)."
 							AND FirstSeen >= ".DBQuote($addedTime)."
-							AND Authenticated != 1
 					");
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
@@ -575,7 +573,7 @@ sub check {
 								WHERE
 									TrackKey = ".DBQuote($key)."
 									AND FirstSeen >= ".DBQuote($addedTime)."
-									AND Authenticated == 1
+									AND Authenticated = 1
 							");
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
