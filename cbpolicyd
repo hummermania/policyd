@@ -310,7 +310,7 @@ sub do_work {
 
 	# Loop with modules
 	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
-		
+
 		# Run check
 		my ($verdict,$verdict_data) = $module->{'check'}($self,$data);
 
@@ -370,8 +370,10 @@ sub do_work {
 			$self->log(LOG_ERR,"Ok ... total whitelisting");
 			# Set verdict data
 			$result = "OK";
-
 		}
+
+		# Last because we have a verdict now
+		last;
 	}
 
 	$self->log(LOG_ERR,"Policy Result: $result");
