@@ -36,11 +36,21 @@ printHeader();
 				<li>Control access based on policy. eg. Rejecting mail matching a specific policy.
 			</ul>
 
-		<li>Quotas
+		<li>Amavis Integration
 			<ul>
-				<li>Define message count quotas for policies.
-				<li>Define cumulative size quotas for policies.
-				<li>Track these quotas based on various methods, including sender IP block, sender user/domain/email address.
+				<li>Anti-virus checks.
+				<li>Anti-spam checks.
+				<li>Banned filename checks.
+				<li>Email header checks.
+				<li>Message size limits.
+				<li>Blacklist/whitelist senders.
+				<li>Email interception (BCC).
+			</ul>
+
+		<li>Greylisting
+			<ul>
+				<li>Support for greylisting and masking sender IP addresses.
+				<li>Support for auto-whitelisting and auto-greylisting based on count or count+percentage.
 			</ul>
 
 		<li>HELO/EHLO Checks
@@ -53,17 +63,6 @@ printHeader();
 				<li>Check the SPF records of a domain and see if the inbound email is allowed or prohibited.
 			</ul>
 
-		<li>Amavis Integration
-			<ul>
-				<li>Anti-virus checks.
-				<li>Anti-spam checks.
-				<li>Banned filename checks.
-				<li>Email header checks.
-				<li>Message size limits.
-				<li>Blacklist/whitelist senders.
-				<li>Email interception (BCC).
-			</ul>
-
 		<li>Postfix Integration
 			<ul>
 				<li>Setup and create transports.
@@ -71,6 +70,14 @@ printHeader();
 				<li>Create mailbox aliases.
 				<li>Manage distribution groups.
 			</ul>
+		
+		<li>Quotas
+			<ul>
+				<li>Define message count quotas for policies.
+				<li>Define cumulative size quotas for policies.
+				<li>Track these quotas based on various methods, including sender IP block, sender user/domain/email address.
+			</ul>
+
 	</ul>
 <?php
 
