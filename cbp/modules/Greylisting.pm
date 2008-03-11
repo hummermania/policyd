@@ -367,64 +367,74 @@ sub check {
 					}
 					my $row = $sth->fetchrow_hashref();
 
-					# Start off as undef
-					my $blacklist;
 
-					# Check if we should blacklist this host
-					if (defined($policy{'AutoBlacklistPercentage'}) && $policy{'AutoBlacklistPercentage'} > 0) {
-						$sth = DBSelect("
-							SELECT
-								Count(*) AS Count
-							FROM
-								greylisting_tracking
-							WHERE
-								TrackKey = ".DBQuote($key)."
-								AND FirstSeen >= ".DBQuote($addedTime)."
-								AND Authenticated == 1
-						");
-						if (!$sth) {
-							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-							return undef;
-						}
-						my $row2 = $sth->fetchrow_hashref();
-				
-						# Cannot divide by zero
-						if ($row->{'Count'} > 0) {
-							my $percentage = ( $row2->{'Count'} / $row->{'Count'} ) * 100;
-							# If we meet the percentage of unauthenticated triplets, blacklist
-							if ($percentage <= $policy{'AutoBlacklistPercentage'} ) {
-								$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s, Percentage/Required = %s/%s",
-										$row->{'Count'}, $policy{'AutoBlacklistCount'},
-										$percentage, $policy{'AutoBlacklistPercentage'});
+					# If count exceeds or equals blacklist count, nail the server
+					if ($row->{'Count'} >= $policy{'AutoBlacklistCount'}) {
+						# Start off as undef
+						my $blacklist;
+
+						# Check if we should blacklist this host
+						if (defined($policy{'AutoBlacklistPercentage'}) && $policy{'AutoBlacklistPercentage'} > 0) {
+							$sth = DBSelect("
+								SELECT
+									Count(*) AS Count
+								FROM
+									greylisting_tracking
+								WHERE
+									TrackKey = ".DBQuote($key)."
+									AND FirstSeen >= ".DBQuote($addedTime)."
+									AND Authenticated == 1
+							");
+							if (!$sth) {
+								$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+								return undef;
 							}
-						}
-
-					} else {
-						# If count exceeds or equals blacklist count, nail the server
-						if ($row->{'Count'} >= $policy{'AutoBlacklistCount'}) {
+							my $row2 = $sth->fetchrow_hashref();
+					
+							# Cannot divide by zero
+							if ($row->{'Count'} > 0) {
+								my $percentage = ( $row2->{'Count'} / $row->{'Count'} ) * 100;
+								# If we meet the percentage of unauthenticated triplets, blacklist
+								if ($percentage <= $policy{'AutoBlacklistPercentage'} ) {
+									$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s, Percentage/Required = %s/%s",
+											$row->{'Count'}, $policy{'AutoBlacklistCount'},
+											$percentage, $policy{'AutoBlacklistPercentage'});
+								}
+							}
+						# This is not a percentage check
+						} else {
 							$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s", $row->{'Count'}, $policy{'AutoBlacklistCount'});
 						}
-					}
+					
+						# If we are to be listed, this is our reason
+						if ($blacklist) {
+							# Record blacklisting
+							$sth = DBDo("
+								INSERT INTO greylisting_autoblacklist
+									(TrackKey,Added,Comment)
+								VALUES
+									(
+										".DBQuote($key).",
+										".DBQuote($sessionData->{'Timestamp'}).",
+										".DBQuote($blacklist)."
+									)
+							");
+							if (!$sth) {
+								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
+								return undef;
+							}
 
-					# If we are to be listed, this is our reason
-					if ($blacklist) {
-						# Record blacklisting
-						$sth = DBDo("
-							INSERT INTO greylisting_blacklisting
-								(TrackKey,Added,Comment)
-							VALUES
-								(
-									".DBQuote($key).",
-									".DBQuote($sessionData->{'Timestamp'}).",
-									".DBQuote($blacklist)."
-								)
-						");
-						if (!$sth) {
-							$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
-							return undef;
+							$server->maillog("module=Greylisting, action=reject, host=%s, from=%s, to=%s, reason=auto-blacklisted",
+									$sessionData->{'ClientAddress'},
+									$sessionData->{'Helo'},
+									$sessionData->{'Sender'},
+									$sessionData->{'Recipient'});
+
+							return ("REJECT","Greylisting in effect, sending server blacklisted");
 						}
-					}
-				}
+					} # if ($row->{'Count'} >= $policy{'AutoBlacklistCount'})
+				} # if (defined($policy{'AutoBlacklistCount'}) && $policy{'AutoBlacklistCount'} > 0)
+
 			} else { # if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0)
 				$server->log(LOG_ERR,"[GREYLISTING] Resolved policy UseAutoWBlacklist is set, but AutoBlacklistPeriod is not set or invalid");
 				return undef;
@@ -551,64 +561,70 @@ sub check {
 					}
 					my $row = $sth->fetchrow_hashref();
 
-					# start off not whitelisting...
-					my $whitelist;
+					# If count exceeds or equals whitelist count, nail the server
+					if ($row->{'Count'} >= $policy{'AutoWhitelistCount'}) {
+						my $whitelist;
 
-					# Check if we should whitelist this host
-					if (defined($policy{'AutoWhitelistPercentage'}) && $policy{'AutoWhitelistPercentage'} > 0) {
-						$sth = DBSelect("
-							SELECT
-								Count(*) AS Count
-							FROM
-								greylisting_tracking
-							WHERE
-								TrackKey = ".DBQuote($key)."
-								AND FirstSeen >= ".DBQuote($addedTime)."
-								AND Authenticated == 1
-						");
-						if (!$sth) {
-							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-							return undef;
-						}
-						my $row2 = $sth->fetchrow_hashref();
-			
-						# Cannot divide by zero
-						if ($row->{'Count'} > 0) {
-							my $percentage = ( $row2->{'Count'} / $row->{'Count'} ) * 100;
-							# If we meet the percentage of unauthenticated triplets, whitelist
-							if ($percentage <= $policy{'AutoWhitelistPercentage'} ) {
-								$whitelist = sprintf("Auto-whitelisted: Count/Required = %s/%s, Percentage/Required = %s/%s",
-										$row->{'Count'}, $policy{'AutoWhitelistCount'},
-										$percentage, $policy{'AutoWhitelistPercentage'});
+						# Check if we should whitelist this host
+						if (defined($policy{'AutoWhitelistPercentage'}) && $policy{'AutoWhitelistPercentage'} > 0) {
+							$sth = DBSelect("
+								SELECT
+									Count(*) AS Count
+								FROM
+									greylisting_tracking
+								WHERE
+									TrackKey = ".DBQuote($key)."
+									AND FirstSeen >= ".DBQuote($addedTime)."
+									AND Authenticated == 1
+							");
+							if (!$sth) {
+								$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+								return undef;
 							}
-						}
-
-					} else {
-						# If count exceeds or equals whitelist count, nail the server
-						if ($row->{'Count'} >= $policy{'AutoWhitelistCount'}) {
+							my $row2 = $sth->fetchrow_hashref();
+				
+							# Cannot divide by zero
+							if ($row->{'Count'} > 0) {
+								my $percentage = ( $row2->{'Count'} / $row->{'Count'} ) * 100;
+								# If we meet the percentage of unauthenticated triplets, whitelist
+								if ($percentage <= $policy{'AutoWhitelistPercentage'} ) {
+									$whitelist = sprintf("Auto-whitelisted: Count/Required = %s/%s, Percentage/Required = %s/%s",
+											$row->{'Count'}, $policy{'AutoWhitelistCount'},
+											$percentage, $policy{'AutoWhitelistPercentage'});
+								}
+							}
+	
+						} else {
 							$whitelist = sprintf("Auto-whitelisted: Count/Required = %s/%s", $row->{'Count'}, $policy{'AutoWhitelistCount'});
 						}
-					}
+	
+						# If we are to be listed, this is our reason
+						if ($whitelist) {
+							# Record whitelisting
+							$sth = DBDo("
+								INSERT INTO greylisting_autowhitelist
+									(TrackKey,Added,LastSeen,Comment)
+								VALUES
+									(
+										".DBQuote($key).",
+										".DBQuote($sessionData->{'Timestamp'}).",
+										".DBQuote($sessionData->{'Timestamp'}).",
+										".DBQuote($whitelist)."
+									)
+							");
+							if (!$sth) {
+								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
+								return undef;
+							}
+							$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=auto-whitelisted",
+									$sessionData->{'ClientAddress'},
+									$sessionData->{'Helo'},
+									$sessionData->{'Sender'},
+									$sessionData->{'Recipient'});
 
-					# If we are to be listed, this is our reason
-					if ($whitelist) {
-						# Record whitelisting
-						$sth = DBDo("
-							INSERT INTO greylisting_whitelisting
-								(TrackKey,Added,LastSeen,Comment)
-							VALUES
-								(
-									".DBQuote($key).",
-									".DBQuote($sessionData->{'Timestamp'}).",
-									".DBQuote($sessionData->{'Timestamp'}).",
-									".DBQuote($whitelist)."
-								)
-						");
-						if (!$sth) {
-							$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
 							return undef;
 						}
-					}
+					} # if ($row->{'Count'} >= $policy{'AutoWhitelistCount'})
 				} # if (defined($policy{'AutoWhitelistCount'}) && $policy{'AutoWhitelistCount'} > 0) 
 
 			} else { # if (defined($policy{'AutoWhitelistPeriod'}) && $policy{'AutoWhitelistPeriod'} > 0)

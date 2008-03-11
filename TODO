@@ -16,7 +16,7 @@ Immediate requirements:
 - Quotas, delete tracking
 - HELO checks, delete tracking
 - Policies, delete ACL's
-
+- Greylisting, optionally store HELO aswell
 
 --------------
 
