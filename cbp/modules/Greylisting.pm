@@ -244,7 +244,7 @@ sub check {
 				if ($sessionData->{'Timestamp'} - $row->{'LastSeen'} <= $policy{'AutoWhitelistPeriod'}) {
 
 					my $sth = DBDo("
-						Update
+						UPDATE
 							greylisting_autowhitelist
 						SET
 							LastSeen = ".DBQuote($sessionData->{'Timestamp'})."
@@ -324,7 +324,8 @@ sub check {
 
 	# Insert/update triplet in database
 	$sth = DBDo("
-		UPDATE greylisting_tracking
+		UPDATE 
+			greylisting_tracking
 		SET
 			LastUpdate = ".DBQuote($sessionData->{'Timestamp'})."
 		WHERE
@@ -411,6 +412,8 @@ sub check {
 						$sth = DBDo("
 							INSERT INTO greylisting_blacklisting
 								(TrackKey,Added,Comment)
+							VALUES
+								(
 									".DBQuote($key).",
 									".DBQuote($sessionData->{'Timestamp'}).",
 									".DBQuote($blacklist)."
@@ -421,10 +424,6 @@ sub check {
 							return undef;
 						}
 					}
-
-					use Data::Dumper;
-					$server->log(LOG_DEBUG,"DEBUG - ".Dumper($row));
-
 				}
 			} else { # if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0)
 				$server->log(LOG_ERR,"[GREYLISTING] Resolved policy UseAutoWBlacklist is set, but AutoBlacklistPeriod is not set or invalid");
@@ -436,7 +435,7 @@ sub check {
 		$sth = DBDo("
 			INSERT INTO greylisting_tracking
 				(TrackKey,Sender,Recipient,FirstSeen,LastUpdate)
-			Values
+			VALUES
 				(
 					".DBQuote($key).",
 					".DBQuote($sessionData->{'Sender'}).",
@@ -510,7 +509,8 @@ sub check {
 	} else {
 		# Insert/update triplet in database
 		my $sth = DBDo("
-			UPDATE greylisting_tracking
+			UPDATE 
+				greylisting_tracking
 			SET
 				Authenticated = 1
 			WHERE
@@ -596,6 +596,8 @@ sub check {
 						$sth = DBDo("
 							INSERT INTO greylisting_whitelisting
 								(TrackKey,Added,LastSeen,Comment)
+							VALUES
+								(
 									".DBQuote($key).",
 									".DBQuote($sessionData->{'Timestamp'}).",
 									".DBQuote($sessionData->{'Timestamp'}).",
