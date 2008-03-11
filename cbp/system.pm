@@ -33,6 +33,8 @@ our (@ISA,@EXPORT);
 	long_to_ip
 	ipbits_to_mask
 
+	parseCIDR
+
 	IPMASK
 );
 
@@ -105,6 +107,39 @@ sub ipbits_to_mask {
 	return $mask;
 }
 
+
+# Parse a CIDR into the various peices
+sub parseCIDR
+{
+	my $cidr = shift;
+
+
+	if ($cidr =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))?$/) {
+		my $ip = $1;
+		my $mask = ( defined($2) && $2 > 1 && $2 <= 32 ) ? $2 : 32;
+
+
+		# Pull long for IP we going to test
+		my $ip_long = ip_to_long($ip);
+		# Convert mask to longs
+		my $mask_long = ipbits_to_mask($mask);
+		# AND with mask to get network addy
+		my $network_long = $ip_long & $mask_long;
+		# AND with mask to get broadcast addy
+		my $bcast_long = $ip_long & ~$mask_long;
+
+		# Retrun array of data
+		return \{
+				'IP_Long' => $ip_long,
+				'Mask_Long' => $mask_long,
+				'Network_long' => $network_long,
+				'Broadcast_Long' => $bcast_long
+		};
+
+	} else {
+		return undef;
+	}
+}
 
 
 1;
