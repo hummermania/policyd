@@ -158,7 +158,7 @@ sub process_policy {
 		# This means that the recipients addy changed, or there is no policy for them??
 		if (!defined($sessionData->{'_Recipient_To_Policy'}{$emailAddy})) {
 			# Now pull in policy
-			my $policy = getPolicy($msginfo->client_addr,$msginfo->sender,$emailAddy);
+			my $policy = getPolicy($msginfo->client_addr,$msginfo->sender,$sessionData->{'SASLUsername'});
 			if (!$policy) {
 				next;
 			}

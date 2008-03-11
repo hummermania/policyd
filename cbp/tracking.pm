@@ -170,7 +170,8 @@ sub getSessionDataFromRequest
 					(
 						".DBQuote($request->{'instance'}).", ".DBQuote($request->{'queue_id'}).",
 						".DBQuote($request->{'_timestamp'}).",
-						".DBQuote($request->{'client_address'}).", ".DBQuote($request->{'client_name'}).", ".DBQuote($request->{'reverse_client_name'}).",
+						".DBQuote($request->{'client_address'}).", ".DBQuote($request->{'client_name'}).", 
+						".DBQuote($request->{'reverse_client_name'}).",
 						".DBQuote($request->{'protocol_name'}).",
 						".DBQuote($request->{'encryption_protocol'}).", ".DBQuote($request->{'encryption_cipher'}).", 
 						".DBQuote($request->{'encryption_keysize'}).",
@@ -182,6 +183,7 @@ sub getSessionDataFromRequest
 			");
 			if (!$sth) {
 				$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".cbp::dblayer::Error());
+				DBRollback();
 				return -1;
 			}
 			$server->log(LOG_DEBUG,"[TRACKING] Recorded tracking information for instance ".$request->{'instance'});
@@ -220,7 +222,7 @@ sub getSessionDataFromRequest
 	# If we in rcpt, caclulate and save policy
 	if ($request->{'protocol_state'} eq 'RCPT') {
 		# Get policy
-		my $policy = getPolicy($request->{'client_address'},$request->{'sender'},$request->{'recipient'});
+		my $policy = getPolicy($request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
 		if (!defined($policy)) {
 			$server->log(LOG_ERR,"[TRACKING] Failed to retrieve policy: ".cbp::policies::Error());
 			return -1;
