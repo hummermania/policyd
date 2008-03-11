@@ -4,9 +4,11 @@ Use prefork, we cannot guarantee how long the plugins/modules will take to run a
 
 Immediate requirements:
 
+- Web interface
+* Bigger blocks in policy group members & policies & policy groups? hard to add stuff
+* BCC To in amavis plugin needs Merge option
 
-* SASL username support, add to table so we can use in amavis aswell
-
+- Backend
 * Add function to modules  cleanup(), this should cleanup accounting info
 
 * Add removal of tracking information in each webui remove request
@@ -17,10 +19,6 @@ Immediate requirements:
 
 
 --------------
-
-* Sender Throttling based on sender address, SASL username and source IP
-
-* Recipient throttling
 
 * Spamtrap where the IP address get blacklisted for configurable time
 period per trap
@@ -33,11 +31,6 @@ period per trap
 
 * DNS name whitelisting???   (resolved address wildcard)
 
-* Greylisting, for recieving mail servers
-
-* Greylisting abuse blacklisting & auto greylist-whitelisting for good
-hosts
- 
 * IPv6
 
 * Per receipient email address whitelists & blacklists?

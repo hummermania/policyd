@@ -309,7 +309,7 @@ sub do_work {
 	my $result = "DUNNO";
 
 	# Loop with modules
-	foreach my $module (@{$self->{'modules'}}) {
+	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
 		
 		# Run check
 		my ($verdict,$verdict_data) = $module->{'check'}($self,$data);
@@ -334,6 +334,16 @@ sub do_work {
 			# Set verdict data
 			$verdict_data = "Policy discard" if (!defined($verdict_data));
 			$result = "DISCARD $verdict_data";
+		
+		# DEFER
+		} elsif ($verdict =~ /^defer_if_permit$/i) {
+			# Set verdict data
+			$verdict_data = "Policy defer" if (!defined($verdict_data));
+			$result = "DEFER_IF_PERMIT $verdict_data";
+		} elsif ($verdict =~ /^4[0-9]{2}/i) {
+			# Set verdict data
+			$verdict_data = "Policy defer by code 4xx" if (!defined($verdict_data));
+			$result = "$verdict $verdict_data";
 		
 		# FILTER
 		} elsif ($verdict =~ /^filter$/i) {
