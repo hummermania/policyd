@@ -139,12 +139,7 @@ if ($_POST['action'] == "delete") {
 						WHERE 
 							QuotasID = ?"
 				);
-
-				# Loop with limit ID's, start off true
-				$res = true;
-				foreach ($limitIDs as $id) {
-					$res = $stmt->execute(array($id));
-				}
+				$res = $stmt->execute(array($_POST['quota_id']));
 
 				if ($res) {
 ?>

@@ -57,7 +57,7 @@ if ($_POST['action'] == "add") {
 
 								if (myobj.selectedIndex == 0) {
 									myobj2.disabled = false;
-									myobj2.value = '0.0.0.0/0';
+									myobj2.value = '/32';
 								} else if (myobj.selectedIndex != 0) {
 									myobj2.disabled = true;
 									myobj2.value = 'n/a';
@@ -70,6 +70,7 @@ if ($_POST['action'] == "add") {
 						<option value="Recipient:user@domain">Recipient:user@domain</option>
 						<option value="Recipient:@domain">Recipient:@domain</option>
 						<option value="Recipient:user@">Recipient:user@</option>
+						<option value="Policy">Policy</option>
 					</select>
 					<input type="text" id="quota_trackextra" name="quota_trackextra" size="18" value="n/a" disabled="disabled" />
 				</td>
