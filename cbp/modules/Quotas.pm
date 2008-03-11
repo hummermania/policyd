@@ -30,6 +30,7 @@ use cbp::system;
 # User plugin info
 our $pluginInfo = {
 	name 			=> "Quotas Plugin",
+	priority		=> 50,
 	check 			=> \&check,
 	init		 	=> \&init,
 };
@@ -556,7 +557,7 @@ sub getKey
 
 	# Track entire policy
 	if ($method eq "policy") {
-		$res = "policy";
+		$res = "Policy";
 
 	# Check TrackSenderIP
 	} elsif ($method eq "senderip") {
@@ -564,7 +565,7 @@ sub getKey
 
 		# Check for no key
 		if (defined($key)) {
-			$res = "client_address:$key";
+			$res = "SenderIP:$key";
 		} else {
 			$server->log(LOG_WARN,"[QUOTAS] Unknown key specification in TrackSenderIP");
 		}
@@ -576,7 +577,7 @@ sub getKey
 	
 		# Check for no key
 		if (defined($key)) {
-			$res = "sender:$key";
+			$res = "Sender:$key";
 		} else {
 			$server->log(LOG_WARN,"[QUOTAS] Unknown key specification in TrackSender");
 		}
@@ -588,7 +589,7 @@ sub getKey
 	
 		# Check for no key
 		if (defined($key)) {
-			$res = "recipient:$key";
+			$res = "Recipient:$key";
 		} else {
 			$server->log(LOG_WARN,"[QUOTAS] Unknown key specification in TrackRecipient");
 		}

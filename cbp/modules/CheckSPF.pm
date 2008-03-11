@@ -31,6 +31,7 @@ use Mail::SPF;
 # User plugin info
 our $pluginInfo = {
 	name 			=> "SPF Check Plugin",
+	priority		=> 70,
 	check 			=> \&check,
 	init		 	=> \&init,
 };

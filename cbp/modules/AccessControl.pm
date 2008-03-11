@@ -29,6 +29,7 @@ use cbp::dblayer;
 # User plugin info
 our $pluginInfo = {
 	name 			=> "Access Control Plugin",
+	priority		=> 90,
 	check 			=> \&check,
 	init		 	=> \&init,
 };
