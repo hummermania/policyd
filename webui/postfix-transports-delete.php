@@ -30,7 +30,7 @@ $db = connect_postfix_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to Postfix" => "postfix-main.php",
+			"Back to Transports" => "postfix-transports-main.php",
 		),
 ));
 
