@@ -58,11 +58,6 @@ function printHeader($params = NULL)
 				   				<li><a href="accesscontrol-main.php">Configure</a></li>
 							</ul>
 					
-							<p>Quotas</p>
-							<ul>
-		    					<li><a href="quotas-main.php">Configure</a></li>
-							</ul>
-					
 							<p>HELO/EHLO Checks</p>
 							<ul>
 		    					<li><a href="checkhelo-main.php">Configure</a></li>
@@ -73,6 +68,17 @@ function printHeader($params = NULL)
 							<p>SPF Checks</p>
 							<ul>
 		    					<li><a href="checkspf-main.php">Configure</a></li>
+							</ul>
+					
+							<p>Greylisting</p>
+							<ul>
+		    					<li><a href="greylisting-main.php">Configure</a></li>
+		    					<li><a href="greylisting-whitelist-main.php">Whitelist</a></li>
+							</ul>
+					
+							<p>Quotas</p>
+							<ul>
+		    					<li><a href="quotas-main.php">Configure</a></li>
 							</ul>
 					
 							<p>Amavis Integration</p>
