@@ -74,7 +74,7 @@ sub Error
 # 	Hash - indexed by policy priority, the value is an array of policy ID's
 sub getPolicy
 {
-    my ($sourceIP,$emailFrom,$emailTo) = @_;
+    my ($sourceIP,$emailFrom,$emailTo,$saslUsername) = @_;
 
 
 	# Start with blank policy list
@@ -147,12 +147,17 @@ sub getPolicy
 				my $res = 0;
 
 				# Match IP
-				if ($source =~ /^(!?)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))$/) {
+				if ($source =~ /^!?\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})$/) {
 					$res = ipMatches($sourceIP,$source);
 
 				# Match email addy
-				} elsif ($source =~ /^(!)?\S*@\S+$/) {
+				} elsif ($source =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailFrom,$source);
+
+				# Match sasl user
+				} elsif ($source =~ /^!?\$\S+$/) {
+					$res = saslUsernameMatches($saslUsername,$source);
+
 				} else {
 					setError("Source '".$source."' is not valid in policy '".$policyACL->{'Name'}."' acl or group");
 					return undef;
@@ -212,8 +217,9 @@ sub getPolicy
 				my $res = 0;
 
 				# Match email addy
-				if ($destination =~ /^(!)?\S*@\S+$/) {
+				if ($destination =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailTo,$destination);
+
 				} else {
 					setError("Destination '".$destination."' is not valid in policy '".$policyACL->{'Name'}."' acl or group");
 					return undef;
@@ -329,14 +335,36 @@ sub emailAddressMatches
 	my $match = 0;
 
 	# Strip email addy
-	my ($email_negate,$email_user,$email_domain) = ($email =~ /^(!)?(\S*)@(\S+)$/);
-	my ($template_user,$template_domain) = ($template =~ /^(\S*)@(\S+)$/);
+	my ($email_user,$email_domain) = ($email =~ /^(\S+)@(\S+)$/);
+	my ($template_negate,$template_user,$template_domain) = ($template =~ /^(!)?(\S*)@(\S+)$/);
 
 	if (lc($email_domain) eq lc($template_domain) && (lc($email_user) eq lc($template_user) || $template_user eq "")) {
-		if (!$email_negate) {
+		if (!$template_negate) {
 			$match = 1;
 		}
-	} elsif ($email_negate) {
+	} elsif ($template_negate) {
+		$match = 1;
+	}
+
+	return $match;
+}
+
+
+# Check if first arg lies within the scope of second arg sasl specification
+sub saslUsernameMatches
+{
+	my ($saslUsername,$template) = @_;
+
+	my $match = 0;
+
+	# Decipher template
+	my ($template_negate,$template_user) = ($template =~ /^(!?)?\$(\S+)$/);
+
+	if (lc($saslUsername) eq lc($template_user) || $template_user eq "*") {
+		if (!$template_negate) {
+			$match = 1;
+		}
+	} elsif ($template_negate) {
 		$match = 1;
 	}
 
