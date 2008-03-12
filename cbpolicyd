@@ -52,16 +52,16 @@ sub configure {
 
 	# Set defaults
 	$cfg->{'config_file'} = "/etc/cluebringer.conf";
-	$server->{'timeout'} = 120;
-	$server->{'background'} = "yes";
 
-	$server->{'pid_file'} = "/var/run/cbpolicyd.pid";
-	$server->{'log_level'} = 2;
-	$server->{'log_file'} = "/var/log/cbpolicyd.log";
+	$cfg->{'timeout'} = 120;
+	$cfg->{'background'} = "yes";
+	$cfg->{'pid_file'} = "/var/run/cbpolicyd.pid";
+	$cfg->{'log_level'} = 2;
+	$cfg->{'log_file'} = "/var/log/cbpolicyd.log";
 
-	$server->{'host'} = "*";
-	$server->{'port'} = 10031;
-	$server->{'timeout'} = 120;
+	$cfg->{'host'} = "*";
+	$cfg->{'port'} = 10031;
+	$cfg->{'timeout'} = 120;
 
 	# Parse command line params
 	%{$cmdline} = ();
@@ -70,16 +70,13 @@ sub configure {
 			"help",
 			"config:s",
 			"debug",
+			"fg",
 	);
 
 	# Check for some args
 	if ($cmdline->{'help'}) {
 		$self->displayHelp();
 		exit 0;
-	}
-	if ($cmdline->{'debug'}) {
-		$server->{'log_level'} = 4;
-		$cfg->{'debug'} = 1;
 	}
 	if (defined($cmdline->{'config'}) && $cmdline->{'config'} ne "") {
 		$cfg->{'config_file'} = $cmdline->{'config'};
@@ -99,14 +96,6 @@ sub configure {
 	# Copy config
 	my %config = %inifile;
 	untie(%inifile);
-
-
-	# Small fixup if we going to be running in background
-	if (defined($config{'server'}{'background'}) && $config{'server'}{'background'} eq "no") {
-		$server->{'background'} = undef;
-	} else {
-		$server->{'setsid'} = 1;
-	}
 
 	# Pull in params for the server
 	my @server_params = (
@@ -129,6 +118,19 @@ sub configure {
 	$cfg->{'module_list'} = $config{'server'}{'modules'};
 	foreach my $module (@{$cfg->{'modules_list'}}) {
 		$module =~ s/\s+//g;
+	}
+
+	# Override
+	if ($cmdline->{'debug'}) {
+		$server->{'log_level'} = 4;
+		$cfg->{'debug'} = 1;
+	}
+
+	# If we set on commandline for foreground, keep in foreground
+	if ($cmdline->{'fg'} || (defined($config{'server'}{'background'}) && $config{'server'}{'background'} eq "no" )) {
+		$server->{'background'} = undef;
+	} else {
+		$server->{'setsid'} = 1;
 	}
 
 	# Save our config and stuff
@@ -449,6 +451,7 @@ sub displayHelp {
 Usage: $0 [args]
     --config=<file>        Configuration file
     --debug                Put into debug mode
+    --fg                   Don't go into background
 
 EOF
 }
