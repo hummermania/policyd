@@ -51,15 +51,15 @@ sub configure {
 	# Set defaults
 	$cfg->{'config_file'} = "/etc/cluebringer.conf";
 
-	$cfg->{'timeout'} = 120;
-	$cfg->{'background'} = "yes";
-	$cfg->{'pid_file'} = "/var/run/cbpolicyd.pid";
-	$cfg->{'log_level'} = 2;
-	$cfg->{'log_file'} = "/var/log/cbpolicyd.log";
+	$server->{'timeout'} = 120;
+	$server->{'background'} = "yes";
+	$server->{'pid_file'} = "/var/run/cbpolicyd.pid";
+	$server->{'log_level'} = 2;
+	$server->{'log_file'} = "/var/log/cbpolicyd.log";
 
-	$cfg->{'host'} = "*";
-	$cfg->{'port'} = 10031;
-	$cfg->{'timeout'} = 120;
+	$server->{'host'} = "*";
+	$server->{'port'} = 10031;
+	$server->{'timeout'} = 120;
 
 	# Parse command line params
 	%{$cmdline} = ();
@@ -103,6 +103,7 @@ sub configure {
 			'pid_file', 
 			'user', 'group',
 			'timeout',
+			'background',
 	);
 	foreach my $param (@server_params) {
 		$server->{$param} = $config{'server'}{$param} if (defined($config{'server'}{$param}));
@@ -127,6 +128,7 @@ sub configure {
 	# If we set on commandline for foreground, keep in foreground
 	if ($cmdline->{'fg'} || (defined($config{'server'}{'background'}) && $config{'server'}{'background'} eq "no" )) {
 		$server->{'background'} = undef;
+		$server->{'log_file'} = undef;
 	} else {
 		$server->{'setsid'} = 1;
 	}
