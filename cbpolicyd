@@ -25,10 +25,6 @@ use warnings;
 package cbp;
 
 
-# Version
-my $VERSION = "2.0.1a";
-
-
 use base qw(Net::Server::PreFork);
 use Config::IniFiles;
 use Getopt::Long;
@@ -39,6 +35,8 @@ use cbp::logging;
 use cbp::dbilayer;
 use cbp::cache;
 use cbp::tracking;
+
+use cbp::version;
 
 
 # Override configuration
@@ -444,7 +442,7 @@ sub maillog
 
 # Display help
 sub displayHelp {
-	print(STDERR "Policyd (ClueBringer) v$VERSION - Copyright (c) 2007-2008 LinuxRulz\n");
+	print(STDERR "Policyd (ClueBringer) v".VERSION." - Copyright (c) 2007-2008 LinuxRulz\n");
 
 	print(STDERR<<EOF);
 
