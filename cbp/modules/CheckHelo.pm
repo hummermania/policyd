@@ -191,6 +191,7 @@ sub check {
 	# Loop with whitelist and calculate
 	while (my $row = $sth->fetchrow_hashref()) {
 
+		# Check format is SenderIP
 		if ((my $address = $row->{'Source'}) =~ s/^SenderIP://i) {
 			# Parse CIDR into its various peices
 			my $parsedIP = parseCIDR($address);

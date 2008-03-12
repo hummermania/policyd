@@ -182,19 +182,28 @@ sub check {
 	}
 	# Loop with whitelist and calculate
 	while (my $row = $sth->fetchrow_hashref()) {
-		# Parse CIDR into its various peices
-		my $parsedIP = parseCIDR($row->{'Source'});
+		
+		# Check format is SenderIP
+		if ((my $address = $row->{'Source'}) =~ s/^SenderIP://i) {
 
-		# Check if this is a valid cidr or IP
-		if (ref $parsedIP eq "HASH") {
+			# Parse CIDR into its various peices
+			my $parsedIP = parseCIDR($address);
 
-			# Check if IP is whitelisted
-			if ($parsedIP->{'IP_Long'} >= $parsedIP->{'Network_Long'} && $parsedIP->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
-				$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
-						$sessionData->{'ClientAddress'},
-						$sessionData->{'Helo'},
-						$sessionData->{'Sender'},
-						$sessionData->{'Recipient'});
+			# Check if this is a valid cidr or IP
+			if (ref $parsedIP eq "HASH") {
+
+				# Check if IP is whitelisted
+				if ($parsedIP->{'IP_Long'} >= $parsedIP->{'Network_Long'} && $parsedIP->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
+					$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
+							$sessionData->{'ClientAddress'},
+							$sessionData->{'Helo'},
+							$sessionData->{'Sender'},
+							$sessionData->{'Recipient'});
+					DBFreeRes($sth);
+					return undef;
+				}
+			} else {
+				$server->log(LOG_ERR,"[GREYLISTING] Failed to parse address '$address' is invalid.");
 				DBFreeRes($sth);
 				return undef;
 			}
