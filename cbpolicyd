@@ -324,6 +324,9 @@ sub do_work {
 	# Loop with modules
 	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
 
+		# Skip over if we don't have a check...
+		next if (!defined($module->{'check'}));
+
 		# Run check
 		my ($verdict,$verdict_data) = $module->{'check'}($self,$data);
 
