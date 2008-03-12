@@ -53,6 +53,15 @@ sub configure {
 	# Set defaults
 	$cfg->{'config_file'} = "/etc/cluebringer.conf";
 	$server->{'timeout'} = 120;
+	$server->{'background'} = "yes";
+
+	$server->{'pid_file'} = "/var/run/cbpolicyd.pid";
+	$server->{'log_level'} = 2;
+	$server->{'log_file'} = "/var/log/cbpolicyd.log";
+
+	$server->{'host'} = "*";
+	$server->{'port'} = 10031;
+	$server->{'timeout'} = 120;
 
 	# Parse command line params
 	%{$cmdline} = ();
@@ -92,6 +101,13 @@ sub configure {
 	untie(%inifile);
 
 
+	# Small fixup if we going to be running in background
+	if (defined($config{'server'}{'background'}) && $config{'server'}{'background'} eq "no") {
+		$server->{'background'} = undef;
+	} else {
+		$server->{'setsid'} = 1;
+	}
+
 	# Pull in params for the server
 	my @server_params = (
 			'log_level','log_file',
@@ -99,17 +115,12 @@ sub configure {
 			'cidr_allow', 'cidr_deny',
 			'pid_file', 
 			'user', 'group',
-			'timeout'
+			'timeout',
 	);
 	foreach my $param (@server_params) {
 		$server->{$param} = $config{'server'}{$param} if (defined($config{'server'}{$param}));
 	}
 	
-	# Small fixup if we going to be running in background
-	if ((my $val = $config{'server'}{'background'})) {
-		$server->{'setsid'} = 1;
-	}
-
 	# Split off modules
 	if (!defined($config{'server'}{'modules'})) {
 		$self->log(LOG_WARN,"Server configuration error: 'modules' not found");
@@ -431,6 +442,8 @@ sub maillog
 
 # Display help
 sub displayHelp {
+	print(STDERR "Policyd (ClueBringer) v$VERSION - Copyright (c) 2007-2008 LinuxRulz\n");
+
 	print(STDERR<<EOF);
 
 Usage: $0 [args]
@@ -441,7 +454,6 @@ EOF
 }
 
 
-print(STDERR "ClueBringer v$VERSION - Copyright (c) 2007-2008 LinuxRulz\n");
 
 
 __PACKAGE__->run;
