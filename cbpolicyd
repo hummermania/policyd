@@ -280,6 +280,7 @@ sub process_request {
 		# Sanitize data
 		$request{'sender'} = lc($request{'sender'}) if (defined($request{'sender'}));
 		$request{'recipient'} = lc($request{'recipient'}) if (defined($request{'recipient'}));
+		$request{'sasl_username'} = lc($request{'sasl_username'}) if (defined($request{'sasl_username'}));
 		# Internal data
 		$request{'_timestamp'} = time();
 		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
