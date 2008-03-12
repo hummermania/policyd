@@ -1,0 +1,15 @@
+127.0.0.1		Local loopback address
+192.168.0.0/16		Private range
+10.0.0.0/8		Private range
+172.16.0.0/16		Private range
+
+# Helo exceptions, mostly more than 1 server behind an IP
+196.207.32.0/24		Vodacom South Africa mailservers behind single IP
+24.71.223.10		SHAW.CA - Residential 1, behind single IP
+64.59.128.220		SHAW.CA - Business 1, behind single IP
+64.59.134.9		SHAW.CA - Residential 2, behind single IP
+196.2.16.0/24		Mweb South Africa, behind single nat'd IP
+196.211.173.234		Internet Solutions South Africa, mailserves behind single IP
+196.25.30.66		saoutsourcing.com - Servers behind single IP
+207.46.51.80		pervasive.com - Servers behind single IP
+
