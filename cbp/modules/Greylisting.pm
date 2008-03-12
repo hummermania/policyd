@@ -33,6 +33,7 @@ our $pluginInfo = {
 	priority		=> 60,
 	check 			=> \&check,
 	init		 	=> \&init,
+	cleanup		 	=> \&cleanup,
 };
 
 
@@ -712,6 +713,164 @@ sub getIPKey
 	}
 
 	return $key;
+}
+
+
+# Cleanup function
+sub cleanup
+{
+	my ($server) = @_;
+
+	# Get now
+	my $now = time();
+
+	#
+	# Autowhitelist cleanups
+	#
+	
+	# Get maximum AutoWhitelistPeriod
+	my $sth = DBSelect("
+		SELECt 
+			MAX(AutoWhitelistPeriod) AS Period
+		FROM 
+			greylisting
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoWhitelistPeriod: ".cbp::dblayer::Error());
+		return -1;
+	}
+	my $row = $sth->fetchrow_hashref();
+	my $AWLPeriod = $row->{'Period'};
+
+	# Bork if we didn't find anything of interest
+	return if (!($AWLPeriod > 0));
+
+	# Get start time
+	$AWLPeriod = $now - $AWLPeriod;
+
+	# Remove old whitelistings from database
+	$sth = DBDo("
+		DELETE FROM 
+			greylisting_autowhitelist
+		WHERE
+			LastSeen <= ".DBQuote($AWLPeriod)."
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autowhitelist records: ".cbp::dblayer::Error());
+		return -1;
+	}
+
+
+	#
+	# Autoblacklist cleanups
+	#
+	
+	# Get maximum AutoBlacklistPeriod
+	$sth = DBSelect("
+		SELECt 
+			MAX(AutoBlacklistPeriod) AS Period
+		FROM 
+			greylisting
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoBlacklistPeriod: ".cbp::dblayer::Error());
+		return -1;
+	}
+	$row = $sth->fetchrow_hashref();
+	my $ABLPeriod = $row->{'Period'};
+
+	# Bork if we didn't find anything of interest
+	return if (!($ABLPeriod > 0));
+	
+	# Get start time
+	$ABLPeriod = $now - $ABLPeriod;
+
+	# Remove blacklistings from database
+	$sth = DBDo("
+		DELETE FROM 
+			greylisting_autoblacklist
+		WHERE
+			Added <= ".DBQuote($ABLPeriod)."
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autoblacklist records: ".cbp::dblayer::Error());
+		return -1;
+	}
+	
+	#
+	# Authenticated record cleanups
+	#
+	
+	# Get maximum GreylistAuthValidity
+	$sth = DBSelect("
+		SELECt 
+			MAX(GreylistAuthValidity) AS Period
+		FROM 
+			greylisting
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistAuthValidity: ".cbp::dblayer::Error());
+		return -1;
+	}
+	$row = $sth->fetchrow_hashref();
+	my $AuthPeriod = $row->{'Period'};
+
+	# Bork if we didn't find anything of interest
+	return if (!($AuthPeriod > 0));
+
+	# Get start time
+	$AuthPeriod = $now - $AuthPeriod;
+
+	# Remove old authenticated records from database
+	$sth = DBDo("
+		DELETE FROM 
+			greylisting_tracking
+		WHERE
+			LastUpdate <= ".DBQuote($AuthPeriod)."
+			AND Authenticated = 1
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old authenticated records: ".cbp::dblayer::Error());
+		return -1;
+	}
+
+
+	#
+	# UnAuthenticated record cleanups
+	#
+	
+	# Get maximum GreylistUnAuthValidity
+	$sth = DBSelect("
+		SELECt 
+			MAX(GreylistUnAuthValidity) AS Period
+		FROM 
+			greylisting
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistUnAuthValidity: ".cbp::dblayer::Error());
+		return -1;
+	}
+	$row = $sth->fetchrow_hashref();
+	my $UnAuthPeriod = $row->{'Period'};
+
+	# Bork if we didn't find anything of interest
+	return if (!($UnAuthPeriod > 0));
+
+	# Get start time
+	$UnAuthPeriod = $now - $UnAuthPeriod;
+
+	# Remove old un-authenticated records info from database
+	$sth = DBDo("
+		DELETE FROM 
+			greylisting_tracking
+		WHERE
+			LastUpdate <= ".DBQuote($UnAuthPeriod)."
+			AND Authenticated = 0
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old un-authenticated records: ".cbp::dblayer::Error());
+		return -1;
+	}
 }
 
 
