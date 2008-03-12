@@ -18,5 +18,5 @@
 
 (
  	grep -v '^\s*#' | \
-	sed -re 's/^(\S+)\s+(.+)/INSERT INTO checkhelo_whitelist (Address,Comment,Disabled) VALUES ("\1","\2",0);/'
+	sed -re 's/^(\S+)\s+(.+)/INSERT INTO checkhelo_whitelist (Source,Comment,Disabled) VALUES ("\1","\2",0);/'
 ) < checkhelo-whitelistings.txt
