@@ -3,6 +3,7 @@ Module Priorities:
 0 - Lowest
 100 - Highest
 
+Core - 100
 
 AccessControl - 90
 
