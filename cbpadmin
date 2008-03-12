@@ -1,0 +1,224 @@
+#!/usr/bin/perl
+# Cluebringer administration tool
+# Copyright (C) 2008, LinuxRulz
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+
+use strict;
+use warnings;
+
+use Config::IniFiles;
+use Getopt::Long;
+
+use cbp::logging;
+
+use cbp::version;
+
+	
+print(STDERR "Policyd Admin Tool (ClueBringer) v".VERSION." - Copyright (c) 2007-2008 LinuxRulz\n");
+
+# Fire up commandline processing...
+my %opts;
+GetOptions(
+	\%opts,
+	"help",
+	"config:s",
+	"cleanup",
+	"debug",
+);
+
+# Check for some args
+if ($opts{'help'}) {
+	displayHelp();
+	exit 0;
+}
+
+# Set defaults
+my $cfg;
+$cfg->{'config_file'} = "/etc/cluebringer.conf";
+
+# Check if we must override
+if (defined($opts{'config'}) && $opts{'config'} ne "") {
+	$cfg->{'config_file'} = $opts{'config'};
+}
+
+# Check config file exists
+if (! -f $cfg->{'config_file'}) {
+	print(STDERR "ERROR: No configuration file '".$cfg->{'config_file'}."' found!\n");
+	exit 1;
+}
+
+# Use config file, ignore case
+tie my %inifile, 'Config::IniFiles', (
+		-file => $cfg->{'config_file'},
+		-nocase => 1
+) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
+# Copy config
+my %config = %inifile;
+untie(%inifile);
+
+# Pull in module list
+my $modulelist = $config{'server'}{'modules'};
+foreach my $module (@{$modulelist}) {
+	$module =~ s/\s+//g;
+}
+
+# Emulate server
+my $server = new cbpserver;
+$server->{'inifile'} = \%config; 
+# Init everything
+$server->init();
+
+# Load modules
+foreach my $module (@{$modulelist}) {
+	# Load module
+	my $res = eval("
+		use cbp::modules::$module;
+		plugin_register(\$server,\"$module\",\$cbp::modules::${module}::pluginInfo);
+	");
+	if ($@ || (defined($res) && $res != 0)) {
+		$server->log(LOG_ERR,"WARNING: Error loading plugin $module ($@)");
+	}
+}
+
+# We must cleanup
+if ($opts{'cleanup'}) {
+	# Loop with modules
+	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$server->{'modules'}} ) {
+		$server->log(LOG_INFO,"Module: " . $module->{'name'});
+		# If we have a cleanup module, run it
+		if (defined($module->{'cleanup'})) {
+			$server->log(LOG_INFO,"  -> running cleanup...");
+			$module->{'cleanup'}($server);
+		}
+	}
+}
+
+
+# Register plugin info
+sub plugin_register {
+	my ($self,$module,$info) = @_;
+
+
+	# If no info, return
+	if (!defined($info)) {
+		$server->log(LOG_ERR,"Plugin info not found for module => $module");
+		return -1;
+	}
+
+	# Set real module name & save
+	$info->{'Module'} = $module;
+	push(@{$self->{'modules'}},$info);
+
+	# If we should, init the module
+	if (defined($info->{'init'})) {
+			$info->{'init'}($self);
+	}
+
+
+	return 0;
+}
+
+
+# Display help
+sub displayHelp {
+	print(STDERR<<EOF);
+
+Usage: $0 [args]
+    --config=<file>        Configuration file
+    --debug                Put into debug mode
+    --cleanup              Cleanup database records
+
+EOF
+}
+
+
+
+
+# Server emulation
+package cbpserver;
+
+use strict;
+use warnings;
+
+use cbp::logging;
+use cbp::config;
+use cbp::dbilayer;
+use cbp::dblayer;
+
+# Return oursevles
+sub new
+{
+	my $class = shift;
+
+	my $self = {
+	};
+	
+	bless $self, $class;
+	return $self;
+};
+
+sub init
+{
+	my $self = shift;
+
+	# Init config
+	cbp::config::Init($self);
+
+	# Init system stuff
+	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
+	if (!defined($self->{'client'}->{'dbh'})) {
+		$self->log(LOG_WARN,"Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
+		die;
+	}
+	if ($self->{'client'}->{'dbh'}->connect()) {
+		$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+		die;
+	}
+	# Setup database handle
+	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
+}
+
+sub log
+{
+	my ($self,$level,@msg) = @_;
+
+	# FIXME: we shouldn't ignore $level
+    print(STDERR @msg, "\n");
+}
+
+
+
+
+
+
+
+
+
+
+
+# Load modules we need and run cleanup() function
+
+# Cleanup session_tracking older than 24hr
+
+# Cleanup quotas_tracking
+# - check last update, if its older than now - period, remove
+
+# CheckHelo
+# - Remove checkhelo_tracking older than specified period, default to 1 month
+
+
+# vim: ts=4
