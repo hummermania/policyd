@@ -33,6 +33,7 @@ our $pluginInfo = {
 	priority		=> 50,
 	check 			=> \&check,
 	init		 	=> \&init,
+	cleanup		 	=> \&cleanup,
 };
 
 
@@ -659,6 +660,28 @@ sub getLimits
 
 	return $list;
 }
+
+
+# Cleanup function
+sub cleanup
+{
+	my ($server) = @_;
+
+	# Get 30-days ago time
+	my $lastMonth = time() - 2592000;
+
+	# Remove old tracking info from database
+	my $sth = DBDo("
+		DELETE FROM 
+			quotas_tracking
+		WHERE
+			LastUpdate <= ".DBQuote($lastMonth)."
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[QUOTAS] Failed to remove old quota tracking records: ".cbp::dblayer::Error());
+	}
+}
+
 
 
 1;
