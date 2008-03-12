@@ -35,6 +35,7 @@ our $pluginInfo = {
 	priority		=> 80,
 	check 			=> \&check,
 	init		 	=> \&init,
+	cleanup			=> \&cleanup,
 };
 
 
@@ -428,6 +429,57 @@ sub check {
 
 	return undef;
 }
+
+
+# Cleanup function
+sub cleanup
+{
+	my ($server) = @_;
+
+	# Get now
+	my $now = time();
+
+	#
+	# Tracking table cleanup
+	#
+	
+	# Get maximum periods
+	my $sth = DBSelect("
+		SELECt 
+			MAX(BlacklistPeriod) AS BlacklistPeriod, MAX(HRPPeriod) AS HRPPeriod
+		FROM 
+			checkhelo
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[CHECKHELO] Failed to query maximum periods: ".cbp::dblayer::Error());
+		return -1;
+	}
+	my $row = $sth->fetchrow_hashref();
+	# Work out which one is largest
+	my $period = $row->{'BlacklistPeriod'} > $row->{'HRPPeriod'} ? $row->{'BlacklistPeriod'} : $row->{'HRPPeriod'};
+
+	# Bork if we didn't find anything of interest
+	return if (!($period > 0));
+
+	# Get start time
+	$period = $now - $period;
+
+	# Remove old tracking entries from database
+	$sth = DBDo("
+		DELETE FROM 
+			checkhelo_tracking
+		WHERE
+			LastUpdate <= ".DBQuote($period)."
+	");
+	if (!$sth) {
+		$server->log(LOG_ERR,"[CHECKHELO] Failed to remove old helo records: ".cbp::dblayer::Error());
+		return -1;
+	}
+
+}
+
+
+
 
 
 1;
