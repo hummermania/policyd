@@ -349,6 +349,7 @@ sub check {
 
 				# Check if we have a count
 				if (defined($policy{'AutoBlacklistCount'}) && $policy{'AutoBlacklistCount'} > 0) {
+					# Work out time to check from...
 					my $addedTime = $sessionData->{'Timestamp'} - $policy{'AutoBlacklistPeriod'};
 
 					my $sth = DBSelect("
@@ -395,7 +396,7 @@ sub check {
 								my $percentage = ( $row2->{'Count'} / $row->{'Count'} ) * 100;
 								# If we meet the percentage of unauthenticated triplets, blacklist
 								if ($percentage <= $policy{'AutoBlacklistPercentage'} ) {
-									$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s, Percentage/Required = %s/%s",
+									$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s, Percentage/Threshold = %s/%s",
 											$row->{'Count'}, $policy{'AutoBlacklistCount'},
 											$percentage, $policy{'AutoBlacklistPercentage'});
 								}
@@ -585,8 +586,8 @@ sub check {
 							if ($row->{'Count'} > 0) {
 								my $percentage = ( $row2->{'Count'} / $row->{'Count'} ) * 100;
 								# If we meet the percentage of unauthenticated triplets, whitelist
-								if ($percentage <= $policy{'AutoWhitelistPercentage'} ) {
-									$whitelist = sprintf("Auto-whitelisted: Count/Required = %s/%s, Percentage/Required = %s/%s",
+								if ($percentage >= $policy{'AutoWhitelistPercentage'} ) {
+									$whitelist = sprintf("Auto-whitelisted: Count/Required = %s/%s, Percentage/Threshold = %s/%s",
 											$row->{'Count'}, $policy{'AutoWhitelistCount'},
 											$percentage, $policy{'AutoWhitelistPercentage'});
 								}
