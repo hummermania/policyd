@@ -67,7 +67,7 @@ INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
 CREATE TABLE checkhelo_whitelist (
 	ID			@SERIAL_TYPE@,
 
-	Source			VARCHAR(512) NOT NULL,  /* Valid format is:    SenderIP:a.b.c.d[/e]
+	Source			VARCHAR(512) NOT NULL,  /* Valid format is:    SenderIP:a.b.c.d[/e]  */
 
 	Comment			VARCHAR(1024),
 
