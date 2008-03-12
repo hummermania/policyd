@@ -91,32 +91,6 @@ sub setHandle
 }
 
 
-# Return connection to database
-# Args: none
-sub DBConnect
-{
-	my $config = cbp::config::getConfig();
-	my $dsn = $config->{'database'}{'dsn'};
-	my $username = $config->{'database'}{'username'};
-	my $password = $config->{'database'}{'password'};
-
-	# Create object
-	if (!($dbh = cbp::dbilayer->new($dsn, $username, $password)))
-	{
-		setError("Error creating database object: ".cbp::dbilayer->internalErr());
-		return undef;
-	}
-
-	# Connect to database
-	if ($dbh->connect() != 0) {
-		setError("Error connecting to database: ".$dbh->Error()); 
-		return undef;	
-	}
-
-	return $dbh;
-}
-
-
 # Return database selection results...
 # Args: <select statement>
 sub DBSelect
