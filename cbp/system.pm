@@ -113,10 +113,9 @@ sub parseCIDR
 {
 	my $cidr = shift;
 
-
 	if ($cidr =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))?$/) {
 		my $ip = $1;
-		my $mask = ( defined($2) && $2 > 1 && $2 <= 32 ) ? $2 : 32;
+		my $mask = ( defined($2) && $2 >= 1 && $2 <= 32 ) ? $2 : 32;
 
 
 		# Pull long for IP we going to test
@@ -129,12 +128,14 @@ sub parseCIDR
 		my $bcast_long = $ip_long & ~$mask_long;
 
 		# Retrun array of data
-		return \{
+		my $res = {
 				'IP_Long' => $ip_long,
 				'Mask_Long' => $mask_long,
-				'Network_long' => $network_long,
+				'Network_Long' => $network_long,
 				'Broadcast_Long' => $bcast_long
 		};
+
+		return $res;
 
 	} else {
 		return undef;

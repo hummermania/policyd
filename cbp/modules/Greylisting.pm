@@ -188,7 +188,6 @@ sub check {
 
 			# Parse CIDR into its various peices
 			my $parsedIP = parseCIDR($address);
-
 			# Check if this is a valid cidr or IP
 			if (ref $parsedIP eq "HASH") {
 

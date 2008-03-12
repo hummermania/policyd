@@ -193,12 +193,11 @@ sub check {
 
 		# Check format is SenderIP
 		if ((my $address = $row->{'Source'}) =~ s/^SenderIP://i) {
+
 			# Parse CIDR into its various peices
 			my $parsedIP = parseCIDR($address);
-
 			# Check if this is a valid cidr or IP
 			if (ref $parsedIP eq "HASH") {
-
 				# Check if IP is whitelisted
 				if ($parsedIP->{'IP_Long'} >= $parsedIP->{'Network_Long'} && $parsedIP->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
 					$server->maillog("module=CheckHelo, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
