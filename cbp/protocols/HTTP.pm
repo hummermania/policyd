@@ -23,6 +23,8 @@ use strict;
 use warnings;
 
 
+use URI::Escape;
+
 use cbp::logging;
 use cbp::dblayer;
 
@@ -33,7 +35,7 @@ our $pluginInfo = {
 	init		 	=> \&init,
 	priority	 	=> 50,
 	protocol_check	=> \&protocol_check,
-	protocol_parse	=> \&protocol_check,
+	protocol_parse	=> \&protocol_parse,
 };
 
 
@@ -77,6 +79,30 @@ sub protocol_check {
 
 	return 0;
 }
+
+
+# Process buffer into sessionData
+sub protocol_parse {
+	my ($server,$buffer) = @_;
+
+	my %res;
+
+	# remove /?
+	$buffer =~ s/^\w+ \/\?//;
+
+	# Loop with each line
+	foreach my $item (split /&/, $buffer) {
+		# Decode item
+		$item = uri_unescape($item);
+
+		# If we don't get a pair, b0rk
+		last unless $item =~ s/^([^=]+)=(.*)$//;
+		$res{$1} = $2;
+	}
+
+	return \%res;
+}
+
 
 
 1;
