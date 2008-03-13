@@ -31,8 +31,8 @@ use cbp::system;
 our $pluginInfo = {
 	name 			=> "Quotas Plugin",
 	priority		=> 50,
-	check 			=> \&check,
 	init		 	=> \&init,
+	request_process	=> \&check,
 	cleanup		 	=> \&cleanup,
 };
 
@@ -583,6 +583,10 @@ sub getKey
 			$server->log(LOG_WARN,"[QUOTAS] Unknown key specification in TrackSender");
 		}
 
+
+	# Check TrackSASLUsername
+	} elsif ($method eq "saslusername") {
+		$res = "SASLUsername:".$sessionData->{'SASLUsername'};
 
 	# Check TrackRecipient
 	} elsif ($method eq "recipient") {

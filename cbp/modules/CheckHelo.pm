@@ -33,8 +33,8 @@ use Net::DNS::Resolver;
 our $pluginInfo = {
 	name 			=> "HELO/EHLO Check Plugin",
 	priority		=> 80,
-	check 			=> \&check,
 	init		 	=> \&init,
+	request_process	=> \&check,
 	cleanup			=> \&cleanup,
 };
 

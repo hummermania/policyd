@@ -38,6 +38,7 @@ use cbp::tracking;
 
 use cbp::version;
 
+use cbp::protocols::HTTP;
 
 # Override configuration
 sub configure {
@@ -111,14 +112,22 @@ sub configure {
 	
 	# Split off modules
 	if (!defined($config{'server'}{'modules'})) {
-		$self->log(LOG_WARN,"Server configuration error: 'modules' not found");
-		exit 1;
+		die "Server configuration error: 'modules' not found";
 	}
-	$cfg->{'module_list'} = $config{'server'}{'modules'};
-	foreach my $module (@{$cfg->{'modules_list'}}) {
+	if (!defined($config{'server'}{'protocols'})) {
+		die "Server configuration error: 'protocols' not found";
+	}
+	foreach my $module (@{$config{'server'}{'modules'}}) {
 		$module =~ s/\s+//g;
+		$module = "modules/$module";
+		push(@{$cfg->{'module_list'}},$module);
 	}
-
+	foreach my $module (@{$config{'server'}{'protocols'}}) {
+		$module =~ s/\s+//g;
+		$module = "protocols/$module";
+		push(@{$cfg->{'module_list'}},$module);
+	}
+	
 	# Override
 	if ($cmdline->{'debug'}) {
 		$server->{'log_level'} = 4;
@@ -157,10 +166,14 @@ sub post_configure_hook {
 	$self->log(LOG_NOTICE,"Module load started...");
 	# Load modules
 	foreach my $module (@{$self->{'config'}{'module_list'}}) {
+		# Split off dir and mod name
+		$module =~ /^(\w+)\/(\w+)$/;
+		my ($mod_dir,$mod_name) = ($1,$2);
+
 		# Load module
 		my $res = eval("
-			use cbp::modules::$module;
-			plugin_register(\$self,\"$module\",\$cbp::modules::${module}::pluginInfo);
+			use cbp::${mod_dir}::${mod_name};
+			plugin_register(\$self,\"${mod_name}\",\$cbp::${mod_dir}::${mod_name}::pluginInfo);
 		");
 		if ($@ || (defined($res) && $res != 0)) {
 			$self->log(LOG_WARN,"WARNING: Error loading plugin $module ($@)");
@@ -248,69 +261,108 @@ sub process_request {
 	# Setup database handle
 	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
 
-	my %request;
-	# Eval to catch sig ALRM
-	eval {
-		local $SIG{'ALRM'} = sub { die "Timed Out!\n" };
+	# Found module
+	my $found;
+	
+	#
+	# Loop till we fill up the buffer
+	#
+	
+	# Buffer
+	my $buf = "";
+	
+	# Create an FDSET for use in select()
+	my $fdset = "";
+	vec($fdset, fileno(STDIN), 1) = 1;
+	while (1) {
+		# Ignore leading blank lines (HTTP)
+		$buf =~ s/^(?:\015?\012)+//;
 
-		# Give connection $timeout time to do something
-		my $previous_alarm = alarm($server->{'timeout'});
+		# Has at least one line
+		if ($buf =~ /\012/) {
 
-		# Loop with lines we get
-		while (my $line = <STDIN>) {
-			# If we don't get a pair, b0rk
-			last unless $line =~ s/^([^=]+)=(.*)\n$//;
-			$request{$1} = $2;
+			# Loop with modules
+			foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
 
-			# Reset timeout
-			alarm($server->{'timeout'});
+				# Skip over if we don't have a check...
+				next if (!defined($module->{'protocol_check'}));
+
+				# Check protocol
+				my $res = $module->{'protocol_check'}($self,$buf);
+				if (defined($res) && $res == 1) {
+					$found = $module;
+				}
+			}
+
+			if (!$found) {
+				$self->log(LOG_ERR,"Request not understood => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+					$server->{'sockaddr'}.":".$server->{'sockport'});
+				return;
+			}
+
+			last;
 		}
 
-		alarm($previous_alarm);
-	};
-
-	# Check results
-	if ($@ =~ /timed out/i) {
-		# We timed out
-		$self->log(LOG_NOTICE,"[CBPOLICYD] Timed out!");
-		return;
-	} elsif (keys %request < 1) {
-		$self->log(LOG_WARN,"[CBPOLICYD] Didn't get any key pairs");
-	} else {
-		# Sanitize data
-		$request{'sender'} = lc($request{'sender'}) if (defined($request{'sender'}));
-		$request{'recipient'} = lc($request{'recipient'}) if (defined($request{'recipient'}));
-		$request{'sasl_username'} = lc($request{'sasl_username'}) if (defined($request{'sasl_username'}));
-		# Internal data
-		$request{'_timestamp'} = time();
-		($request{'_domain'} = $request{'recipient'}) =~ s/[^@]+@//;
+		# Again ... too large
+		if (length($buf) > 16*1024) {
+			$self->log(LOG_WARN,"Request too large from => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+					$server->{'sockaddr'}.":".$server->{'sockport'});
+			return;
+		}
+	
+		# Check for timeout....
+		my $n = select($fdset,undef,undef,$server->{'timeout'});
+		if (!$n) {
+			$self->log(LOG_WARN,"Timeout from => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+					$server->{'sockaddr'}.":".$server->{'sockport'});
+			return;
+		}
 		
-		# Grab session data
-		my $sessionData = getSessionDataFromRequest($self,\%request);
-		if (ref $sessionData ne "HASH") {
-			$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error getting session data");
-			print("action=DUNNO");
+		# Read in 8kb
+		$n = sysread(STDIN,$buf,8192,length($buf));
+		if (!$n) {
+			my $reason = defined($n) ? "Client closed connection" : "sysread[$!]";
+			$self->log(LOG_WARN,"$reason => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+					$server->{'sockaddr'}.":".$server->{'sockport'});
 			return;
 		}
-
-		# Update session data
-		my $res = updateSessionData($self,$sessionData);
-		if ($res) {
-			$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error updating session data");
-			print("action=DUNNO");
-			return;
-		}
-
-		#$self->log(LOG_DEBUG,"[CBPOLICYD:$$] SessionData:\n".Dumper($sessionData));
-
-		# Check the data we have
-		my $verdict = $self->do_work($sessionData);
-
-		# Grab result & check, DUNNO if no data
-		print("$verdict\n");
-		print("\n");
-
 	}
+
+	# Process buffer
+	my $request = $found->{'protocol_parse'}($self,$buf);
+
+	# Sanitize data
+	$request->{'sender'} = lc($request->{'sender'}) if (defined($request->{'sender'}));
+	$request->{'recipient'} = lc($request->{'recipient'}) if (defined($request->{'recipient'}));
+	$request->{'sasl_username'} = lc($request->{'sasl_username'}) if (defined($request->{'sasl_username'}));
+	# Internal data
+	$request->{'_timestamp'} = time();
+	($request->{'_domain'} = $request->{'recipient'}) =~ s/[^@]+@//;
+	
+	# Grab session data
+	my $sessionData = getSessionDataFromRequest($self,$request);
+	if (ref $sessionData ne "HASH") {
+		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error getting session data");
+		print("action=DUNNO");
+		return;
+	}
+
+	# Update session data
+	my $res = updateSessionData($self,$sessionData);
+	if ($res) {
+		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error updating session data");
+		print("action=DUNNO");
+		return;
+	}
+
+	#$self->log(LOG_DEBUG,"[CBPOLICYD:$$] SessionData:\n".Dumper($sessionData));
+
+	# Check the data we have
+	my $verdict = $self->do_work($sessionData);
+
+	# Grab result & check, DUNNO if no data
+	print("$verdict\n");
+	print("\n");
 }
 
 
@@ -326,10 +378,18 @@ sub do_work {
 	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
 
 		# Skip over if we don't have a check...
-		next if (!defined($module->{'check'}));
+		next if (!defined($module->{'request_process'}));
 
-		# Run check
-		my ($verdict,$verdict_data) = $module->{'check'}($self,$data);
+		# Run request_process in eval
+		my ($verdict,$verdict_data);
+		eval {
+			($verdict,$verdict_data) = $module->{'request_process'}($self,$data);
+		};
+		# Check results
+		if ($@) {
+			$self->log(LOG_ERR,"Error running module request_process()!\n$@");
+			next;
+		}
 
 		# Next if no verdict
 		next if (!$verdict);

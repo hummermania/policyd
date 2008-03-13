@@ -31,8 +31,8 @@ use cbp::system;
 our $pluginInfo = {
 	name 			=> "Greylisting Plugin",
 	priority		=> 60,
-	check 			=> \&check,
 	init		 	=> \&init,
+	reuqest_process	=> \&check,
 	cleanup		 	=> \&cleanup,
 };
 
