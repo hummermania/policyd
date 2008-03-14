@@ -90,6 +90,8 @@ sub protocol_parse {
 		$res{$1} = $2;
 	}
 
+	$res{'_protocol_transport'} = "Postfix";
+
 	return \%res;
 }
 
