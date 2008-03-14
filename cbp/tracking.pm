@@ -120,126 +120,150 @@ sub getSessionDataFromRequest
 	my ($server,$request) = @_;
 
 
-	# Pull in session data
-	my $sth = DBSelect("
-		SELECT
-			ID,
-			Instance, QueueID,
-			Timestamp,
-			ClientAddress, ClientName, ClientReverseName,
-			Protocol,
-			EncryptionProtocol, EncryptionCipher, EncryptionKeySize,
-			SASLMethod, SASLSender, SASLUsername,
-			Helo,
-			Sender,
-			Size,
-			RecipientData
-		FROM
-			session_tracking
-		WHERE
-			Instance = ".DBQuote($request->{'instance'})."
-	");
-	if (!$sth) {
-		$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
+	# We must have protocol transport
+	if (!defined($request->{'_protocol_transport'})) {
+		$server->log(LOG_ERR,"[TRACKING] No protocol transport specified");
 		return -1;
 	}
-	my $sessionData = $sth->fetchrow_hashref();
-			
-	# If no state information, create everything we need
-	if (!$sessionData) {
 
-		# Should only track sessions from RCPT
-		if ($request->{'protocol_state'} eq "RCPT") {
-			DBBegin();
+	my $sessionData;
 
-			# Record tracking info
-			$sth = DBDo("
-				INSERT INTO session_tracking 
-					(
-						Instance,QueueID,
-						Timestamp,
-						ClientAddress, ClientName, ClientReverseName,
-						Protocol,
-						EncryptionProtocol,EncryptionCipher,EncryptionKeySize,
-						SASLMethod,SASLSender,SASLUsername,
-						Helo,
-						Sender,
-						Size
-					)
-				VALUES
-					(
-						".DBQuote($request->{'instance'}).", ".DBQuote($request->{'queue_id'}).",
-						".DBQuote($request->{'_timestamp'}).",
-						".DBQuote($request->{'client_address'}).", ".DBQuote($request->{'client_name'}).", 
-						".DBQuote($request->{'reverse_client_name'}).",
-						".DBQuote($request->{'protocol_name'}).",
-						".DBQuote($request->{'encryption_protocol'}).", ".DBQuote($request->{'encryption_cipher'}).", 
-						".DBQuote($request->{'encryption_keysize'}).",
-						".DBQuote($request->{'sasl_method'}).", ".DBQuote($request->{'sasl_sender'}).", ".DBQuote($request->{'sasl_username'}).",
-						".DBQuote($request->{'helo_name'}).",
-						".DBQuote($request->{'sender'}).",
-						".DBQuote($request->{'size'})."
-					)
-			");
-			if (!$sth) {
-				$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".cbp::dblayer::Error());
-				DBRollback();
-				return -1;
-			}
-			$server->log(LOG_DEBUG,"[TRACKING] Recorded tracking information for instance ".$request->{'instance'});
+	# Check protocol
+	if ($request->{'_protocol_transport'} eq "Postfix") {
 
-			# Grab inserted row ID
-			my $rowID = DBLastInsertID('session_tracking','ID');
-			if (!$rowID) {
-				$server->log(LOG_ERR,"[TRACKING] Failed to get session tracking ID: ".cbp::dblayer::Error());
-				DBRollback();
-				return -1;
-			}
-		
-			$sessionData->{'ID'} = $rowID;
-
-			DBCommit();
-		}
-
-		$sessionData->{'Instance'} = $request->{'instance'};
-		$sessionData->{'QueueID'} = $request->{'queue_id'};
-		$sessionData->{'ClientAddress'} = $request->{'client_address'};
-		$sessionData->{'ClientName'} = $request->{'client_name'};
-		$sessionData->{'ClientReverseName'} = $request->{'reverse_client_name'};
-		$sessionData->{'Protocol'} = $request->{'protocol_name'};
-		$sessionData->{'EncryptionProtocol'} = $request->{'encryption_protocol'};
-		$sessionData->{'EncryptionCipher'} = $request->{'encryption_cipher'};
-		$sessionData->{'EncryptionKeySize'} = $request->{'encryption_keysize'};
-		$sessionData->{'SASLMethod'} = $request->{'sasl_method'};
-		$sessionData->{'SASLSender'} = $request->{'sasl_sender'};
-		$sessionData->{'SASLUsername'} = $request->{'sasl_username'};
-		$sessionData->{'Helo'} = $request->{'helo_name'};
-		$sessionData->{'Sender'} = $request->{'sender'};
-		$sessionData->{'Size'} = $request->{'size'};
-		$sessionData->{'RecipientData'} = "";
-	}
-
-	# If we in rcpt, caclulate and save policy
-	if ($request->{'protocol_state'} eq 'RCPT') {
-		# Get policy
-		my $policy = getPolicy($request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
-		if (!defined($policy)) {
-			$server->log(LOG_ERR,"[TRACKING] Failed to retrieve policy: ".cbp::policies::Error());
+		# Pull in session data
+		my $sth = DBSelect("
+			SELECT
+				ID,
+				Instance, QueueID,
+				Timestamp,
+				ClientAddress, ClientName, ClientReverseName,
+				Protocol,
+				EncryptionProtocol, EncryptionCipher, EncryptionKeySize,
+				SASLMethod, SASLSender, SASLUsername,
+				Helo,
+				Sender,
+				Size,
+				RecipientData
+			FROM
+				session_tracking
+			WHERE
+				Instance = ".DBQuote($request->{'instance'})."
+		");
+		if (!$sth) {
+			$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
 			return -1;
 		}
+		$sessionData = $sth->fetchrow_hashref();
+				
+		# If no state information, create everything we need
+		if (!$sessionData) {
+	
+			# Should only track sessions from RCPT
+			if ($request->{'protocol_state'} eq "RCPT") {
+				DBBegin();
+	
+				# Record tracking info
+				$sth = DBDo("
+					INSERT INTO session_tracking 
+						(
+							Instance,QueueID,
+							Timestamp,
+							ClientAddress, ClientName, ClientReverseName,
+							Protocol,
+							EncryptionProtocol,EncryptionCipher,EncryptionKeySize,
+							SASLMethod,SASLSender,SASLUsername,
+							Helo,
+							Sender,
+							Size
+						)
+					VALUES
+						(
+							".DBQuote($request->{'instance'}).", ".DBQuote($request->{'queue_id'}).",
+							".DBQuote($request->{'_timestamp'}).",
+							".DBQuote($request->{'client_address'}).", ".DBQuote($request->{'client_name'}).", 
+							".DBQuote($request->{'reverse_client_name'}).",
+							".DBQuote($request->{'protocol_name'}).",
+							".DBQuote($request->{'encryption_protocol'}).", ".DBQuote($request->{'encryption_cipher'}).", 
+							".DBQuote($request->{'encryption_keysize'}).",
+							".DBQuote($request->{'sasl_method'}).", ".DBQuote($request->{'sasl_sender'}).",
+									".DBQuote($request->{'sasl_username'}).",
+							".DBQuote($request->{'helo_name'}).",
+							".DBQuote($request->{'sender'}).",
+							".DBQuote($request->{'size'})."
+						)
+				");
+				if (!$sth) {
+					$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".cbp::dblayer::Error());
+					DBRollback();
+					return -1;
+				}
+				$server->log(LOG_DEBUG,"[TRACKING] Recorded tracking information for instance ".$request->{'instance'});
+	
+				# Grab inserted row ID
+				my $rowID = DBLastInsertID('session_tracking','ID');
+				if (!$rowID) {
+					$server->log(LOG_ERR,"[TRACKING] Failed to get session tracking ID: ".cbp::dblayer::Error());
+					DBRollback();
+					return -1;
+				}
+			
+				$sessionData->{'ID'} = $rowID;
+	
+				DBCommit();
+			}
+	
+			$sessionData->{'Instance'} = $request->{'instance'};
+			$sessionData->{'QueueID'} = $request->{'queue_id'};
+			$sessionData->{'ClientAddress'} = $request->{'client_address'};
+			$sessionData->{'ClientName'} = $request->{'client_name'};
+			$sessionData->{'ClientReverseName'} = $request->{'reverse_client_name'};
+			$sessionData->{'Protocol'} = $request->{'protocol_name'};
+			$sessionData->{'EncryptionProtocol'} = $request->{'encryption_protocol'};
+			$sessionData->{'EncryptionCipher'} = $request->{'encryption_cipher'};
+			$sessionData->{'EncryptionKeySize'} = $request->{'encryption_keysize'};
+			$sessionData->{'SASLMethod'} = $request->{'sasl_method'};
+			$sessionData->{'SASLSender'} = $request->{'sasl_sender'};
+			$sessionData->{'SASLUsername'} = $request->{'sasl_username'};
+			$sessionData->{'Helo'} = $request->{'helo_name'};
+			$sessionData->{'Sender'} = $request->{'sender'};
+			$sessionData->{'Size'} = $request->{'size'};
+			$sessionData->{'RecipientData'} = "";
+		}
+	
+		# If we in rcpt, caclulate and save policy
+		if ($request->{'protocol_state'} eq 'RCPT') {
+			# Get policy
+			my $policy = getPolicy($request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
+			if (!defined($policy)) {
+				$server->log(LOG_ERR,"[TRACKING] Failed to retrieve policy: ".cbp::policies::Error());
+				return -1;
+			}
+	
+			$sessionData->{'Policy'} = $policy;
+			$sessionData->{'Recipient'} = $request->{'recipient'};
+	
+		# If we in end of message, load policy from data
+		} elsif ($request->{'protocol_state'} eq 'END-OF-MESSAGE') {
+			$sessionData->{'_Recipient_To_Policy'} = decodePolicyData($sessionData->{'RecipientData'});
+			# This must be updated here ... we may of got actual size
+			$sessionData->{'Size'} = $request->{'size'};
+			# Only get a queue id once we have gotten the message
+			$sessionData->{'QueueID'} = $request->{'queue_id'};
+		}
 
-		$sessionData->{'_Policy'} = $policy;
-		$sessionData->{'Recipient'} = $request->{'recipient'};
+	# Check for HTTP protocol transport
+	} elsif ($request->{'_protocol_transport'} eq "Postfix") {
+		$sessionData->{'ClientAddress'} = $request->{'client_address'};
+		$sessionData->{'Helo'} = "";
+		$sessionData->{'Sender'} = $request->{'sender'};
 
-	# If we in end of message, load policy from data
-	} elsif ($request->{'protocol_state'} eq 'END-OF-MESSAGE') {
-		$sessionData->{'_Recipient_To_Policy'} = decodePolicyData($sessionData->{'RecipientData'});
-		# This must be updated here ... we may of got actual size
-		$sessionData->{'Size'} = $request->{'size'};
-		# Only get a queue id once we have gotten the message
-		$sessionData->{'QueueID'} = $request->{'queue_id'};
+		# If we in RCPT state, set recipient
+		if ($request->{'protocol_state'} eq "RCPT") {
+			$sessionData->{'Recipient'} = $request->{'recipient'};
+		}
 	}
-		
+
 	# Shovei n various thing not stored in DB
 	$sessionData->{'ProtocolState'} = $request->{'protocol_state'};
 	$sessionData->{'Timestamp'} = $request->{'_timestamp'};
@@ -262,7 +286,7 @@ sub updateSessionData
 	if ($sessionData->{'ProtocolState'} eq 'RCPT') {
 
 		# Get encoded policy data
-		my $policyData = encodePolicyData($sessionData->{'Recipient'},$sessionData->{'_Policy'});
+		my $policyData = encodePolicyData($sessionData->{'Recipient'},$sessionData->{'Policy'});
 		# Generate recipient data
 		my $recipientData = $sessionData->{'RecipientData'}."/$policyData";
 
