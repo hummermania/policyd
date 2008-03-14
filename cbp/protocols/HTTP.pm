@@ -91,14 +91,20 @@ sub protocol_parse {
 	$buffer =~ s/^\w+ \/\?//;
 
 	# Loop with each line
-	foreach my $item (split /&/, $buffer) {
-		# Decode item
-		$item = uri_unescape($item);
-
+	foreach my $item (split /[& ]/, $buffer) {
 		# If we don't get a pair, b0rk
 		last unless $item =~ s/^([^=]+)=(.*)$//;
-		$res{$1} = $2;
+
+		# Clean up strings, and shove into hash
+		my ($param,$value) = (uri_unescape($1),uri_unescape($2));
+		$res{$param} = $value;
+		$server->log(LOG_DEBUG,"HTTP PROTOCOL: $param = $value");
 	}
+
+	# We need some extra info to make everything else happy...
+	$res{'protocol_state'} = "RCPT" if (!defined($res{'protocol_state'}));
+
+	$res{'_protocol_transport'} = "HTTP";
 
 	return \%res;
 }
