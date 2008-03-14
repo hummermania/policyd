@@ -76,14 +76,17 @@ sub check {
 	# We only valid in the RCPT state
 	return undef if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
 	
+	# We need a HELO...
+	return undef if (!defined($sessionData->{'Helo'}) || $sessionData->{'Helo'} eq "");
+	
 	# Policy we're about to build
 	my %policy;
 
 	# Loop with priorities, low to high
-	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}}) {
+	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
 
 		# Loop with policies
-		foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}}) {
+		foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
 			my $sth = DBSelect("
 				SELECT
@@ -133,8 +136,8 @@ sub check {
 					$policy{'RejectUnresolvable'} = $row->{'RejectUnresolvable'};
 				}
 			} # while (my $row = $sth->fetchrow_hashref())
-		} # foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}})
-	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}})
+		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
+	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}})
 
 	# Insert/update HELO in database
 	my $sth = DBDo("

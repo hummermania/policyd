@@ -32,7 +32,7 @@ our $pluginInfo = {
 	name 			=> "Greylisting Plugin",
 	priority		=> 60,
 	init		 	=> \&init,
-	reuqest_process	=> \&check,
+	request_process	=> \&check,
 	cleanup		 	=> \&cleanup,
 };
 
@@ -78,10 +78,10 @@ sub check {
 	my %policy;
 
 	# Loop with priorities, low to high
-	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}}) {
+	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
 
 		# Loop with policies
-		foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}}) {
+		foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
 			# Grab greylisting info
 			my $sth = DBSelect("
@@ -150,8 +150,8 @@ sub check {
 				}
 	
 			} # while (my $row = $sth->fetchrow_hashref())
-		} # foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}})
-	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}})
+		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
+	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}})
 
 	# Check if we have a policy
 	if (!%policy) {

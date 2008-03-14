@@ -83,7 +83,7 @@ sub check {
 	}
 
 	# Check if we have any policies matched, if not just pass
-	if (!defined($sessionData->{'_Policy'})) {
+	if (!defined($sessionData->{'Policy'})) {
 		return undef;
 	}
 
@@ -109,14 +109,14 @@ sub check {
 		my $exceededQtrack;
 
 		# Loop with priorities, low to high
-		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}}) {
+		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
 
 			# Last if we've exceeded
 			last if ($hasExceeded);
 
 
 			# Loop with each policyID
-			foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}}) {
+			foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
 				# Last if we've exceeded
 				last if ($hasExceeded);
@@ -169,7 +169,8 @@ sub check {
 							}
 								
 							# Make sure increment is at least 0
-							$newCounters{$qtrack->{'QuotasLimitsID'}} = $qtrack->{'Counter'} if (!defined($newCounters{$qtrack->{'QuotasLimitsID'}}));
+							$newCounters{$qtrack->{'QuotasLimitsID'}} = $qtrack->{'Counter'} 
+									if (!defined($newCounters{$qtrack->{'QuotasLimitsID'}}));
 	
 							# Limit type
 							my $limitType = lc($limit->{'Type'});
@@ -197,7 +198,8 @@ sub check {
 							$qtrack->{'Counter'} = 0;
 								
 							# Make sure increment is at least 0
-							$newCounters{$qtrack->{'QuotasLimitsID'}} = $qtrack->{'Counter'} if (!defined($newCounters{$qtrack->{'QuotasLimitsID'}}));
+							$newCounters{$qtrack->{'QuotasLimitsID'}} = $qtrack->{'Counter'} 
+									if (!defined($newCounters{$qtrack->{'QuotasLimitsID'}}));
 							
 							# Check if this is a message counter
 							if (lc($limit->{'Type'}) eq "messagecount") {
@@ -226,11 +228,11 @@ sub check {
 	
 					}  # foreach my $limit (@{$limits})
 	
-				} # foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}})
+				} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
 
 			} # foreach my $quota (@{$quotas})
 
-		} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}})
+		} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}})
 
 		# If we have not exceeded, update
 		if (!$hasExceeded) {
@@ -347,6 +349,10 @@ sub check {
 	#   The Size quota is updated in this state
 	#
 	} elsif ($sessionData->{'ProtocolState'} eq "END-OF-MESSAGE") {
+		# Check if we have recipient to policy mappings
+		if (!defined($sessionData->{'_Recipient_To_Policy'})) {
+			return undef;
+		}
 
 		my @keys;
 

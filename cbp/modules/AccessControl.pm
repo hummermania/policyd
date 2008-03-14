@@ -77,10 +77,10 @@ sub check {
 	my ($verdict,$verdict_data);
 
 	# Loop with priorities, low to high
-	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Policy'}}) {
+	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
 
 		# Loop with policies
-		foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}}) {
+		foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
 			my $sth = DBSelect("
 				SELECT
@@ -105,7 +105,7 @@ sub check {
 			$verdict = $row->{'Verdict'};
 			$verdict_data = $row->{'Data'};
 
-		} # foreach my $policyID (@{$sessionData->{'_Policy'}->{$priority}})
+		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
 
 		# Last if we found something
 		last if ($verdict);
