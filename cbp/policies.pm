@@ -299,7 +299,7 @@ sub ipMatches
 
 	# Convert CIDR to longs
 	my $cidr_address_long = ip_to_long($cidr_address);
-	my $cidr_mask_long = $cidr_mask ? ipbits_to_mask($cidr_mask) : IPMASK;
+	my $cidr_mask_long = bits_to_mask($cidr_mask ? $cidr_mask : 32);
 	# Pull out network address
 	my $cidr_network_long = $cidr_address_long & $cidr_mask_long;
 	# And broadcast
