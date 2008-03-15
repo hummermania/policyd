@@ -44,7 +44,7 @@ if ($_POST['action'] == "change") {
 		# Prepare statement
 		$stmt = $db->prepare('
 			SELECT 
-				checkhelo_whitelist.ID, checkhelo_whitelist.Address, checkhelo_whitelist.Comment, 
+				checkhelo_whitelist.ID, checkhelo_whitelist.Source, checkhelo_whitelist.Comment, 
 				checkhelo_whitelist.Disabled
 				
 			FROM 
@@ -74,9 +74,15 @@ if ($_POST['action'] == "change") {
 					<td class="entrytitle textcenter">New Value</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Address</td>
-					<td class="oldval"><?php echo $row->address ?></td>
-					<td><input type="text" name="whitelist_address" /></td>
+					<td class="entrytitle">Source</td>
+					<td class="oldval"><?php echo $row->source ?></td>
+					<td>
+						<select id="whitelist_type" name="whitelist_type">
+							<option value="">--</option>
+							<option value="SenderIP">Sender IP</option>
+						</select>
+						<input type="text" name="whitelist_source" />
+					</td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Comment</td>
@@ -117,8 +123,8 @@ if ($_POST['action'] == "change") {
 <?
 	$updates = array();
 
-	if (!empty($_POST['whitelist_address'])) {
-		array_push($updates,"Address = ".$db->quote($_POST['whitelist_address']));
+	if (!empty($_POST['whitelist_type'])) {
+		array_push($updates,"Source = ".$db->quote($_POST['whitelist_type'].":".$_POST['whitelist_source']));
 	}
 	if (!empty($_POST['whitelist_comment'])) {
 		array_push($updates,"Comment = ".$db->quote($_POST['whitelist_comment']));

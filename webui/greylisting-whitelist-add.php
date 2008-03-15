@@ -45,7 +45,12 @@ if ($_POST['action'] == "add") {
 		<table class="entry">
 			<tr>
 				<td class="entrytitle">Source</td>
-				<td><input type="text" name="whitelist_source" size="40" /></td>
+				<td>
+					<select id="whitelist_type" name="whitelist_type">
+						<option value="SenderIP">Sender IP</option>
+					</select>
+					<input type="text" name="whitelist_source" size="40" />
+				</td>
 			</tr>
 			<tr>
 				<td class="entrytitle">Comment</td>
@@ -77,7 +82,7 @@ if ($_POST['action'] == "add") {
 		$stmt = $db->prepare("INSERT INTO greylisting_whitelist (Source,Comment,Disabled) VALUES (?,?,1)");
 		
 		$res = $stmt->execute(array(
-			$_POST['whitelist_source'],
+			$_POST['whitelist_type'] . ":" . $_POST['whitelist_source'],
 			$_POST['whitelist_comment']
 		));
 		

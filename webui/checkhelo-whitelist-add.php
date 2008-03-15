@@ -44,8 +44,13 @@ if ($_POST['action'] == "add") {
 		</div>
 		<table class="entry">
 			<tr>
-				<td class="entrytitle">Address</td>
-				<td><input type="text" name="whitelist_address" /></td>
+				<select id="whitelist_type" name="whitelist_type">
+					<option value="SenderIP">Sender IP</option>
+				</select>
+			</tr>
+			<tr>
+				<td class="entrytitle">Source</td>
+				<td><input type="text" name="whitelist_source" /></td>
 			</tr>
 			<tr>
 				<td class="entrytitle">Comment</td>
@@ -68,16 +73,16 @@ if ($_POST['action'] == "add") {
 
 <?php
 	# Check name
-	if (empty($_POST['whitelist_address'])) {
+	if (empty($_POST['whitelist_source'])) {
 ?>
-		<div class="warning">Address cannot be empty</div>
+		<div class="warning">Source cannot be empty</div>
 <?php
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO checkhelo_whitelist (Address,Comment,Disabled) VALUES (?,?,1)");
+		$stmt = $db->prepare("INSERT INTO checkhelo_whitelist (Source,Comment,Disabled) VALUES (?,?,1)");
 		
 		$res = $stmt->execute(array(
-			$_POST['whitelist_address'],
+			$_POST['whitelist_type'] . ":" . $_POST['whitelist_source'],
 			$_POST['whitelist_comment']
 		));
 		

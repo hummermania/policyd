@@ -76,7 +76,13 @@ if ($_POST['action'] == "change") {
 				<tr>
 					<td class="entrytitle">Source</td>
 					<td class="oldval"><?php echo $row->source ?></td>
-					<td><input type="text" name="whitelist_source" /></td>
+					<td>
+						<select id="whitelist_type" name="whitelist_type">
+							<option value="">--</option>
+							<option value="SenderIP">Sender IP</option>
+						</select>
+						<input type="text" name="whitelist_source" />
+					</td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Comment</td>
@@ -117,8 +123,8 @@ if ($_POST['action'] == "change") {
 <?
 	$updates = array();
 
-	if (!empty($_POST['whitelist_source'])) {
-		array_push($updates,"Source = ".$db->quote($_POST['whitelist_source']));
+	if (!empty($_POST['whitelist_type'])) {
+		array_push($updates,"Source = ".$db->quote($_POST['whitelist_type'].":".$_POST['whitelist_source']));
 	}
 	if (!empty($_POST['whitelist_comment'])) {
 		array_push($updates,"Comment = ".$db->quote($_POST['whitelist_comment']));

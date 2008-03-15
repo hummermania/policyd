@@ -70,26 +70,26 @@ if (!isset($_POST['action']))
 		<table class="results" style="width: 75%;">
 			<tr class="resultstitle">
 				<td id="noborder"></td>
-				<td class="textcenter">Address</td>
+				<td class="textcenter">Source</td>
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
 			$sql = '
 					SELECT 
-						checkhelo_whitelist.ID, checkhelo_whitelist.Address, checkhelo_whitelist.Disabled
+						checkhelo_whitelist.ID, checkhelo_whitelist.Source, checkhelo_whitelist.Disabled
 
 					FROM 
 						checkhelo_whitelist
 
 					ORDER BY 
-						checkhelo_whitelist.Address
+						checkhelo_whitelist.Source
 			';
 			$res = $db->query($sql);
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
 					<td><input type="radio" name="whitelist_id" value="<?php echo $row->id ?>" /></td>
-					<td><?php echo $row->address ?></td>
+					<td><?php echo $row->source ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
