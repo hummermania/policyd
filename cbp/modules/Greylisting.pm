@@ -25,6 +25,7 @@ use warnings;
 use cbp::logging;
 use cbp::dblayer;
 use cbp::system;
+use cbp::protocols;
 
 
 # User plugin info
@@ -68,12 +69,16 @@ sub init {
 sub check {
 	my ($server,$sessionData) = @_;
 
+
 	# If we not enabled, don't do anything
-	return undef if (!$config{'enable'});
+	return CBP_SKIP if (!$config{'enable'});
 
 	# We only valid in the RCPT state
-	return undef if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
+	return CBP_SKIP if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
 	
+	# Check if we have any policies matched, if not just pass
+	return CBP_SKIP if (!defined($sessionData->{'Policy'}));
+
 	# Policy we're about to build
 	my %policy;
 
@@ -102,7 +107,7 @@ sub check {
 			");
 			if (!$sth) {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-				return undef;
+				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			# Loop with rows and build end policy
 			while (my $row = $sth->fetchrow_hashref()) {
@@ -155,14 +160,14 @@ sub check {
 
 	# Check if we have a policy
 	if (!%policy) {
-		return undef;
+		return CBP_CONTINUE;
 	}
 
 	# 
 	# Check if we must use greylisting
 	#
 	if (defined($policy{'UseGreylisting'}) && $policy{'UseGreylisting'} ne "1") {
-		return undef;
+		return CBP_SKIP;
 	}
 
 	#
@@ -178,7 +183,7 @@ sub check {
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-		return undef;
+		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# Loop with whitelist and calculate
 	while (my $row = $sth->fetchrow_hashref()) {
@@ -199,18 +204,18 @@ sub check {
 							$sessionData->{'Sender'},
 							$sessionData->{'Recipient'});
 					DBFreeRes($sth);
-					return undef;
+					return $server->protocol_response(PROTO_PASS);
 				}
 			} else {
 				$server->log(LOG_ERR,"[GREYLISTING] Failed to parse address '$address' is invalid.");
 				DBFreeRes($sth);
-				return undef;
+				return $server->protocol_response(PROTO_DATA_ERROR);
 			}
 
 		} else {
 			$server->log(LOG_ERR,"[GREYLISTING] Whitelist entry '".$row->{'Source'}."' is invalid.");
 			DBFreeRes($sth);
-			return undef;
+			return $server->protocol_response(PROTO_DATA_ERROR);
 		}
 	}
 
@@ -221,7 +226,7 @@ sub check {
 	my $key = getKey($server,$policy{'Track'},$sessionData);
 	if (!$key) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to get key from tracking spec '".$policy{'Track'}."'");
-		return undef;
+		return $server->protocol_response(PROTO_DATA_ERROR);
 	}
 
 
@@ -242,7 +247,7 @@ sub check {
 			");
 			if (!$sth) {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-				return undef;
+				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			my $row = $sth->fetchrow_hashref();
 
@@ -262,7 +267,7 @@ sub check {
 					");
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
-						return undef;
+						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 
 					$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=auto-whitelisted",
@@ -271,13 +276,13 @@ sub check {
 							$sessionData->{'Sender'},
 							$sessionData->{'Recipient'});
 
-					return undef;
+					return $server->protocol_response(PROTO_PASS);
 				}
 			} # if ($row)
 
 		} else {  # if (defined($policy{'AutoWhitelistPeriod'}) && $policy{'AutoWhitelistPeriod'} > 0)
 			$server->log(LOG_ERR,"[GREYLISTING] Resolved policy UseAutoWhitelist is set, but AutoWhitelistPeriod is not set or invalid");
-			return undef;
+			return $server->protocol_response(PROTO_DATA_ERROR);
 		}
 	} # if (defined($policy{'UseAutoWhitelist'}) && $policy{'UseAutoWhitelist'} eq "1")
 
@@ -299,7 +304,7 @@ sub check {
 			");
 			if (!$sth) {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-				return undef;
+				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			my $row = $sth->fetchrow_hashref();
 
@@ -322,7 +327,7 @@ sub check {
 
 		} else {  # if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0)
 			$server->log(LOG_ERR,"[GREYLISTING] Resolved policy UseAutoBlacklist is set, but AutoBlacklistPeriod is not set or invalid");
-			return undef;
+			return $server->protocol_response(PROTO_DATA_ERROR);
 		}
 	} # if (defined($policy{'UseAutoBlacklist'}) && $policy{'UseAutoBlacklist'} eq "1")
 
@@ -344,7 +349,7 @@ sub check {
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
-		return undef;
+		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# If we didn't update anything, insert
 	if ($sth eq "0E0") {
@@ -372,7 +377,7 @@ sub check {
 					");
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-						return undef;
+						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 					my $row = $sth->fetchrow_hashref();
 
@@ -396,7 +401,7 @@ sub check {
 							");
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-								return undef;
+								return $server->protocol_response(PROTO_DB_ERROR);
 							}
 							my $row2 = $sth->fetchrow_hashref();
 					
@@ -430,7 +435,7 @@ sub check {
 							");
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
-								return undef;
+								return $server->protocol_response(PROTO_DB_ERROR);
 							}
 
 							$server->maillog("module=Greylisting, action=reject, host=%s, from=%s, to=%s, reason=auto-blacklisted",
@@ -446,7 +451,7 @@ sub check {
 
 			} else { # if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0)
 				$server->log(LOG_ERR,"[GREYLISTING] Resolved policy UseAutoWBlacklist is set, but AutoBlacklistPeriod is not set or invalid");
-				return undef;
+				return $server->protocol_response(PROTO_DATA_ERROR);
 			}
 		}
 
@@ -465,7 +470,7 @@ sub check {
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
-			return undef;
+			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 
 		$server->maillog("module=Greylisting, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=greylisted",
@@ -475,7 +480,7 @@ sub check {
 				$sessionData->{'Recipient'});
 
 		# Skip to rejection, if we using greylisting 0 seconds is highly unlikely to be a greylisitng period
-		return("451 4.7.1","Greylisting in effect, please come back later");
+		return $server->protocol_response(PROTO_DEFER,"451 4.7.1 Greylisting in effect, please come back later");
 
 	# And just a bit of debug
 	} else {
@@ -504,12 +509,12 @@ sub check {
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-		return undef;
+		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	my $row = $sth->fetchrow_hashref();
 	if (!$row) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to find triplet in database");
-		return undef;
+		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 
 	# Check if we should greylist, or not
@@ -523,7 +528,7 @@ sub check {
 				$sessionData->{'Sender'},
 				$sessionData->{'Recipient'});
 
-		return("451 4.7.1","Greylisting in effect, please come back later");
+		return $server->protocol_response(PROTO_DEFER,"451 4.7.1 Greylisting in effect, please come back later");
 
 	} else {
 		# Insert/update triplet in database
@@ -539,7 +544,7 @@ sub check {
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
-			return undef;
+			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 
 		#
@@ -565,7 +570,7 @@ sub check {
 					");
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-						return undef;
+						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 					my $row = $sth->fetchrow_hashref();
 
@@ -587,7 +592,7 @@ sub check {
 							");
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-								return undef;
+								return $server->protocol_response(PROTO_DB_ERROR);
 							}
 							my $row2 = $sth->fetchrow_hashref();
 				
@@ -622,7 +627,7 @@ sub check {
 							");
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
-								return undef;
+								return $server->protocol_response(PROTO_DB_ERROR);
 							}
 							$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=auto-whitelisted",
 									$sessionData->{'ClientAddress'},
@@ -630,14 +635,14 @@ sub check {
 									$sessionData->{'Sender'},
 									$sessionData->{'Recipient'});
 
-							return undef;
+							return $server->protocol_response(PROTO_PASS);
 						}
 					} # if ($row->{'Count'} >= $policy{'AutoWhitelistCount'})
 				} # if (defined($policy{'AutoWhitelistCount'}) && $policy{'AutoWhitelistCount'} > 0) 
 
 			} else { # if (defined($policy{'AutoWhitelistPeriod'}) && $policy{'AutoWhitelistPeriod'} > 0)
 				$server->log(LOG_ERR,"[GREYLISTING] Resolved policy UseAutoWWhitelist is set, but AutoWhitelistPeriod is not set or invalid");
-				return undef;
+				return $server->protocol_response(PROTO_DATA_ERROR);
 			}
 		}
 
@@ -647,9 +652,12 @@ sub check {
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
 				$sessionData->{'Recipient'});
+				
+		return $server->protocol_response(PROTO_PASS);
 	}
 
-	return undef;
+	# We should never get here
+	return CBP_ERROR;
 }
 
 
@@ -706,13 +714,10 @@ sub getIPKey
 
 		# Pull long for IP we going to test
 		my $ip_long = ip_to_long($ip);
-
 		# Convert mask to longs
-		my $mask_long = ipbits_to_mask($mask);
-
+		my $mask_long = bits_to_mask($mask);
 		# AND with mask to get network addy
 		my $network_long = $ip_long & $mask_long;
-
 		# Convert to quad;/
 		my $cidr_network = long_to_ip($network_long);
 

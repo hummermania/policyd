@@ -24,6 +24,7 @@ use warnings;
 
 use cbp::logging;
 use cbp::dblayer;
+use cbp::protocols;
 use cbp::system;
 
 use Net::DNS::Resolver;
@@ -71,14 +72,17 @@ sub check {
 	my ($server,$sessionData) = @_;
 
 	# If we not enabled, don't do anything
-	return undef if (!$config{'enable'});
+	return CBP_SKIP if (!$config{'enable'});
 
 	# We only valid in the RCPT state
-	return undef if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
+	return CBP_SKIP if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
 	
 	# We need a HELO...
-	return undef if (!defined($sessionData->{'Helo'}) || $sessionData->{'Helo'} eq "");
+	return CBP_SKIP if (!defined($sessionData->{'Helo'}) || $sessionData->{'Helo'} eq "");
 	
+	# Check if we have any policies matched, if not just pass
+	return CBP_SKIP if (!defined($sessionData->{'Policy'}));
+
 	# Policy we're about to build
 	my %policy;
 
@@ -105,7 +109,7 @@ sub check {
 			");
 			if (!$sth) {
 				$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
-				return undef;
+				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			while (my $row = $sth->fetchrow_hashref()) {
 				# If defined, its to override
@@ -139,6 +143,11 @@ sub check {
 		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
 	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}})
 
+	# Check if we have a policy
+	if (!%policy) {
+		return CBP_CONTINUE;
+	}
+
 	# Insert/update HELO in database
 	my $sth = DBDo("
 		UPDATE
@@ -151,7 +160,7 @@ sub check {
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Database update failed: ".cbp::dblayer::Error());
-		return undef;
+		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# If we didn't update anything, insert
 	if ($sth eq "0E0") {
@@ -167,7 +176,7 @@ sub check {
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
-			return undef;
+			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 		$server->log(LOG_DEBUG,"[CHECKHELO] Recorded helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'");
 	# And just a bit of debug
@@ -189,11 +198,10 @@ sub check {
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
-		return undef;
+		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# Loop with whitelist and calculate
 	while (my $row = $sth->fetchrow_hashref()) {
-
 		# Check format is SenderIP
 		if ((my $address = $row->{'Source'}) =~ s/^SenderIP://i) {
 
@@ -209,18 +217,18 @@ sub check {
 							$sessionData->{'Sender'},
 							$sessionData->{'Recipient'});
 					DBFreeRes($sth);
-					return undef;
+					return $server->protocol_response(PROTO_PASS);
 				}
 			} else {
 				$server->log(LOG_ERR,"[CHECKHELO] Failed to parse address '$address' is invalid.");
 				DBFreeRes($sth);
-				return undef;
+				return $server->protocol_response(PROTO_DATA_ERROR);
 			}
 
 		} else {
 			$server->log(LOG_ERR,"[CHECKHELO] Whitelist entry '".$row->{'Source'}."' is invalid.");
 			DBFreeRes($sth);
-			return undef;
+			return $server->protocol_response(PROTO_DATA_ERROR);
 		}
 	}
 
@@ -239,7 +247,8 @@ sub check {
 						$sessionData->{'Sender'},
 						$sessionData->{'Recipient'});
 
-				return("REJECT","Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$sessionData->{'Helo'}."'");
+				return $server->protocol_response(PROTO_REJECT,
+						"Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$sessionData->{'Helo'}."'");
 			}
 
 		# Address literal is valid
@@ -272,7 +281,8 @@ sub check {
 								$sessionData->{'Sender'},
 								$sessionData->{'Recipient'});
 
-						return("REJECT","Invalid HELO/EHLO; No A or MX records found for '".$sessionData->{'Helo'}."'");
+						return $server->protocol_response(PROTO_REJECT,
+							"Invalid HELO/EHLO; No A or MX records found for '".$sessionData->{'Helo'}."'");
 					}
 
 				} else {
@@ -286,7 +296,8 @@ sub check {
 								$sessionData->{'Sender'},
 								$sessionData->{'Recipient'});
 
-						return("REJECT","Invalid HELO/EHLO; Cannot resolve '".$sessionData->{'Helo'}."', no such domain");
+						return $server->protocol_response(PROTO_REJECT,
+							"Invalid HELO/EHLO; Cannot resolve '".$sessionData->{'Helo'}."', no such domain");
 
 					} elsif ($res->errorstring eq "NOERROR") {
 
@@ -296,28 +307,31 @@ sub check {
 								$sessionData->{'Sender'},
 								$sessionData->{'Recipient'});
 
-						return("REJECT","Invalid HELO/EHLO; Cannot resolve '".$sessionData->{'Helo'}."', no records found");
+						return $server->protocol_response(PROTO_REJECT,
+							"Invalid HELO/EHLO; Cannot resolve '".$sessionData->{'Helo'}."', no records found");
 
 					} elsif ($res->errorstring eq "SERVFAIL") {
 
-						$server->maillog("module=CheckHelo, action=defer_if_permit, host=%s, helo=%s, from=%s, to=%s, reason=resolve_servfail",
+						$server->maillog("module=CheckHelo, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=resolve_servfail",
 								$sessionData->{'ClientAddress'},
 								$sessionData->{'Helo'},
 								$sessionData->{'Sender'},
 								$sessionData->{'Recipient'});
 
-						return("DEFER_IF_PERMIT","Invalid HELO/EHLO; Failure while trying to resolve '".$sessionData->{'Helo'}."'");
+						return $server->protocol_response(PROTO_REJECT,
+							"Invalid HELO/EHLO; Failure while trying to resolve '".$sessionData->{'Helo'}."'");
 
 					} else {
 						$server->log(LOG_ERR,"[CHECKHELO] Unknown error resolving '".$sessionData->{'Helo'}."': ".$res->errorstring);
-				 		return undef;
+						return $server->protocol_response(PROTO_ERROR);
 					}
 				} # if ($query)
 			} # if (defined($policy{'RejectUnresolvable'}) && $policy{'RejectUnresolvable'} eq "1") {
 
 		# Reject blatent RFC violation
 		} else { # elsif ($sessionData->{'Helo'} =~ /^[\w-]+(\.[\w-]+)+$/)
-			return("REJECT","Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$sessionData->{'Helo'}."'");
+			return $server->protocol_response(PROTO_REJECT,
+					"Invalid HELO/EHLO; Must be a FQDN or an address literal, not '".$sessionData->{'Helo'}."'");
 		}
 	} # if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} eq "1")
 
@@ -347,7 +361,7 @@ sub check {
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
-			return undef;
+			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 		my $row = $sth->fetchrow_hashref();
 
@@ -359,7 +373,7 @@ sub check {
 					$sessionData->{'Sender'},
 					$sessionData->{'Recipient'});
 
-			return("REJECT","Invalid HELO/EHLO; Blacklisted");
+			return $server->protocol_response(PROTO_REJECT,"REJECT","Invalid HELO/EHLO; Blacklisted");
 		}
 	}
 
@@ -399,7 +413,7 @@ sub check {
 						");
 						if (!$sth) {
 							$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
-							return undef;
+							return $server->protocol_response(PROTO_DB_ERROR);
 						}
 						my $row = $sth->fetchrow_hashref();
 
@@ -412,31 +426,35 @@ sub check {
 									$sessionData->{'Sender'},
 									$sessionData->{'Recipient'});
 
-							return("REJECT","Invalid HELO/EHLO; HRP limit exceeded");
+							return $server->protocol_response(PROTO_REJECT,"Invalid HELO/EHLO; HRP limit exceeded");
 						}
 
 					} else {
 						$server->log(LOG_ERR,"[CHECKHELO] Resolved policy UseHRP is set, HRPPeriod is set but HRPPeriod is invalid");
+						return $server->protocol_response(PROTO_DATA_ERROR);
 					}
 
 
 				} else {
 					$server->log(LOG_ERR,"[CHECKHELO] Resolved policy UseHRP is set, HRPPeriod is set but HRPLimit is not defined");
+					return $server->protocol_response(PROTO_DATA_ERROR);
 				}
 
 
 			} else {
 				$server->log(LOG_ERR,"[CHECKHELO] Resolved policy UseHRP is set, but HRPPeriod is invalid");
+				return $server->protocol_response(PROTO_DATA_ERROR);
 			}
 
 
 		} else {
 			$server->log(LOG_ERR,"[CHECKHELO] Resolved policy UseHRP is set, but HRPPeriod is not defined");
+			return $server->protocol_response(PROTO_DATA_ERROR);
 		}
 
 	}
 
-	return undef;
+	return CBP_CONTINUE;
 }
 
 

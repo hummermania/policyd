@@ -25,6 +25,7 @@ use warnings;
 use cbp::logging;
 use cbp::dblayer;
 use cbp::system;
+use cbp::protocols;
 
 
 # User plugin info
@@ -72,20 +73,15 @@ sub check {
 	
 
 	# If we not enabled, don't do anything
-	return undef if (!$config{'enable'});
+	return CBP_SKIP if (!$config{'enable'});
 
 	# We only valid in the RCPT and EOM state
-	if (!defined($sessionData->{'ProtocolState'})) {
-		return undef;
-	}
-	if ($sessionData->{'ProtocolState'} ne "RCPT" && $sessionData->{'ProtocolState'} ne "END-OF-MESSAGE") {
-		return undef;
-	}
+	return CBP_SKIP if (!defined($sessionData->{'ProtocolState'}));
+
+	return CBP_SKIP if ($sessionData->{'ProtocolState'} ne "RCPT" && $sessionData->{'ProtocolState'} ne "END-OF-MESSAGE");
 
 	# Check if we have any policies matched, if not just pass
-	if (!defined($sessionData->{'Policy'})) {
-		return undef;
-	}
+	return CBP_SKIP if (!defined($sessionData->{'Policy'}));
 
 	# Our verdict and data
 	my ($verdict,$verdict_data);
@@ -124,8 +120,8 @@ sub check {
 				# Get quota object
 				my $quotas = getQuotas($server,$policyID);
 				# Check if we got a quota or not
-				if (!defined($quotas)) {
-					next;
+				if (ref $quotas ne "ARRAY") {
+					return $server->protocol_response(PROTO_DB_ERROR);
 				}
 			
 				# Loop with quotas
@@ -137,15 +133,16 @@ sub check {
 					# Grab tracking keys
 					my $key = getKey($server,$quota,$sessionData);
 					if (!defined($key)) {
-						$server->log(LOG_WARN,"[QUOTAS] No key information found for quota ID '".$quota->{'ID'}."'");
-						next;
+						$server->log(LOG_ERR,"[QUOTAS] No key found for quota ID '".$quota->{'ID'}."'");
+						return $server->protocol_response(PROTO_DATA_ERROR);
 					}
 	
 					# Get limits
 					my $limits = getLimits($server,$quota->{'ID'});
-					if (!defined($limits)) {
-						$server->log(LOG_NOTICE,"[QUOTAS] No limits defined for quota ID '".$quota->{'ID'}."'");
-						next;
+					# Check if we got limits or err
+					if (ref $limits ne "ARRAY") {
+$server->log(LOG_WARN,"[QUOTAS] BANG1");
+						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 	
 					# Loop with limits
@@ -154,6 +151,10 @@ sub check {
 						# Get quota tracking info
 						my $qtrack = getTrackingInfo($server,$limit->{'ID'},$key);
 	
+						# Check if we got tracking info or not
+						if (defined($qtrack) && ref $qtrack ne "HASH") {
+							return $server->protocol_response(PROTO_DB_ERROR);
+						}
 						# Check if we have a queue tracking item
 						if (defined($qtrack)) {
 							my $elapsedTime = defined($qtrack->{'LastUpdate'}) ? ( $now - $qtrack->{'LastUpdate'} ) : $quota->{'Period'};
@@ -227,11 +228,8 @@ sub check {
 						push(@trackingList,$qtrack);
 	
 					}  # foreach my $limit (@{$limits})
-	
 				} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
-
 			} # foreach my $quota (@{$quotas})
-
 		} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}})
 
 		# If we have not exceeded, update
@@ -256,7 +254,7 @@ sub check {
 				");
 				if (!$sth) {
 					$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
-					next;
+					return $server->protocol_response(PROTO_DB_ERROR);
 				}
 				
 				# If nothing updated, then insert our record
@@ -275,12 +273,12 @@ sub check {
 					");
 					if (!$sth) {
 						$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
-						next;
+						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 					
 					# Log create to mail log
-					$server->maillog("module=Quotas, action=create, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
-								"counter=%s, quota=%s/%s (%s%%)",
+					$server->maillog("module=Quotas, action=create, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, "
+								."track=%s, counter=%s, quota=%s/%s (%s%%)",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
 							$sessionData->{'Sender'},
@@ -297,8 +295,8 @@ sub check {
 				# If we updated ...
 				} else {
 					# Log update to mail log
-					$server->maillog("module=Quotas, action=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
-								"counter=%s, quota=%s/%s (%s%%)",
+					$server->maillog("module=Quotas, action=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, "
+								."track=%s, counter=%s, quota=%s/%s (%s%%)",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
 							$sessionData->{'Sender'},
@@ -324,8 +322,8 @@ sub check {
 			my $pused =  sprintf('%.1f', ( $newCounters{$exceededQtrack->{'QuotasLimitsID'}} / $exceededQtrack->{'CounterLimit'} ) * 100);
 
 			# Log rejection to mail log
-			$server->maillog("module=Quotas, action=%s, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
-						"counter=%s, quota=%s/%s (%s%%)",
+			$server->maillog("module=Quotas, action=%s, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, "
+						."counter=%s, quota=%s/%s (%s%%)",
 					$exceededQtrack->{'Verdict'},
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
@@ -341,7 +339,8 @@ sub check {
 					$pused);
 
 			$verdict = $exceededQtrack->{'Verdict'},
-			$verdict_data = (defined($exceededQtrack->{'VerdictData'}) && $exceededQtrack->{'VerdictData'} ne "") ? $exceededQtrack->{'VerdictData'} : $hasExceeded;
+			$verdict_data = (defined($exceededQtrack->{'VerdictData'}) && $exceededQtrack->{'VerdictData'} ne "") 
+					? $exceededQtrack->{'VerdictData'} : $hasExceeded;
 		}
 
 	#
@@ -351,7 +350,7 @@ sub check {
 	} elsif ($sessionData->{'ProtocolState'} eq "END-OF-MESSAGE") {
 		# Check if we have recipient to policy mappings
 		if (!defined($sessionData->{'_Recipient_To_Policy'})) {
-			return undef;
+			return CBP_SKIP;
 		}
 
 		my @keys;
@@ -367,8 +366,8 @@ sub check {
 
 					# Check if we got a quota or not
 					my $quotas = getQuotas($server,$policyID);
-					if (!defined($quotas)) {
-						next;
+					if (ref $quotas ne "ARRAY") {
+						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 
 					# Loop with quotas
@@ -380,15 +379,15 @@ sub check {
 						# Grab tracking keys
 						my $key = getKey($server,$quota,$sessionData);
 						if (!defined($key)) {
-							$server->log(LOG_WARN,"[QUOTAS] No key information found for quota ID '".$quota->{'ID'}."'");
-							next;
+							$server->log(LOG_WARN,"[QUOTAS] No key found for quota ID '".$quota->{'ID'}."'");
+							return $server->protocol_response(PROTO_DATA_ERROR);
 						}
 	
 						# Get limits
 						my $limits = getLimits($server,$quota->{'ID'});
-						if (!defined($limits)) {
-							$server->log(LOG_WARN,"[QUOTAS] No limits defined for quota ID '".$quota->{'ID'}."'");
-							next;
+						# Check if we got limits or err
+						if (ref $limits ne "ARRAY") {
+							return $server->protocol_response(PROTO_DB_ERROR);
 						}
 	
 						# Loop with limits
@@ -396,51 +395,50 @@ sub check {
 	
 							# Get quota tracking info
 							my $qtrack = getTrackingInfo($server,$limit->{'ID'},$key);
-							# Check if we have a queue tracking item
-							if (defined($qtrack)) {
-	
-								# Check if we're working with cumulative sizes
-								if (lc($limit->{'Type'}) eq "messagecumulativesize") {
-									# Bump up counter
-									$qtrack->{'Counter'} += $sessionData->{'size'};
-									
-									# Update database
-									my $sth = DBDo("
-										UPDATE 
-											quotas_tracking
-										SET
-											Counter = ".DBQuote($qtrack->{'Counter'}).",
-											LastUpdate = ".DBQuote($now)."
-										WHERE
-											ID = ".DBQuote($qtrack->{'ID'})."
-									");
-									if (!$sth) {
-										$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
-										next;
-									}
-
-									# Percent used
-									my $pused =  sprintf('%.1f', ( $qtrack->{'Counter'} / $limit->{'CounterLimit'} ) * 100);
-
-									# Log update to mail log
-									$server->maillog("module=Quotas, action=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, ".
-												"counter=%s, quota=%s/%s (%s%%)",
-											$sessionData->{'ClientAddress'},
-											$sessionData->{'Helo'},
-											$sessionData->{'Sender'},
-											$emailAddy,
-											$policyID,
-											$quota->{'ID'},
-											$limit->{'ID'},
-											$key,
-											$limit->{'Type'},
-											sprintf('%.0f',$qtrack->{'Counter'}),
-											$limit->{'CounterLimit'},
-											$pused);
-								}
+							# Check if we got tracking info or not
+							if (ref $qtrack ne "HASH") {
+								next; # If not just carry on?
 							}
-						
-	
+
+							# Check if we're working with cumulative sizes
+							if (lc($limit->{'Type'}) eq "messagecumulativesize") {
+								# Bump up counter
+								$qtrack->{'Counter'} += $sessionData->{'size'};
+								
+								# Update database
+								my $sth = DBDo("
+									UPDATE 
+										quotas_tracking
+									SET
+										Counter = ".DBQuote($qtrack->{'Counter'}).",
+										LastUpdate = ".DBQuote($now)."
+									WHERE
+										ID = ".DBQuote($qtrack->{'ID'})."
+								");
+								if (!$sth) {
+									$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
+									return $server->protocol_response(PROTO_DB_ERROR);
+								}
+
+								# Percent used
+								my $pused =  sprintf('%.1f', ( $qtrack->{'Counter'} / $limit->{'CounterLimit'} ) * 100);
+
+								# Log update to mail log
+								$server->maillog("module=Quotas, action=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, "
+											."quota=%s, limit=%s, track=%s, counter=%s, quota=%s/%s (%s%%)",
+										$sessionData->{'ClientAddress'},
+										$sessionData->{'Helo'},
+										$sessionData->{'Sender'},
+										$emailAddy,
+										$policyID,
+										$quota->{'ID'},
+										$limit->{'ID'},
+										$key,
+										$limit->{'Type'},
+										sprintf('%.0f',$qtrack->{'Counter'}),
+										$limit->{'CounterLimit'},
+										$pused);
+							} # if (lc($limit->{'Type'}) eq "messagecumulativesize")
 						} # foreach my $limit (@{$limits})
 					} # foreach my $quota (@{$quotas})
 				} # foreach my $policyID (@{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}{$priority}})
@@ -450,7 +448,23 @@ sub check {
 			
 	}
 	
-	return ($verdict,$verdict_data);
+	# Setup result
+	if (!defined($verdict)) {
+		return CBP_CONTINUE;
+	} if ($verdict =~ /^hold$/i) {
+		return $server->protocol_response(PROTO_HOLD,$verdict_data);
+	} elsif ($verdict =~ /^reject$/i) {
+		return $server->protocol_response(PROTO_REJECT,$verdict_data);
+	} elsif ($verdict =~ /^discard$/i) {
+		return $server->protocol_response(PROTO_DISCARD,$verdict_data);
+	} elsif ($verdict =~ /^filter$/i) {
+		return $server->protocol_response(PROTO_FILTER,$verdict_data);
+	} elsif ($verdict =~ /^redirect$/i) {
+		return $server->protocol_response(PROTO_REDIRECT,$verdict_data);
+	} else {
+		$server->log(LOG_ERR,"[QUOTAS] Unknown Verdict specification in access control '$verdict'");
+		return $server->protocol_response(PROTO_DATA_ERROR);
+	}
 }
 
 
@@ -492,13 +506,10 @@ sub getIPKey
 
 		# Pull long for IP we going to test
 		my $ip_long = ip_to_long($ip);
-
 		# Convert mask to longs
-		my $mask_long = ipbits_to_mask($mask);
-
+		my $mask_long = bits_to_mask($mask);
 		# AND with mask to get network addy
 		my $network_long = $ip_long & $mask_long;
-
 		# Convert to quad;/
 		my $cidr_network = long_to_ip($network_long);
 
@@ -536,7 +547,7 @@ sub getQuotas
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get quota data: ".cbp::dblayer::Error());
-		next;
+		return -1;
 	}
 	while (my $quota = $sth->fetchrow_hashref()) {
 		push(@res,$quota);
@@ -634,7 +645,7 @@ sub getTrackingInfo
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_tracking: ".cbp::dblayer::Error());
-		next;
+		return -1;
 	}
 	my $qtrack = $sth->fetchrow_hashref(); 
 	DBFreeRes($sth);
@@ -661,7 +672,7 @@ sub getLimits
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_limits: ".cbp::dblayer::Error());
-		return;
+		return -1;
 	}
 	my $list;
 	while (my $qtrack = $sth->fetchrow_hashref()) {

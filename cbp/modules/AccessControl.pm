@@ -24,6 +24,7 @@ use warnings;
 
 use cbp::logging;
 use cbp::dblayer;
+use cbp::protocols;
 
 
 # User plugin info
@@ -68,13 +69,16 @@ sub check {
 	
 
 	# If we not enabled, don't do anything
-	return undef if (!$config{'enable'});
+	return CBP_SKIP if (!$config{'enable'});
 
 	# We only valid in the RCPT state
-	return undef if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
+	return CBP_SKIP if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
 
-	# Our verdict and data
-	my ($verdict,$verdict_data);
+	# Check if we have any policies matched, if not just pass
+	return CBP_SKIP if (!defined($sessionData->{'Policy'}));
+
+	# Result
+	my $res;
 
 	# Loop with priorities, low to high
 	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
@@ -93,7 +97,7 @@ sub check {
 			");
 			if (!$sth) {
 				$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
-				return undef;
+				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			my $row = $sth->fetchrow_hashref();
 			DBFreeRes($sth);
@@ -102,17 +106,28 @@ sub check {
 			next if (!$row);
 
 			# Setup result
-			$verdict = $row->{'Verdict'};
-			$verdict_data = $row->{'Data'};
+			if (!defined($row->{'Verdict'})) {
+				next; # No verdict
+			} elsif ($row->{'Verdict'} =~ /^hold$/i) {
+				return $server->protocol_response(PROTO_HOLD,$row->{'Data'});
+			} elsif ($row->{'Verdict'} =~ /^reject$/i) {
+				return $server->protocol_response(PROTO_REJECT,$row->{'Data'});
+			} elsif ($row->{'Verdict'} =~ /^discard$/i) {
+				return $server->protocol_response(PROTO_DISCARD,$row->{'Data'});
+			} elsif ($row->{'Verdict'} =~ /^filter$/i) {
+				return $server->protocol_response(PROTO_FILTER,$row->{'Data'});
+			} elsif ($row->{'Verdict'} =~ /^redirect$/i) {
+				return $server->protocol_response(PROTO_REDIRECT,$row->{'Data'});
+			} else {
+				$server->log(LOG_ERR,"[ACCESSCONTROL] Unknown Verdict specification in access control '".$row->{'Verdict'}."'");
+				return $server->protocol_response(PROTO_DATA_ERROR);
+			}
 
 		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
 
-		# Last if we found something
-		last if ($verdict);
-
 	} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_policy'}})
 
-	return ($verdict,$verdict_data);
+	return CBP_CONTINUE;
 }
 
 

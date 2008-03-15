@@ -30,15 +30,16 @@ use Config::IniFiles;
 use Getopt::Long;
 use Sys::Syslog;
 
-use cbp::logging;
+use cbp::version;
 
+use cbp::logging;
 use cbp::dbilayer;
 use cbp::cache;
 use cbp::tracking;
+use cbp::protocols;
 
-use cbp::version;
 
-use cbp::protocols::HTTP;
+
 
 # Override configuration
 sub configure {
@@ -328,8 +329,11 @@ sub process_request {
 		}
 	}
 
+	# Set protocol handler
+	$server->{'_protocol_handler'} = $found;
+	
 	# Process buffer
-	my $request = $found->{'protocol_parse'}($self,$buf);
+	my $request = $server->{'_protocol_handler'}->{'protocol_parse'}($self,$buf);
 
 	# Sanitize data
 	$request->{'sender'} = lc($request->{'sender'}) if (defined($request->{'sender'}));
@@ -338,7 +342,7 @@ sub process_request {
 	# Internal data
 	$request->{'_timestamp'} = time();
 	($request->{'_domain'} = $request->{'recipient'}) =~ s/[^@]+@//;
-	
+
 	# Grab session data
 	my $sessionData = getSessionDataFromRequest($self,$request);
 	if (ref $sessionData ne "HASH") {
@@ -355,14 +359,11 @@ sub process_request {
 		return;
 	}
 
-	#$self->log(LOG_DEBUG,"[CBPOLICYD:$$] SessionData:\n".Dumper($sessionData));
-
 	# Check the data we have
-	my $verdict = $self->do_work($sessionData);
+	my $response = $self->do_work($sessionData);
 
-	# Grab result & check, DUNNO if no data
-	print("$verdict\n");
-	print("\n");
+	# Send off result
+	print($response);
 }
 
 
@@ -371,95 +372,54 @@ sub do_work {
 	my ($self,$data) = @_;
 
 
-	# Set default result
-	my $result = "DUNNO";
-
 	# Loop with modules
 	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
 
 		# Skip over if we don't have a check...
 		next if (!defined($module->{'request_process'}));
 
-		# Run request_process in eval
-		my ($verdict,$verdict_data);
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Running module: ".$module->{'name'});
+		
+		# Run request in eval
+		my $res;
 		eval {
-			($verdict,$verdict_data) = $module->{'request_process'}($self,$data);
+			$res = $module->{'request_process'}($self,$data);
 		};
 		# Check results
 		if ($@) {
-			$self->log(LOG_ERR,"Error running module request_process()!\n$@");
+			$self->log(LOG_ERR,"[CBPOLICYD] Error running module request_process()!\n$@");
+			$res = $self->protocol_response(PROTO_ERROR);
+		}
+
+		# Check responses
+		if (!defined($res)) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD] No result:".$module->{'name'});
+			$res = $self->protocol_response(PROTO_ERROR);
+			last;
+
+		} elsif ($res == CBP_SKIP) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD] CBP_SKIP:".$module->{'name'});
 			next;
+
+		} elsif ($res == CBP_CONTINUE) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD] CBP_CONTINUE:".$module->{'name'});
+			next;
+
+		} elsif ($res == CBP_STOP) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD] CBP_STOP:".$module->{'name'});
+			last;
+
+		} elsif ($res == CBP_ERROR) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD] CBP_ERROR:".$module->{'name'});
+			$self->log(LOG_ERR,"[CBPOLICYD] Error returned from module '".$module->{'name'}."'");
+			last;
 		}
-
-		# Next if no verdict
-		next if (!$verdict);
-
-		# HOLD
-		if ($verdict =~ /^hold$/i) {
-			# Set verdict data
-			$verdict_data = "Policy hold" if (!defined($verdict_data));
-			$result = "HOLD $verdict_data";
-		
-		# REJECT
-		} elsif ($verdict =~ /^reject$/i) {
-			# Set verdict data
-			$verdict_data = "Policy rejection" if (!defined($verdict_data));
-			$result = "REJECT $verdict_data";
-		
-		# DISCARD
-		} elsif ($verdict =~ /^discard$/i) {
-			# Set verdict data
-			$verdict_data = "Policy discard" if (!defined($verdict_data));
-			$result = "DISCARD $verdict_data";
-		
-		# DEFER
-		} elsif ($verdict =~ /^defer_if_permit$/i) {
-			# Set verdict data
-			$verdict_data = "Policy defer" if (!defined($verdict_data));
-			$result = "DEFER_IF_PERMIT $verdict_data";
-		} elsif ($verdict =~ /^4[0-9]{2}/i) {
-			# Set verdict data
-			$verdict_data = "Policy defer by code 4xx" if (!defined($verdict_data));
-			$result = "$verdict $verdict_data";
-		
-		# FILTER
-		} elsif ($verdict =~ /^filter$/i) {
-			# Sanity check
-			if (!defined($verdict_data) || $verdict_data eq "") {
-				$self->log(LOG_ERR,"[CBPOLICYD] Verdict data returned from module '".$module->{'name'}."' for FILTER is invalid");
-				next;
-			}
-			# Set verdict data
-			$result = "FILTER $verdict_data";
-		
-		# REDIRECT
-		} elsif ($verdict =~ /^redirect$/i) {
-			# Sanity check
-			if (!defined($verdict_data) || $verdict_data eq "") {
-				$self->log(LOG_ERR,"[CBPOLICYD] Verdict data returned from module '".$module->{'name'}."' for REDIRECT is invalid");
-				next;
-			}
-			# Set verdict data
-			$result = "REDIRECT $verdict_data";
-		
-		# OK
-		} elsif ($verdict =~ /^ok/i) {
-			$self->log(LOG_ERR,"Ok ... total whitelisting");
-			# Set verdict data
-			$result = "OK";
-		}
-
-		# Last because we have a verdict now
-		last;
 	}
 
-	$self->log(LOG_ERR,"Policy Result: $result");
+	# Grab and return response
+	my $response = $self->protocol_getresponse();
 
-	# Make sure we have no newline
-	chomp($result);
-
-	# Return result
-	return "action=$result";
+	return $response;
 }
 
 
@@ -503,6 +463,38 @@ sub maillog
 	} else {
 		Sys::Syslog::syslog('info','%s',$msg);
 	}
+}
+
+
+# Protocol response setting...
+sub protocol_response
+{
+	my $self = shift;
+	my $server = $self->{'server'};
+
+	# Make sure the response handler exists
+	if (!defined($server->{'_protocol_handler'}->{'protocol_response'})) {
+		$self->log(LOG_ERR,"[CBPOLICYD] No protocol response handler available");
+		return -1;
+	}
+
+	return $server->{'_protocol_handler'}->{'protocol_response'}($self,@_);
+}
+
+
+# Get protocol response
+sub protocol_getresponse
+{
+	my $self = shift;
+	my $server = $self->{'server'};
+
+	# Make sure the response handler exists
+	if (!defined($server->{'_protocol_handler'}->{'protocol_getresponse'})) {
+		$self->log(LOG_ERR,"[CBPOLICYD] No protocol getresponse handler available");
+		return -1;
+	}
+
+	return $server->{'_protocol_handler'}->{'protocol_getresponse'}($self);
 }
 
 

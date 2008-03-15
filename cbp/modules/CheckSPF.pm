@@ -24,6 +24,7 @@ use warnings;
 
 use cbp::logging;
 use cbp::dblayer;
+use cbp::protocols;
 
 use Mail::SPF;
 
@@ -73,13 +74,16 @@ sub check {
 	my ($server,$sessionData) = @_;
 
 	# If we not enabled, don't do anything
-	return undef if (!$config{'enable'});
+	return CBP_SKIP if (!$config{'enable'});
 
 	# We only valid in the RCPT state
-	return undef if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
+	return CBP_SKIP if (!defined($sessionData->{'ProtocolState'}) || $sessionData->{'ProtocolState'} ne "RCPT");
 
 	# We cannot do SPF on <>
-	return undef if (!defined($sessionData->{'Sender'}) || $sessionData->{'Sender'} eq "");
+	return CBP_SKIP if (!defined($sessionData->{'Sender'}) || $sessionData->{'Sender'} eq "");
+
+	# Check if we have any policies matched, if not just pass
+	return CBP_SKIP if (!defined($sessionData->{'Policy'}));
 
 	# Policy we're about to build
 	my %policy;
@@ -103,7 +107,7 @@ sub check {
 			");
 			if (!$sth) {
 				$server->log(LOG_ERR,"[CHECKSPF] Database query failed: ".cbp::dblayer::Error());
-				return undef;
+				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			while (my $row = $sth->fetchrow_hashref()) {
 				# If defined, its to override
@@ -173,9 +177,9 @@ sub check {
 
 			# Check if we need to reject
 			if ($action eq "reject") {
-				return("REJECT","Failed SPF check; $reason");
+				return $server->protocol_response(PROTO_REJECT,"Failed SPF check; $reason");
 			} elsif ($action eq "add_header") {
-				return("PREPEND",$result->received_spf_header);
+				return $server->protocol_response(PROTO_PREPEND,$result->received_spf_header);
 			}
 
 		# Intended action is accept and mark
@@ -195,7 +199,7 @@ sub check {
 
 			# Check if we need to add a header
 			if ($action eq "add_header") {
-				return("PREPEND",$result->received_spf_header);
+				return $server->protocol_response(PROTO_PREPEND,$result->received_spf_header);
 			}
 
 		# Intended action is accept
@@ -215,7 +219,7 @@ sub check {
 
 			# Check if we need to add a header
 			if ($action eq "add_header") {
-				return("PREPEND",$result->received_spf_header);
+				return $server->protocol_response(PROTO_PREPEND,$result->received_spf_header);
 			}
 
 		# Intended action is unspecified
@@ -237,9 +241,9 @@ sub check {
 
 			# Check if we need to reject
 			if ($action eq "reject") {
-				return("REJECT","Failed SPF check; $reason");
+				return $server->protocol_response(PROTO_REJECT,"Failed SPF check; $reason");
 			} elsif ($action eq "add_header") {
-				return("PREPEND",$result->received_spf_header);
+				return $server->protocol_response(PROTO_PREPEND,$result->received_spf_header);
 			}
 
 		# Intended action is either accept or reject
@@ -261,9 +265,9 @@ sub check {
 
 			# Check if we need to defer
 			if ($action eq "defer") {
-				return("DEFER_IF_PERMIT","Failed SPF check: $reason");
+				return $server->protocol_response(PROTO_DEFER,"Failed SPF check; $reason");
 			} elsif ($action eq "add_header") {
-				return("PREPEND",$result->received_spf_header);
+				return $server->protocol_response(PROTO_PREPEND,$result->received_spf_header);
 			}
 
 
@@ -282,12 +286,12 @@ sub check {
 					$sessionData->{'Recipient'});
 
 			if ($action eq "add_header") {
-				return("PREPEND",$result->received_spf_header);
+				return $server->protocol_response(PROTO_PREPEND,$result->received_spf_header);
 			}
 		}
 	}
 
-	return undef;
+	return CBP_CONTINUE;
 }
 
 
