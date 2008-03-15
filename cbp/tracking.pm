@@ -290,7 +290,7 @@ sub updateSessionData
 		# Generate recipient data
 		my $recipientData = $sessionData->{'RecipientData'}."/$policyData";
 
-		$server->log(LOG_ERR,"[TRACKING] RecipientData = $recipientData");
+		$server->log(LOG_DEBUG,"[TRACKING] RecipientData = $recipientData");
 
 		# Record tracking info
 		my $sth = DBDo("
