@@ -127,7 +127,7 @@ sub protocol_response
 
 	# Check protocol responses...
 	if ($resp == PROTO_PASS) {
-		$response = "503";
+		$response = "200";
 		$response_data = $data;
 		return CBP_CONTINUE;
 
@@ -202,7 +202,7 @@ sub protocol_getresponse
 
 	# If its undefined, set to DUNNO
 	if (!defined($response)) {
-		$response = "503";
+		$response = "200";
 		$response_data = "Pass";
 	}
 
