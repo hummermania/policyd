@@ -210,7 +210,8 @@ sub check {
 			# Check if this is a valid cidr or IP
 			if (ref $parsedIP eq "HASH") {
 				# Check if IP is whitelisted
-				if ($parsedIP->{'IP_Long'} >= $parsedIP->{'Network_Long'} && $parsedIP->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
+				if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
+							$sessionData->{'ParsedClientAddress'} <= $parsedIP->{'Broadcast_Long'}) {
 					$server->maillog("module=CheckHelo, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},

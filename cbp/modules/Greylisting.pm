@@ -197,7 +197,8 @@ sub check {
 			if (ref $parsedIP eq "HASH") {
 
 				# Check if IP is whitelisted
-				if ($parsedIP->{'IP_Long'} >= $parsedIP->{'Network_Long'} && $parsedIP->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
+				if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
+						$sessionData->{'ParsedClientAddress'}->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
 					$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
