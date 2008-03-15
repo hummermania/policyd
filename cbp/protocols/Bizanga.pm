@@ -1,4 +1,4 @@
-# Postfix SMTP Access delegation protocol support module
+# Bizanga protocol support module
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -16,13 +16,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-package cbp::protocols::Postfix;
+package cbp::protocols::Bizanga;
 
 
 use strict;
 use warnings;
 
 
+use POSIX;
+use URI::Escape;
+
+use cbp::version;
 use cbp::logging;
 use cbp::dblayer;
 use cbp::protocols;
@@ -30,7 +34,7 @@ use cbp::protocols;
 
 # User plugin info
 our $pluginInfo = {
-	name 			=> "Postfix SMTP Access Delegation Protocol Suppot Module",
+	name 			=> "Bizanga Protocol Suppot Module",
 	init		 	=> \&init,
 	priority	 	=> 50,
 	protocol_check	=> \&protocol_check,
@@ -42,6 +46,7 @@ our $pluginInfo = {
 
 # Module configuration
 my %config;
+
 
 # Response data
 my ($response,$response_data);
@@ -57,7 +62,7 @@ sub init {
 
 	# Check if enabled
 	if ($config{'enable'} =~ /^\s*(y|yes|1|on)\s*$/i) {
-		$server->log(LOG_NOTICE,"  => Protocol(Postfix): enabled");
+		$server->log(LOG_NOTICE,"  => Protocol(Bizanga): enabled");
 		$config{'enable'} = 1;
 	}
 }
@@ -71,10 +76,12 @@ sub protocol_check {
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
 
-	# Check for policy protocol
-	if ($buffer =~ /^\w+=[^\012]+\015?\012/) {
+	# Check for HTTP header
+	if ($buffer =~ /^\w+[^\012]+HTTP\/(\d+)\.(\d+)\015?\012/) {
+		my ($a,$b) = ($1,$2);
+
 		if ($buffer =~ /\015?\012\015?\012/) {
-			$server->log(LOG_INFO,"Identified Postfix protocol");
+			$server->log(LOG_INFO,"Identified HTTP/$a.$b protocol");
 			return 1;
 		}
 	}
@@ -89,14 +96,24 @@ sub protocol_parse {
 
 	my %res;
 
+	# remove /?
+	$buffer =~ s/^\w+ \/\?//;
+
 	# Loop with each line
-	foreach my $line (split /\015?\012/, $buffer) {
+	foreach my $item (split /[& ]/, $buffer) {
 		# If we don't get a pair, b0rk
-		last unless $line =~ s/^([^=]+)=(.*)$//;
-		$res{$1} = $2;
+		last unless $item =~ s/^([^=]+)=(.*)$//;
+
+		# Clean up strings, and shove into hash
+		my ($param,$value) = (uri_unescape($1),uri_unescape($2));
+		$res{$param} = $value;
+		$server->log(LOG_DEBUG,"BIZANGA PROTOCOL: $param = $value");
 	}
 
-	$res{'_protocol_transport'} = "Postfix";
+	# We need some extra info to make everything else happy...
+	$res{'protocol_state'} = "RCPT" if (!defined($res{'protocol_state'}));
+
+	$res{'_protocol_transport'} = "HTTP";
 
 	return \%res;
 }
@@ -110,67 +127,62 @@ sub protocol_response
 
 	# Check protocol responses...
 	if ($resp == PROTO_PASS) {
-		$response = "DUNNO";
+		$response = "503";
 		$response_data = $data;
 		return CBP_CONTINUE;
 
 	} elsif ($resp == PROTO_REJECT) {
 		if ($data =~ /^(5[0-9]{2}) (.*)/) {
-			$response = $1;
+			$response = "403";
 			$response_data = $2;
 		} else {
-			$response = "REJECT";
+			$response = "403";
 			$response_data = $data;
 		}
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_DEFER) {
 		if ($data =~ /^(4[0-9]{2}) (.*)/) {
-			$response = $1;
+			$response = "401";
 			$response_data = $2;
 		} else {
-			$response = "DEFER";
+			$response = "401";
 			$response_data = $data;
 		}
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_HOLD) {
-		$response = "HOLD";
-		$response_data = $data;
+		$server->log(LOG_ERR,"[PROTOCOL/Bizanga] Unsupported return PROTO_HOLD");
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_REDIRECT) {
-		$response = "REDIRECT";
-		$response_data = $data;
+		$server->log(LOG_ERR,"[PROTOCOL/Bizanga] Unsupported return PROTO_REDIRECT");
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_DISCARD) {
-		$response = "DISCARD";
-		$response_data = $data;
+		$server->log(LOG_ERR,"[PROTOCOL/Bizanga] Unsupported return PROTO_DISCARD");
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_FILTER) {
-		$response = "FILTER";
-		$response_data = $data;
+		$server->log(LOG_ERR,"[PROTOCOL/Bizanga] Unsupported return PROTO_FILTER");
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_PREPEND) {
-		$response = "PREPEND";
-		$response_data = $data;
+		$server->log(LOG_ERR,"[PROTOCOL/Bizanga] Unsupported return PROTO_PREPEND");
 		return CBP_CONTINUE;
 
 	} elsif ($resp == PROTO_ERROR) {
-		$response = "DEFER";
+		$response = "504";
 		$response_data = $data;
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_DB_ERROR) {
-		$response = "DEFER";
+		$response = "505";
 		$response_data = $data;
 		return CBP_STOP;
 	
 	} elsif ($resp == PROTO_DATA_ERROR) {
-		$response = "DEFER";
+		$response = "506";
 		$response_data = $data;
 		return CBP_STOP;
 	
@@ -190,14 +202,27 @@ sub protocol_getresponse
 
 	# If its undefined, set to DUNNO
 	if (!defined($response)) {
-		$response = "DUNNO";
+		$response = "503";
+		$response_data = "Pass";
 	}
 
-	# Build string we need
-	$resp = "action=$response" . ( defined($response_data) ? " $response_data" : "" );
+	# Get timestamp
+	my $timestamp = strftime("%a, %d %b %Y %H:%M:%S %Z",localtime());
+
+	# Construct response
+	my $resp<<EOF
+HTTP/1.0 $response $response_data
+Date: $timestamp
+Content-Length: 0
+Content-Type: text/plain
+Server: Policyd/".VERSION." (Cluebringer)
+Connection: close
+EOF
 
 	return "$resp\n\n"
 }
+
+
 
 
 1;
