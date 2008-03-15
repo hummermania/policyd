@@ -35,6 +35,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 use cbp::dblayer;
 use cbp::logging;
 use cbp::policies;
+use cbp::system qw(parseCIDR);
 
 
 # Database handle
@@ -267,6 +268,7 @@ sub getSessionDataFromRequest
 	# Shovei n various thing not stored in DB
 	$sessionData->{'ProtocolState'} = $request->{'protocol_state'};
 	$sessionData->{'Timestamp'} = $request->{'_timestamp'};
+	$sessionData->{'ParsedClientAddress'} = parseCIDR($sessionData->{'ClientAddress'});
 
 	return $sessionData;
 }
