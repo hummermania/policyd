@@ -136,9 +136,25 @@ sub check {
 				'helo_identity' => $sessionData->{'Helo'}, # optional,
 		);
 
-		# Get result
-		my $result = $spf_server->process($rqst);
-	
+        # Eval to catch sig ALRM
+		my $result;
+        eval {
+			local $SIG{'ALRM'} = sub { die "Timed Out!\n" };
+
+			# Give query 15s to return
+           	alarm(15);
+
+			# Get result
+			$result = $spf_server->process($rqst);
+        };
+
+		# Check results
+		if ($@ =~ /timed out/i) {
+			# We timed out, skip...
+			$server->log(LOG_INFO,"[CHECKSPF] Timed out!");
+			return CBP_SKIP;
+		}
+
 		$server->log(LOG_DEBUG,"[CHECKSPF] SPF result: ".$result->local_explanation);
 
 		# Make reason more pretty
