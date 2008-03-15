@@ -31,7 +31,7 @@ our (@ISA,@EXPORT);
 
 	ip_to_long
 	long_to_ip
-	ipbits_to_mask
+	bits_to_mask
 
 	parseCIDR
 
@@ -76,7 +76,7 @@ sub ip_to_long
 	return undef if (!isValidIP($ip));
 
 	# Unpack IP into a long
-	return unpack('L', inet_aton($ip));
+	return unpack('N', inet_aton($ip));
 }
 
 
@@ -85,7 +85,7 @@ sub long_to_ip {
 	my $long = shift;
 
 	# Pack into network and convert to IP
-	my $ip = inet_ntoa(pack('L', $long));
+	my $ip = inet_ntoa(pack('N', $long));
 	
 	# Validate
 	return undef if (!isValidIP($ip));
@@ -95,14 +95,14 @@ sub long_to_ip {
 
 
 # Get mask for ip bits
-sub ipbits_to_mask {
+sub bits_to_mask {
 	my $nbits = shift;
 
 	# Get string to pass to pack
 	my $str = '1' x $nbits . '0' x (32 - $nbits);
 
 	# Grab long mask
-	my $mask = unpack('L', pack('B*', $str));
+	my $mask = unpack('N', pack('B*', $str));
 	
 	return $mask;
 }
@@ -121,18 +121,22 @@ sub parseCIDR
 		# Pull long for IP we going to test
 		my $ip_long = ip_to_long($ip);
 		# Convert mask to longs
-		my $mask_long = ipbits_to_mask($mask);
+		my $mask_long = bits_to_mask($mask);
+		my $mask2_long = IPMASK ^ $mask_long;
 		# AND with mask to get network addy
 		my $network_long = $ip_long & $mask_long;
-		# AND with mask to get broadcast addy
-		my $bcast_long = $ip_long & ~$mask_long;
+		# AND with mask2 to get broadcast addy
+		my $bcast_long = $ip_long | $mask2_long;
 
 		# Retrun array of data
 		my $res = {
 				'IP_Long' => $ip_long,
+				'IP' => long_to_ip($ip_long),
 				'Mask_Long' => $mask_long,
 				'Network_Long' => $network_long,
-				'Broadcast_Long' => $bcast_long
+				'Network' => long_to_ip($network_long),
+				'Broadcast_Long' => $bcast_long,
+				'Broadcast' => long_to_ip($bcast_long),
 		};
 
 		return $res;
