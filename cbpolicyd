@@ -393,28 +393,25 @@ sub do_work {
 
 		# Check responses
 		if (!defined($res)) {
-			$self->log(LOG_DEBUG,"[CBPOLICYD] No result:".$module->{'name'});
 			$res = $self->protocol_response(PROTO_ERROR);
 			last;
 
 		} elsif ($res == CBP_SKIP) {
-			$self->log(LOG_DEBUG,"[CBPOLICYD] CBP_SKIP:".$module->{'name'});
 			next;
 
 		} elsif ($res == CBP_CONTINUE) {
-			$self->log(LOG_DEBUG,"[CBPOLICYD] CBP_CONTINUE:".$module->{'name'});
 			next;
 
 		} elsif ($res == CBP_STOP) {
-			$self->log(LOG_DEBUG,"[CBPOLICYD] CBP_STOP:".$module->{'name'});
 			last;
 
 		} elsif ($res == CBP_ERROR) {
-			$self->log(LOG_DEBUG,"[CBPOLICYD] CBP_ERROR:".$module->{'name'});
 			$self->log(LOG_ERR,"[CBPOLICYD] Error returned from module '".$module->{'name'}."'");
 			last;
 		}
 	}
+	
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Done with modules");
 
 	# Grab and return response
 	my $response = $self->protocol_getresponse();
