@@ -210,14 +210,13 @@ sub protocol_getresponse
 	my $timestamp = strftime("%a, %d %b %Y %H:%M:%S %Z",localtime());
 
 	# Construct response
-	my $resp<<EOF
-HTTP/1.0 $response $response_data
+	$resp = "HTTP/1.0 $response $response_data
 Date: $timestamp
 Content-Length: 0
 Content-Type: text/plain
 Server: Policyd/".VERSION." (Cluebringer)
 Connection: close
-EOF
+";
 
 	return "$resp\n\n"
 }
