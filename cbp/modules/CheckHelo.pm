@@ -175,7 +175,8 @@ sub check {
 				)
 		");
 		if (!$sth) {
-			$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
+			use Data::Dumper;
+			$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error().", data: ".Dumper($sessionData));
 			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 		$server->log(LOG_DEBUG,"[CHECKHELO] Recorded helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'");
