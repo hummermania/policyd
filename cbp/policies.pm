@@ -377,8 +377,8 @@ sub encodePolicyData
 {
 	my ($email,$policy) = @_;
 
-	# Generate...    recipient@domain#priority=policy_id,policy_id,policy_id;priority2=policy_id2,policy_id2/recipient2@...
-	my $ret = "$email#";
+	# Generate...    <recipient@domain>#priority=policy_id,policy_id,policy_id;priority2=policy_id2,policy_id2/recipient2@...
+	my $ret = "<$email>#";
 	foreach my $priority (keys %{$policy}) {
 		$ret .= sprintf('%s=%s;',$priority,join(',',@{$policy->{$priority}}));
 	}
@@ -399,7 +399,7 @@ sub decodePolicyData
 		# Skip over first /
 		next if ($item eq "");
 
-		my ($email,$rawPolicy) = ($item =~ /([^#]+)#(.*)/);
+		my ($email,$rawPolicy) = ($item =~ /<([^>]*)>#(.*)/);
 		
 		# Loop with raw policies
 		foreach my $policy (split(/;/,$rawPolicy)) {
