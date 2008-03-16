@@ -155,6 +155,13 @@ sub check {
 			return CBP_SKIP;
 		}
 
+		# Check if we have a local_explanation, if not skip
+		if (!defined($result->local_explanation)) {
+			# No local explanation
+			$server->log(LOG_INFO,"[CHECKSPF] No local explanation, skipping...");
+			return CBP_SKIP;
+		}
+
 		$server->log(LOG_DEBUG,"[CHECKSPF] SPF result: ".$result->local_explanation);
 
 		# Make reason more pretty
