@@ -27,56 +27,64 @@ printHeader();
 	<ul>
 		<li id="listtitle">Policies &amp; Policy Groups
 			<ul>
-				<li>Define policy groups made up of various combinations of tags.
-				<li>Define and manage policies comprising of ACL's which can include groups.
+				<li>Define policy groups made up of various combinations of tags.</li>
+				<li>Define and manage policies comprising of ACL's which can include groups.</li>
 			</ul>
+		</li>
 
 		<li>Access Control
 			<ul>
-				<li>Control access based on policy. eg. Rejecting mail matching a specific policy.
+				<li>Control access based on policy. eg. Rejecting mail matching a specific policy.</li>
 			</ul>
+		</li>
 
 		<li>Amavis Integration
 			<ul>
-				<li>Anti-virus checks.
-				<li>Anti-spam checks.
-				<li>Banned filename checks.
-				<li>Email header checks.
-				<li>Message size limits.
-				<li>Blacklist/whitelist senders.
-				<li>Email interception (BCC).
+				<li>Anti-virus checks.</li>
+				<li>Anti-spam checks.</li>
+				<li>Banned filename checks.</li>
+				<li>Email header checks.</li>
+				<li>Message size limits.</li>
+				<li>Blacklist/whitelist senders.</li>
+				<li>Email interception (BCC).</li>
 			</ul>
+		</li>
 
 		<li>Greylisting
 			<ul>
-				<li>Support for greylisting and masking sender IP addresses.
-				<li>Support for auto-whitelisting and auto-greylisting based on count or count+percentage.
+				<li>Support for greylisting and masking sender IP addresses.</li>
+				<li>Support for auto-whitelisting and auto-greylisting based on count or count+percentage.</li>
 			</ul>
+		</li>
 
 		<li>HELO/EHLO Checks
 			<ul>
-				<li>Check sending server HELO/EHLO for validity and RFC compliance.
+				<li>Check sending server HELO/EHLO for validity and RFC compliance.</li>
 			</ul>
+		</li>
 
 		<li>SPF Checks
 			<ul>
-				<li>Check the SPF records of a domain and see if the inbound email is allowed or prohibited.
+				<li>Check the SPF records of a domain and see if the inbound email is allowed or prohibited.</li>
 			</ul>
+		</li>
 
 		<li>Postfix Integration
 			<ul>
-				<li>Setup and create transports.
-				<li>Create mailboxes.
-				<li>Create mailbox aliases.
-				<li>Manage distribution groups.
+				<li>Setup and create transports.</li>
+				<li>Create mailboxes.</li>
+				<li>Create mailbox aliases.</li>
+				<li>Manage distribution groups.</li>
 			</ul>
+		</li>
 		
 		<li>Quotas
 			<ul>
-				<li>Define message count quotas for policies.
-				<li>Define cumulative size quotas for policies.
-				<li>Track these quotas based on various methods, including sender IP block, sender user/domain/email address.
+				<li>Define message count quotas for policies.</li>
+				<li>Define cumulative size quotas for policies.</li>
+				<li>Track these quotas based on various methods, including sender IP block, sender user/domain/email address.</li>
 			</ul>
+		</li>
 
 	</ul>
 <?php
