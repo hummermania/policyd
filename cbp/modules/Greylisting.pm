@@ -321,7 +321,7 @@ sub check {
 							$sessionData->{'Sender'},
 							$sessionData->{'Recipient'});
 
-					return ("REJECT","Greylisting in effect, sending server blacklisted");
+					return $server->protocol_response(PROTO_REJECT,"Greylisting in effect, sending server blacklisted");
 				}
 
 			} # if ($row)
@@ -445,7 +445,7 @@ sub check {
 									$sessionData->{'Sender'},
 									$sessionData->{'Recipient'});
 
-							return ("REJECT","Greylisting in effect, sending server blacklisted");
+							return $server->protocol_response(PROTO_REJECT,"Greylisting in effect, sending server blacklisted");
 						}
 					} # if ($row->{'Count'} >= $policy{'AutoBlacklistCount'})
 				} # if (defined($policy{'AutoBlacklistCount'}) && $policy{'AutoBlacklistCount'} > 0)
