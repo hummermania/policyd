@@ -290,6 +290,8 @@ sub updateSessionData
 		# Get encoded policy data
 		my $policyData = encodePolicyData($sessionData->{'Recipient'},$sessionData->{'Policy'});
 		# Generate recipient data
+		$server->log(LOG_ERR,"[TRACKING] RecipientDATA is NULL") if (!defined($sessionData->{'RecipientData'}));
+		$server->log(LOG_ERR,"[TRACKING] PolicyDATA is NULL") if (!defined($policyData));
 		my $recipientData = $sessionData->{'RecipientData'}."/$policyData";
 
 		$server->log(LOG_DEBUG,"[TRACKING] RecipientData = $recipientData");
