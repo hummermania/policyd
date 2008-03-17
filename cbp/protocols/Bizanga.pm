@@ -208,6 +208,9 @@ sub protocol_getresponse
 		$response_data = "Pass";
 	}
 
+	# Check if we have any additional data
+	$response_data = "" if (!defined($response_data));	
+
 	# Get timestamp
 	my $timestamp = strftime("%a, %d %b %Y %H:%M:%S %Z",localtime());
 
