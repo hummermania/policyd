@@ -77,11 +77,13 @@ sub protocol_check {
 	return undef if (!$config{'enable'});
 
 	# Check for HTTP header
-	if ($buffer =~ /^\w+[^\012]+HTTP\/(\d+)\.(\d+)\015?\012/) {
+	if ($buffer =~ /^GET [^\s]+ HTTP\/(\d+)\.(\d+)\015?\012/) {
 		my ($a,$b) = ($1,$2);
 
+		$server->log(LOG_DEBUG,"Possible Bizanga (HTTP/$a.$b) protocol");
+
 		if ($buffer =~ /\015?\012\015?\012/) {
-			$server->log(LOG_INFO,"Identified HTTP/$a.$b protocol");
+			$server->log(LOG_INFO,"Identified Bizanga (HTTP/$a.$b) protocol");
 			return 1;
 		}
 	}
@@ -107,7 +109,7 @@ sub protocol_parse {
 		# Clean up strings, and shove into hash
 		my ($param,$value) = (uri_unescape($1),uri_unescape($2));
 		$res{$param} = $value;
-		$server->log(LOG_DEBUG,"BIZANGA PROTOCOL: $param = $value");
+		$server->log(LOG_DEBUG,"BIZANGA PROTOCOL: $param =>$value<=");
 	}
 
 	# We need some extra info to make everything else happy...
