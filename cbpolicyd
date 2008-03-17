@@ -238,11 +238,9 @@ sub child_init_hook
 	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
 	if (!defined($self->{'client'}->{'dbh'})) {
 		$self->log(LOG_WARN,"Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
-		die;
 	}
 	if ($self->{'client'}->{'dbh'}->connect()) {
 		$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
-		die;
 	}
 
 }
@@ -354,6 +352,39 @@ sub process_request {
 	# Internal data
 	$request->{'_timestamp'} = time();
 	($request->{'_domain'} = $request->{'recipient'}) =~ s/[^@]+@//;
+	
+	
+	# Check if we got connected, if not ... bypass
+	if (defined($self->{'client'}->{'dbh'})) {
+		my $action;
+
+		$self->log(LOG_WARN,"Client in BYPASS mode due to DB connection failure!");
+		# Check bypass mode
+		if (!defined($self->{'inifile'}{'server'}{'bypass_mode'})) {
+			$self->log(LOG_ERR,"No bypass_mode specified for failed database connections");
+			$self->protocol_response(PROTO_DB_ERROR);
+			$action = "tempfail";
+		# Check for "tempfail"
+		}elsif ($self->{'inifile'}{'server'}{'bypass_mode'} eq "tempfail") {
+			$self->protocol_response(PROTO_PASS);
+			$action = "tempfail";
+		# And for "bypass"
+		} elsif ($self->{'inifile'}{'server'}{'bypass_mode'} eq "pass") {
+			$self->protocol_response(PROTO_DB_ERROR);
+			$action = "pass";
+		}
+		
+		$self->maillog("module=Core, action=$action, host=%s, from=%s, to=%s, reason=db_failure_bypass",
+				$request->{'client_address'} ? $request->{'client_address'} : "unknown",
+				$request->{'helo_name'} ? $request->{'helo_name'} : "",
+				$request->{'sender'} ? $request->{'sender'} : "unknown",
+				$request->{'recipient'} ? $request->{'recipient'} : "unknown");
+
+		print($self->protocol_getresponse());
+		# Fail hard
+		exit 1;
+	}
+
 
 	# Grab session data
 	my $sessionData = getSessionDataFromRequest($self,$request);
