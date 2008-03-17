@@ -236,13 +236,17 @@ sub child_init_hook
 
 	# Init system stuff
 	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
-	if (!defined($self->{'client'}->{'dbh'})) {
+	if (defined($self->{'client'}->{'dbh'})) {
+		# Check if we succeeded
+		if (!($self->{'client'}->{'dbh'}->connect())) {
+			# If we succeeded, record OK
+			$self->{'client'}->{'dbh_ok'} = 1;
+		} else {
+			$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+		}
+	} else {
 		$self->log(LOG_WARN,"Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
 	}
-	if ($self->{'client'}->{'dbh'}->connect()) {
-		$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
-	}
-
 }
 
 
@@ -266,9 +270,6 @@ sub process_request {
 	my $server = $self->{'server'};
 	my $log = defined($server->{'config'}{'logging'}{'modules'});
 
-
-	# Setup database handle
-	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 	# Found module
 	my $found;
@@ -355,7 +356,7 @@ sub process_request {
 	
 	
 	# Check if we got connected, if not ... bypass
-	if (defined($self->{'client'}->{'dbh'})) {
+	if (!defined($self->{'client'}->{'dbh_ok'})) {
 		my $action;
 
 		$self->log(LOG_WARN,"Client in BYPASS mode due to DB connection failure!");
@@ -385,6 +386,8 @@ sub process_request {
 		exit 1;
 	}
 
+	# Setup database handle
+	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 	# Grab session data
 	my $sessionData = getSessionDataFromRequest($self,$request);
