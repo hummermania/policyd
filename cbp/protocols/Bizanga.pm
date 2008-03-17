@@ -220,7 +220,7 @@ Server: Policyd/".VERSION." (Cluebringer)
 Connection: close
 ";
 
-	return "$resp\n\n"
+	return "$resp\n"
 }
 
 
