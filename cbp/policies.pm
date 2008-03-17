@@ -36,8 +36,6 @@ use cbp::logging;
 use cbp::dblayer;
 use cbp::system;
 
-use Data::Dumper;
-
 
 # Database handle
 my $dbh = undef;
@@ -99,7 +97,7 @@ sub getPolicy
 			AND policy_members.PolicyID = policies.ID
 	');
 	if (!$sth) {
-		setError(cbp::dblayer::Error());
+		$server->log(LOG_DEBUG,"[POLICIES] Error while selecing policy members from database: ".cbp::dblayer::Error());
 		return undef;
 	}
 	# Loop with results
