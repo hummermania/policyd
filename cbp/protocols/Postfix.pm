@@ -73,6 +73,9 @@ sub protocol_check {
 
 	# Check for policy protocol
 	if ($buffer =~ /^\w+=[^\012]+\015?\012/) {
+
+		$server->log(LOG_DEBUG,"Possible Postfix protocol");
+
 		if ($buffer =~ /\015?\012\015?\012/) {
 			$server->log(LOG_INFO,"Identified Postfix protocol");
 			return 1;
