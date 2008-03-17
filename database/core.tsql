@@ -29,8 +29,8 @@ INSERT INTO policies (Name,Priority,Description) VALUES ('Default Internal',20,'
 INSERT INTO policies (Name,Priority,Description) VALUES ('Test',50,'Test policy');
 
 
-/* Access control list for policies */
-CREATE TABLE policy_acls (
+/* Member list for policies */
+CREATE TABLE policy_members (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
@@ -57,19 +57,19 @@ CREATE TABLE policy_acls (
 
 
 /* Default System Policy */
-INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
 	(1,NULL,NULL);
 /* Default Outbound System Policy */
-INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
 	(2,"%internal_ips,%internal_domains","!%internal_domains");
 /* Default Inbound System Policy */
-INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
 	(3,"!%internal_ips,!%internal_domains","%internal_domains");
 /* Default Internal System Policy */
-INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
 	(4,"%internal_ips,%internal_domains","%internal_domains");
 /* Test Policy */
-INSERT INTO policy_acls (PolicyID,Source,Destination) VALUES
+INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
 	(5,"@lbsd.net",NULL);
 
 

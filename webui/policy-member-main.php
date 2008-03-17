@@ -45,7 +45,7 @@ if (isset($_REQUEST['policy_id'])) {
 	$policy_stmt->execute(array($_REQUEST['policy_id']));
 	$row = $policy_stmt->fetchObject();
 ?>
-	<form id="main_form" action="policy-acl-main.php" method="post">
+	<form id="main_form" action="policy-member-main.php" method="post">
 		<div>
 			<input type="hidden" name="policy_id" value="<?php echo $_REQUEST['policy_id'] ?>" />
 		</div>
@@ -59,13 +59,13 @@ if (isset($_REQUEST['policy_id'])) {
 						var myobj = document.getElementById('main_form_action');
 
 						if (myobj.selectedIndex == 2) {
-							myform.action = 'policy-acl-add.php';
+							myform.action = 'policy-member-add.php';
 							myform.submit();
 						} else if (myobj.selectedIndex == 4) {
-							myform.action = 'policy-acl-change.php';
+							myform.action = 'policy-member-change.php';
 							myform.submit();
 						} else if (myobj.selectedIndex == 5) {
-							myform.action = 'policy-acl-delete.php';
+							myform.action = 'policy-member-delete.php';
 							myform.submit();
 						}
 ">
@@ -90,7 +90,7 @@ if (isset($_REQUEST['policy_id'])) {
 			</tr>
 <?php
 
-			$stmt = $db->prepare('SELECT ID, Source, Destination, Disabled FROM policy_acls WHERE PolicyID = ?');
+			$stmt = $db->prepare('SELECT ID, Source, Destination, Disabled FROM policy_members WHERE PolicyID = ?');
 			$res = $stmt->execute(array($_REQUEST['policy_id']));
 
 			$i = 0;
@@ -99,7 +99,7 @@ if (isset($_REQUEST['policy_id'])) {
 			while ($row = $stmt->fetchObject()) {
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="policy_acl_id" value="<?php echo $row->id ?>" /></td>
+					<td><input type="radio" name="policy_member_id" value="<?php echo $row->id ?>" /></td>
 					<td class="textcenter"><?php echo is_null($row->source) ? 'any' : $row->source ?></td>
 					<td class="textcenter"><?php echo is_null($row->destination) ? 'any' : $row->destination ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>

@@ -1,5 +1,5 @@
 <?php
-# Policy ACL delete
+# Policy member delete
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@ $db = connect_db();
 printHeader(array(
 		"Tabs" => array(
 			"Back to policies" => "policy-main.php",
-			"Back to ACLs" => "policy-acl-main.php?policy_id=".$_REQUEST['policy_id'],
+			"Back to members" => "policy-member-main.php?policy_id=".$_REQUEST['policy_id'],
 		),
 ));
 
@@ -41,15 +41,15 @@ printHeader(array(
 if ($_POST['action'] == "delete") {
 
 	# Check a policy was selected
-	if (isset($_POST['policy_acl_id'])) {
+	if (isset($_POST['policy_member_id'])) {
 ?>
-		<p class="pageheader">Delete Policy ACL</p>
+		<p class="pageheader">Delete Policy Member</p>
 
-		<form action="policy-acl-delete.php" method="post">
+		<form action="policy-member-delete.php" method="post">
 			<div>
 				<input type="hidden" name="action" value="delete2" />
 				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
-				<input type="hidden" name="policy_acl_id" value="<?php echo $_POST['policy_acl_id']; ?>" />
+				<input type="hidden" name="policy_member_id" value="<?php echo $_POST['policy_member_id']; ?>" />
 			</div>
 
 			<div class="textcenter">
@@ -70,32 +70,32 @@ if ($_POST['action'] == "delete") {
 # SQL Updates
 } elseif ($_POST['action'] == "delete2") {
 ?>
-	<p class="pageheader">Policy ACL Delete Results</p>
+	<p class="pageheader">Policy Member Delete Results</p>
 <?
-	if (isset($_POST['policy_acl_id'])) {
+	if (isset($_POST['policy_member_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM policy_acls WHERE ID = ".$db->quote($_POST['policy_acl_id']));
+			$res = $db->exec("DELETE FROM policy_members WHERE ID = ".$db->quote($_POST['policy_member_id']));
 			if ($res) {
 ?>
-				<div class="notice">Policy ACL deleted</div>
+				<div class="notice">Policy member deleted</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting policy ACL!</div>
+				<div class="warning">Error deleting policy member!</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 			}
 		} else {
 ?>
-			<div class="notice">Policy ACL not deleted, aborted by user</div>
+			<div class="notice">Policy member not deleted, aborted by user</div>
 <?php
 		}
 
 	# Warn
 	} else {
 ?>
-		<div class="warning">Invocation error, no policy ACL ID</div>
+		<div class="warning">Invocation error, no policy member ID</div>
 <?php
 	}
 

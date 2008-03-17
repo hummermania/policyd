@@ -142,7 +142,7 @@ sub configure {
 	} else {
 		$server->{'setsid'} = 1;
 	}
-
+print(STDERR "CIDR_ALLOW: ".$config{'server'}{'cidr_allow'}."\n");
 	# Save our config and stuff
 	$self->{'config'} = $cfg;
 	$self->{'cmdline'} = $cmdline;

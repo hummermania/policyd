@@ -76,10 +76,10 @@ if ($_POST['action'] == "delete") {
 		if ($_POST['confirm'] == "yes") {	
 			$db->beginTransaction();
 
-			$res = $db->exec("DELETE FROM policy_acls WHERE PolicyID = ".$db->quote($_POST['policy_id']));
+			$res = $db->exec("DELETE FROM policy_members WHERE PolicyID = ".$db->quote($_POST['policy_id']));
 			if ($res) {
 ?>
-				<div class="notice">Policy ACL's deleted</div>
+				<div class="notice">Policy members deleted</div>
 <?php
 			} else {
 ?>

@@ -1,5 +1,5 @@
 <?php
-# Policy ACL add
+# Policy member add
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -30,18 +30,18 @@ $db = connect_db();
 printHeader(array(
 		"Tabs" => array(
 			"Back to policies" => "policy-main.php",
-			"Back to ACLs" => "policy-acl-main.php?policy_id=".$_REQUEST['policy_id'],
+			"Back to members" => "policy-member-main.php?policy_id=".$_REQUEST['policy_id'],
 		),
 ));
 
 
 if ($_POST['action'] == "add")  {
 ?>
-	<p class="pageheader">Add Policy ACL</p>
+	<p class="pageheader">Add Policy Member</p>
 <?php
 	if (!empty($_POST['policy_id'])) {
 ?>
-		<form method="post" action="policy-acl-add.php">
+		<form method="post" action="policy-member-add.php">
 			<div>
 				<input type="hidden" name="action" value="add2" />
 				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id'] ?>" />
@@ -49,15 +49,15 @@ if ($_POST['action'] == "add")  {
 			<table class="entry">
 				<tr>
 					<td class="entrytitle">Source</td>
-					<td><textarea name="acl_source" /></textarea></td>
+					<td><textarea name="member_source" /></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Destination</td>
-					<td><textarea name="acl_destination" /></textarea></td>
+					<td><textarea name="member_destination" /></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Comment</td>
-					<td><textarea name="acl_comment"></textarea></td>
+					<td><textarea name="member_comment"></textarea></td>
 				</tr>
 				<tr>
 					<td colspan="2">
@@ -78,32 +78,32 @@ if ($_POST['action'] == "add")  {
 # Check we have all params
 } elseif ($_POST['action'] == "add2") {
 ?>
-	<p class="pageheader">Policy ACL Add Results</p>
+	<p class="pageheader">Policy Member Add Results</p>
 
 <?php
 	# Check source and dest are not blank
-	if (empty($_POST['acl_source']) && empty($_POST['acl_destination'])) {
+	if (empty($_POST['member_source']) && empty($_POST['member_destination'])) {
 ?>
-		<div class="warning">A blank ACL is useless?</div>
+		<div class="warning">A blank member is useless?</div>
 <?php
 
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO policy_acls (PolicyID,Source,Destination,Comment,Disabled) VALUES (?,?,?,?,1)");
+		$stmt = $db->prepare("INSERT INTO policy_members (PolicyID,Source,Destination,Comment,Disabled) VALUES (?,?,?,?,1)");
 		
 		$res = $stmt->execute(array(
 			$_POST['policy_id'],
-			$_POST['acl_source'],
-			$_POST['acl_destination'],
-			$_POST['acl_comment']
+			$_POST['member_source'],
+			$_POST['member_destination'],
+			$_POST['member_comment']
 		));
 		if ($res) {
 ?>
-			<div class="notice">Policy ACL created</div>
+			<div class="notice">Policy member created</div>
 <?php
 		} else {
 ?>
-			<div class="warning">Failed to create policy ACL</div>
+			<div class="warning">Failed to create policy member</div>
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
 		}

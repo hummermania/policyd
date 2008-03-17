@@ -52,7 +52,7 @@ if (!isset($_POST['action']))
 						} else if (myobj.selectedIndex == 5) {
 							myform.action = 'policy-delete.php';
 						} else if (myobj.selectedIndex == 6) {
-							myform.action = 'policy-acl-main.php';
+							myform.action = 'policy-member-main.php';
 						}
 
 						myform.submit();
@@ -64,7 +64,7 @@ if (!isset($_POST['action']))
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
 				<option value="delete">Delete</option>
-				<option value="acls">ACLs</option>
+				<option value="members">Members</option>
 			</select> 
 		</div>
 

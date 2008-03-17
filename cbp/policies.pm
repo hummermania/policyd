@@ -81,38 +81,38 @@ sub getPolicy
 	my %matchedPolicies = ();
 
 
-	# Grab all the policy ACL's
+	# Grab all the policy members
 	my $sth = DBSelect('
 		SELECT 
 			policies.Name,
-			policy_acls.PolicyID, policies.Priority, policy_acls.Source, policy_acls.Destination
+			policy_members.PolicyID, policies.Priority, policy_members.Source, policy_members.Destination
 		FROM
-			policies, policy_acls
+			policies, policy_members
 		WHERE
 			policies.Disabled = 0
-			AND policy_acls.Disabled = 0
-			AND policy_acls.PolicyID = policies.ID
+			AND policy_members.Disabled = 0
+			AND policy_members.PolicyID = policies.ID
 	');
 	if (!$sth) {
 		setError(cbp::dblayer::Error());
 		return undef;
 	}
 	# Loop with results
-	my @policyACLs;
+	my @policyMembers;
 	while (my $row = $sth->fetchrow_hashref()) {
-		push(@policyACLs,$row);
+		push(@policyMembers,$row);
 	}
 
-	# Process the ACL's
-	foreach my $policyACL (@policyACLs) {
+	# Process the Members
+	foreach my $policyMember (@policyMembers) {
 
 		#
 		# Source Test
 		#
 		my $sourceMatch = 1;
-		if (defined($policyACL->{'Source'}) && lc($policyACL->{'Source'}) ne "any") {
+		if (defined($policyMember->{'Source'}) && lc($policyMember->{'Source'}) ne "any") {
 			# Split off sources
-			my @rawSources = split(/,/,$policyACL->{'Source'});
+			my @rawSources = split(/,/,$policyMember->{'Source'});
 
 			# Parse in group data
 			my @sources;
@@ -159,7 +159,7 @@ sub getPolicy
 					$res = saslUsernameMatches($saslUsername,$source);
 
 				} else {
-					setError("Source '".$source."' is not valid in policy '".$policyACL->{'Name'}."' acl or group");
+					setError("Source '".$source."' is not valid in policy '".$policyMember->{'Name'}."' specification");
 					return undef;
 				}
 
@@ -180,9 +180,9 @@ sub getPolicy
 		# Destination Test
 		#
 		my $destinationMatch = 1;
-		if (defined($policyACL->{'Destination'}) && lc($policyACL->{'Destination'}) ne "any") {
+		if (defined($policyMember->{'Destination'}) && lc($policyMember->{'Destination'}) ne "any") {
 			# Split off destinations
-			my @rawDestinations = split(/,/,$policyACL->{'Destination'});
+			my @rawDestinations = split(/,/,$policyMember->{'Destination'});
 
 			# Parse in group data
 			my @destinations;
@@ -221,7 +221,7 @@ sub getPolicy
 					$res = emailAddressMatches($emailTo,$destination);
 
 				} else {
-					setError("Destination '".$destination."' is not valid in policy '".$policyACL->{'Name'}."' acl or group");
+					setError("Destination '".$destination."' is not valid in policy '".$policyMember->{'Name'}."' specification");
 					return undef;
 				}
 
@@ -237,7 +237,7 @@ sub getPolicy
 			next if (!$destinationMatch);
 		}
 
-		push(@{$matchedPolicies{$policyACL->{'Priority'}}},$policyACL->{'PolicyID'});
+		push(@{$matchedPolicies{$policyMember->{'Priority'}}},$policyMember->{'PolicyID'});
 	}
 
 

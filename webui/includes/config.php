@@ -6,8 +6,9 @@
 #
 # sqlite:////full/unix/path/to/file.db?mode=0666
 #
-$DB_DSN="sqlite:////tmp/cluebringer.sqlite";
-#$DB_USER="";
+#$DB_DSN="sqlite:////tmp/cluebringer.sqlite";
+$DB_DSN="mysql:host=localhost;dbname=policyd";
+$DB_USER="root";
 #$DB_PASS="";
 
 $DB_POSTFIX_DSN="mysql:host=localhost;dbname=postfix";
