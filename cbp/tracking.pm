@@ -254,7 +254,7 @@ sub getSessionDataFromRequest
 		}
 
 	# Check for HTTP protocol transport
-	} elsif ($request->{'_protocol_transport'} eq "Postfix") {
+	} elsif ($request->{'_protocol_transport'} eq "HTTP") {
 		$sessionData->{'ClientAddress'} = $request->{'client_address'};
 		$sessionData->{'Helo'} = "";
 		$sessionData->{'Sender'} = $request->{'sender'};
@@ -289,13 +289,10 @@ sub updateSessionData
 
 		# Get encoded policy data
 		my $policyData = encodePolicyData($sessionData->{'Recipient'},$sessionData->{'Policy'});
-		# Generate recipient data
-		use Data::Dumper;
-		$server->log(LOG_ERR,"[TRACKING] RecipientDATA is NULL, data: ".Dumper($sessionData)) if (!defined($sessionData->{'RecipientData'}));
-		$server->log(LOG_ERR,"[TRACKING] PolicyDATA is NULL") if (!defined($policyData));
-		my $recipientData = $sessionData->{'RecipientData'}."/$policyData";
-
-		$server->log(LOG_DEBUG,"[TRACKING] RecipientData = $recipientData");
+		# Make sure recipient data is set
+		my $recipientData = defined($sessionData->{'RecipientData'}) ? $sessionData->{'RecipientData'} : "";
+		# Generate recipient data, make sure we don't use a undefined value either!
+		$recipientData .= "/$policyData";
 
 		# Record tracking info
 		my $sth = DBDo("
