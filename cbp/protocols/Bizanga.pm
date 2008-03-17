@@ -34,7 +34,7 @@ use cbp::protocols;
 
 # User plugin info
 our $pluginInfo = {
-	name 			=> "Bizanga Protocol Suppot Module",
+	name 			=> "Bizanga Protocol Support Module",
 	init		 	=> \&init,
 	priority	 	=> 50,
 	protocol_check	=> \&protocol_check,
@@ -71,6 +71,7 @@ sub init {
 # Check the buffer to see if this protocol is what we want
 sub protocol_check {
 	my ($server,$buffer) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'protocols'});
 	
 
 	# If we not enabled, don't do anything
@@ -80,10 +81,10 @@ sub protocol_check {
 	if ($buffer =~ /^GET [^\s]+ HTTP\/(\d+)\.(\d+)\015?\012/) {
 		my ($a,$b) = ($1,$2);
 
-		$server->log(LOG_DEBUG,"Possible Bizanga (HTTP/$a.$b) protocol");
+		$server->log(LOG_DEBUG,"[PROTOCOLS/Bizanga] Possible Bizanga (HTTP/$a.$b) protocol") if ($log);
 
 		if ($buffer =~ /\015?\012\015?\012/) {
-			$server->log(LOG_INFO,"Identified Bizanga (HTTP/$a.$b) protocol");
+			$server->log(LOG_INFO,"[Protocols/Bizanga] Identified Bizanga (HTTP/$a.$b) protocol") if ($log);
 			return 1;
 		}
 	}
@@ -95,6 +96,7 @@ sub protocol_check {
 # Process buffer into sessionData
 sub protocol_parse {
 	my ($server,$buffer) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'bizanga'});
 
 	my %res;
 
@@ -109,7 +111,7 @@ sub protocol_parse {
 		# Clean up strings, and shove into hash
 		my ($param,$value) = (uri_unescape($1),uri_unescape($2));
 		$res{$param} = $value;
-		$server->log(LOG_DEBUG,"BIZANGA PROTOCOL: $param =>$value<=");
+		$server->log(LOG_DEBUG,"[BIZANGA] Request parameter '$param' with value '$value'") if ($log);
 	}
 
 	# We need some extra info to make everything else happy...

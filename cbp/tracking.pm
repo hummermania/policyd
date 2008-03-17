@@ -43,35 +43,6 @@ use Data::Dumper;
 # Database handle
 my $dbh = undef;
 
-# Our current error message
-my $error = "";
-
-# Set current error message
-# Args: error_message
-sub setError
-{
-	my $err = shift;
-	my ($package,$filename,$line) = caller;
-	my (undef,undef,undef,$subroutine) = caller(1);
-
-	# Set error
-	$error = "$subroutine($line): $err";
-}
-
-# Return current error message
-# Args: none
-sub Error
-{
-	my $err = $error;
-
-	# Reset error
-	$error = "";
-
-	# Return error
-	return $err;
-}
-
-
 # Get session data from mail_id
 sub getSessionDataFromQueueID
 {
@@ -121,6 +92,7 @@ sub getSessionDataFromQueueID
 sub getSessionDataFromRequest
 {
 	my ($server,$request) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'tracking'});
 
 
 	# We must have protocol transport
@@ -162,7 +134,7 @@ sub getSessionDataFromRequest
 		# If no state information, create everything we need
 		if (!$sessionData) {
 
-			$server->log(LOG_DEBUG,"[TRACKING] No session tracking data exists for: ".Dumper($request));
+			$server->log(LOG_DEBUG,"[TRACKING] No session tracking data exists for request: ".Dumper($request)) if ($log);
 
 			# Should only track sessions from RCPT
 			if ($request->{'protocol_state'} eq "RCPT") {
@@ -203,7 +175,7 @@ sub getSessionDataFromRequest
 					DBRollback();
 					return -1;
 				}
-				$server->log(LOG_DEBUG,"[TRACKING] Added session tracking information for: ".Dumper($request));
+				$server->log(LOG_DEBUG,"[TRACKING] Added session tracking information for: ".Dumper($request)) if ($log);
 	
 				# Grab inserted row ID
 				my $rowID = DBLastInsertID('session_tracking','ID');
@@ -238,24 +210,26 @@ sub getSessionDataFromRequest
 	
 		# If we in rcpt, caclulate and save policy
 		if ($request->{'protocol_state'} eq 'RCPT') {
-			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'RCPT', resolving policy...");
+			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'RCPT', resolving policy...") if ($log);
 
 			# Get policy
 			my $policy = getPolicy($server,$request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
 			if (ref $policy ne "HASH") {
 				return -1;
 			}
+			
+			$server->log(LOG_DEBUG,"[TRACKING] Policy resolved into: ".Dumper($policy)) if ($log);
 	
 			$sessionData->{'Policy'} = $policy;
 			$sessionData->{'Recipient'} = $request->{'recipient'};
 	
 		# If we in end of message, load policy from data
 		} elsif ($request->{'protocol_state'} eq 'END-OF-MESSAGE') {
-			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'END-OF-MESSAGE', decoding policy...");
+			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'END-OF-MESSAGE', decoding policy...") if ($log);
 			# Decode...
 			$sessionData->{'_Recipient_To_Policy'} = decodePolicyData($sessionData->{'RecipientData'});
 			
-			$server->log(LOG_DEBUG,"[TRACKING] Decoded into: ".Dumper($sessionData->{'_Recipient_To_Policy'}));
+			$server->log(LOG_DEBUG,"[TRACKING] Decoded into: ".Dumper($sessionData->{'_Recipient_To_Policy'})) if ($log);
 
 			# This must be updated here ... we may of got actual size
 			$sessionData->{'Size'} = $request->{'size'};
@@ -271,13 +245,15 @@ sub getSessionDataFromRequest
 
 		# If we in RCPT state, set recipient
 		if ($request->{'protocol_state'} eq "RCPT") {
-			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'RCPT', resolving policy...");
+			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'RCPT', resolving policy...") if ($log);
 
 			# Get policy
 			my $policy = getPolicy($server,$request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
 			if (ref $policy ne "HASH") {
 				return -1;
 			}
+			
+			$server->log(LOG_DEBUG,"[TRACKING] Policy resolved into: ".Dumper($policy)) if ($log);
 	
 			$sessionData->{'Policy'} = $policy;
 			$sessionData->{'Recipient'} = $request->{'recipient'};
@@ -289,7 +265,7 @@ sub getSessionDataFromRequest
 	$sessionData->{'Timestamp'} = $request->{'_timestamp'};
 	$sessionData->{'ParsedClientAddress'} = parseCIDR($sessionData->{'ClientAddress'});
 
-	$server->log(LOG_DEBUG,"[TRACKING] Request translated into session data: ".Dumper($sessionData));
+	$server->log(LOG_DEBUG,"[TRACKING] Request translated into session data: ".Dumper($sessionData)) if ($log);
 
 	return $sessionData;
 }

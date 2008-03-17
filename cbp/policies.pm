@@ -78,6 +78,7 @@ sub Error
 sub getPolicy
 {
     my ($server,$sourceIP,$emailFrom,$emailTo,$saslUsername) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'policies'});
 
 
 	# Start with blank policy list
@@ -87,8 +88,9 @@ sub getPolicy
 	# Grab all the policy members
 	my $sth = DBSelect('
 		SELECT 
-			policies.Name, policies.Disabled AS PolicyDisabled,
-			policy_members.PolicyID, policies.Priority, policy_members.Source, policy_members.Destination, policy_members.Disabled AS MemberDisabled
+			policies.Name, policies.Priority, policies.Disabled AS PolicyDisabled,
+			policy_members.ID, policy_members.PolicyID, policy_members.Source, 
+			policy_members.Destination, policy_members.Disabled AS MemberDisabled
 		FROM
 			policies, policy_members
 		WHERE
@@ -103,12 +105,13 @@ sub getPolicy
 	# Loop with results
 	my @policyMembers;
 	while (my $row = $sth->fetchrow_hashref()) {
+		# Log what we see
 		if ($row->{'PolicyDisabled'} eq "1") {
-			$server->log(LOG_DEBUG,"[POLICIES] Policy disabled: ".Dumper($row));
+			$server->log(LOG_DEBUG,"[POLICIES] Policy '".$row->{'Name'}."' is disabled") if ($log);
 		} elsif ($row->{'MemberDisabled'} eq "1") {
-			$server->log(LOG_DEBUG,"[POLICIES] Policy member disabled: ".Dumper($row));
+			$server->log(LOG_DEBUG,"[POLICIES] Policy member item with ID '".$row->{'ID'}."' is disabled") if ($log);
 		} else {
-			$server->log(LOG_DEBUG,"[POLICIES] Adding policy member to list: ".Dumper($row));
+			$server->log(LOG_DEBUG,"[POLICIES] Found policy member with ID '".$row->{'ID'}."' in policy '".$row->{'Name'}."'") if ($log);
 			push(@policyMembers,$row);
 		}
 	}
@@ -133,13 +136,14 @@ sub getPolicy
 					# Grab group members
 					my $members = getGroupMembers($group);
 					if (ref $members ne "ARRAY") {
-						$server->log(LOG_WARN,"[POLICIES] Error '$members' while retriving group members for source group '$group' in policy member: ".
-								Dumper($policyMember));
+						$server->log(LOG_WARN,"[POLICIES] Error '$members' while retriving group members for source group '$group' in ".
+								"policy '".$policyMember->{'Name'}."', policy member ID '".$policyMember->{'ID'}."' ");
 						next;
 					}
 					# Check if actually have any
 					if (@{$members} < 1) {
-						$server->log(LOG_WARN,"[POLICIES] No group members for source group '$group' in policy member: ".Dumper($policyMember));
+						$server->log(LOG_WARN,"[POLICIES] No group members for source group '$group' in policy '".$policyMember->{'Name'}.
+								"', policy member ID '".$policyMember->{'ID'}."' ");
 					}
 
 					# Check if we should negate
@@ -154,7 +158,7 @@ sub getPolicy
 				} else {
 					push(@sources,$source);
 				}
-				$server->log(LOG_DEBUG,"[POLICIES] Resolved sources '".join(',',@sources)."' from policy member: ".Dumper($policyMember));
+				$server->log(LOG_DEBUG,"[POLICIES] Resolved sources '".join(',',@sources)."' from policy member ID '".$policyMember->{'ID'}."'") if ($log);
 			}
 		
 
@@ -165,21 +169,24 @@ sub getPolicy
 				# Match IP
 				if ($source =~ /^!?\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})$/) {
 					$res = ipMatches($sourceIP,$source);
-					$server->log(LOG_DEBUG,"[POLICIES] Source '$source' is an IP/CIDR specification, match = $res");
+					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
+							"' source '$source' is an IP/CIDR specification, match = $res") if ($log);
 
 				# Match email addy
 				} elsif ($source =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailFrom,$source);
-					$server->log(LOG_DEBUG,"[POLICIES] Source '$source' is an email address specification, match = $res");
+					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
+							"' source '$source' is an email address specification, match = $res") if ($log);
 
 				# Match sasl user
 				} elsif ($source =~ /^!?\$\S+$/) {
 					$res = saslUsernameMatches($saslUsername,$source);
-					$server->log(LOG_DEBUG,"[POLICIES] Source '$source' is sasl user specification, match = $res");
+					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
+							"' source '$source' is sasl user specification, match = $res") if ($log);
 
 				} else {
-					$server->log(LOG_WARN,"[POLICIES] Source '".$source."' is not valid in policy '".$policyMember->{'Name'}."' specification");
-					return undef;
+					$server->log(LOG_WARN,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
+							"' source '".$source."' is not a valid specification");
 				}
 
 				# Check result
@@ -212,14 +219,15 @@ sub getPolicy
 					# Grab group members
 					my $members = getGroupMembers($group);
 					if (ref $members ne "ARRAY") {
-						$server->log(LOG_WARN,"[POLICIES] Error '$members' while retriving destination group members for group '$group' in policy member: ".
-								Dumper($policyMember));
+						$server->log(LOG_WARN,"[POLICIES] Error '$members' while retriving group members for destination group '$group' in ".
+								"policy '".$policyMember->{'Name'}."', policy member ID '".$policyMember->{'ID'}."' ");
 						next;
 					}
 
 					# Check if actually have any
 					if (@{$members} < 1) {
-						$server->log(LOG_WARN,"[POLICIES] No group members for destination group '$group' in policy member: ".Dumper($policyMember));
+						$server->log(LOG_WARN,"[POLICIES] No group members for source group '$group' in policy '".$policyMember->{'Name'}.
+								"', policy member ID '".$policyMember->{'ID'}."' ");
 					}
 
 					# Check if we should negate
@@ -235,7 +243,8 @@ sub getPolicy
 				} else {
 					push(@destinations,$destination);
 				}
-				$server->log(LOG_DEBUG,"[POLICIES] Resolved destinations '".join(',',@destinations)."' from policy member: ".Dumper($policyMember));
+				$server->log(LOG_DEBUG,"[POLICIES] Resolved destinations '".join(',',@destinations)."' from policy member ID '".
+						$policyMember->{'ID'}."'") if ($log);
 			}
 			
 			# Process destinations and see if we match
@@ -245,11 +254,12 @@ sub getPolicy
 				# Match email addy
 				if ($destination =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailTo,$destination);
-					$server->log(LOG_DEBUG,"[POLICIES] Destination '$destination' is an email address specification, match = $res");
+					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
+							"' destination '$destination' is an email address specification, match = $res") if ($log);
 
 				} else {
-					$server->log(LOG_WARN,"[POLICIES] Destination '".$destination."' is not valid in policy '".$policyMember->{'Name'}."' specification");
-					return undef;
+					$server->log(LOG_WARN,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
+								"' destination '".$destination."' is not a valid specification");
 				}
 
 				# If we have a negative result, last and b0rk out

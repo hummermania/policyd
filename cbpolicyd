@@ -142,6 +142,15 @@ sub configure {
 	} else {
 		$server->{'setsid'} = 1;
 	}
+
+	# Loop with logging detail
+	if (defined($config{'server'}{'log_detail'})) {
+		# Lets see what we have to enable
+		foreach my $detail (split(/[,\s;]/,$config{'server'}{'log_detail'})) {
+			$cfg->{'logging'}{$detail} = 1;
+		}
+	}
+
 print(STDERR "CIDR_ALLOW: ".$config{'server'}{'cidr_allow'}."\n");
 	# Save our config and stuff
 	$self->{'config'} = $cfg;
@@ -257,6 +266,7 @@ sub child_finish_hook {
 sub process_request {
 	my $self = shift;
 	my $server = $self->{'server'};
+	my $log = defined($server->{'config'}{'logging'}{'modules'});
 
 
 	# Setup database handle
@@ -354,13 +364,15 @@ sub process_request {
 		return;
 	}
 
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Got request, running modules...") if ($log);
+
 	# Loop with modules
 	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
 
 		# Skip over if we don't have a check...
 		next if (!defined($module->{'request_process'}));
 
-		$self->log(LOG_DEBUG,"[CBPOLICYD] Running module: ".$module->{'name'});
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Running module: ".$module->{'name'}) if ($log);
 		
 		# Run request in eval
 		my $res;
@@ -369,7 +381,7 @@ sub process_request {
 		};
 		# Check results
 		if ($@) {
-			$self->log(LOG_ERR,"[CBPOLICYD] Error running module request_process()!\n$@");
+			$self->log(LOG_ERR,"[CBPOLICYD] Error running module request_process(): $@");
 			$res = $self->protocol_response(PROTO_ERROR);
 		}
 
@@ -393,12 +405,12 @@ sub process_request {
 		}
 	}
 	
-	$self->log(LOG_DEBUG,"[CBPOLICYD] Done with modules");
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Done with modules") if ($log);
 
 	# Update session data
 	my $res = updateSessionData($self,$sessionData);
 	if ($res) {
-		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error updating session data");
+		$self->log(LOG_ERR,"[CBPOLICYD] Error updating session data");
 		$self->protocol_response(PROTO_ERROR);
 	}
 
@@ -434,6 +446,28 @@ sub server_exit
 sub log
 {
 	my ($self,$level,$msg,@args) = @_;
+
+	# Check log level and set text
+	my $logtxt = "UNKNOWN";
+	if ($level == LOG_DEBUG) {
+		$logtxt = "DEBUG";
+	} elsif ($level == LOG_INFO) {
+		$logtxt = "INFO";
+	} elsif ($level == LOG_NOTICE) {
+		$logtxt = "NOTICE";
+	} elsif ($level == LOG_WARN) {
+		$logtxt = "WARNING";
+	} elsif ($level == LOG_ERR) {
+		$logtxt = "ERROR";
+	} 
+
+	# Parse message nicely
+	if ($msg =~ /^(\[[^\]]+\]) (.*)/s) {
+		$msg = "$1 $logtxt: $2";
+	} else {
+		$msg = "[CORE] $logtxt: $msg";
+	}
+
 	$self->SUPER::log($level,"[".$self->log_time." - $$] $msg",@args);
 }
 

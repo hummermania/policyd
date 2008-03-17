@@ -66,6 +66,7 @@ sub init {
 # Check the buffer to see if this protocol is what we want
 sub protocol_check {
 	my ($server,$buffer) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'protocols'});
 	
 
 	# If we not enabled, don't do anything
@@ -74,10 +75,10 @@ sub protocol_check {
 	# Check for policy protocol
 	if ($buffer =~ /^\w+=[^\012]+\015?\012/) {
 
-		$server->log(LOG_DEBUG,"Possible Postfix protocol");
+		$server->log(LOG_DEBUG,"[PROTOCOLS/Postfix] Possible Postfix protocol") if ($log);
 
 		if ($buffer =~ /\015?\012\015?\012/) {
-			$server->log(LOG_INFO,"Identified Postfix protocol");
+			$server->log(LOG_INFO,"[PROTOCOLS/Postfix] Identified Postfix protocol") if ($log);
 			return 1;
 		}
 	}
