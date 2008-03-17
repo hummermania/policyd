@@ -96,6 +96,7 @@ BEGIN {
 	use cbp::dblayer;
 	use cbp::tracking;
 	use cbp::policies;
+	use cbp::logging;
 }
 
 
@@ -109,13 +110,19 @@ sub new {
 	$self->{'inifile'}{'database'}{'username'} = $DB_user;
 	$self->{'inifile'}{'database'}{'password'} = $DB_pass;
 	cbp::config::Init($self);
-
-	# Connect to database
-	if (!($self->{'dbh'} = DBConnect())) {
-		do_log(-2,"policyd/dbconnect: Failed to connect to database '%s'",cbp::dblayer::Error());
-		return undef;
+	
+	# Init system stuff
+	$self->{'dbh'} = cbp::dbilayer::Init($self);
+	if (!defined($self->{'dbh'})) {
+		$self->log(LOG_WARN,"Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
+		die;
+	}
+	if ($self->{'dbh'}->connect()) {
+		$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'dbh'}->Error()." ($$)");
+		die;
 	}
 
+	# Setup database handle
 	cbp::dblayer::setHandle($self->{'dbh'});
 
 	return $self;
@@ -126,6 +133,7 @@ sub new {
 sub process_policy {
 	my($self,$conn,$msginfo,$pbn) = @_;
 
+	do_log(5,"policyd/process_policy: Starting");
 	
 	# Get message ID
 	my $lastReceived = $msginfo->orig_header_fields->{'received'};
@@ -142,12 +150,12 @@ sub process_policy {
 	# once we have hte sasl details we can generate a policy.
 	# We do all this because the email addy may of been changed
 	# due to an alias or distribution list.
-	my $sessionData = getSessionDataFromQueueID($queueID,$msginfo->client_addr,$msginfo->sender);
+	do_log(5,"policyd/process_policy: Getting session data from queue ID '$queueID'");
+	my $sessionData = getSessionDataFromQueueID($self,$queueID,$msginfo->client_addr,$msginfo->sender);
 	if (ref $sessionData ne "HASH") {
 		do_log(-1,"policyd/process_policy: No session data found");
 		return $pbn;
 	}
-	use Data::Dumper;
 
 	# Loop with recipients
 	my %recip_to_policy;
@@ -158,7 +166,7 @@ sub process_policy {
 		# This means that the recipients addy changed, or there is no policy for them??
 		if (!defined($sessionData->{'_Recipient_To_Policy'}{$emailAddy})) {
 			# Now pull in policy
-			my $policy = getPolicy($msginfo->client_addr,$msginfo->sender,$sessionData->{'SASLUsername'});
+			my $policy = getPolicy($self,$msginfo->client_addr,$msginfo->sender,$sessionData->{'SASLUsername'});
 			if (!$policy) {
 				next;
 			}
@@ -713,6 +721,41 @@ sub getAmavisRule
 }
 
 
+# Logging...
+sub log
+{
+	my ($self,$level,$msg,@args) = @_;
+
+	# Check log level and set text
+	my $logtxt = "UNKNOWN"; 
+	my $loglvl = 1;
+	# Check levels...
+	if ($level == LOG_DEBUG) {
+		$logtxt = "DEBUG";
+		$loglvl = 2;
+	} elsif ($level == LOG_INFO) {
+		$logtxt = "INFO";
+		$loglvl = 1;
+	} elsif ($level == LOG_NOTICE) {
+		$logtxt = "NOTICE";
+		$loglvl = 0;
+	} elsif ($level == LOG_WARN) {
+		$logtxt = "WARNING";
+		$loglvl = -1;
+	} elsif ($level == LOG_ERR) {
+		$logtxt = "ERROR";
+		$loglvl = -2;
+	} 
+
+	# Parse message nicely
+	if ($msg =~ /^(\[[^\]]+\]) (.*)/s) {
+		$msg = "$1 $logtxt: $2";
+	} else {
+		$msg = "[CORE] $logtxt: $msg";
+	}
+
+	do_log($loglvl,"$msg".join('',@args));
+}
 
 
 # vim: ts=4
