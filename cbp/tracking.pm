@@ -252,7 +252,11 @@ sub getSessionDataFromRequest
 		# If we in end of message, load policy from data
 		} elsif ($request->{'protocol_state'} eq 'END-OF-MESSAGE') {
 			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'END-OF-MESSAGE', decoding policy...");
+			# Decode...
 			$sessionData->{'_Recipient_To_Policy'} = decodePolicyData($sessionData->{'RecipientData'});
+			
+			$server->log(LOG_DEBUG,"[TRACKING] Decoded into: ".Dumper($sessionData->{'_Recipient_To_Policy'}));
+
 			# This must be updated here ... we may of got actual size
 			$sessionData->{'Size'} = $request->{'size'};
 			# Only get a queue id once we have gotten the message
@@ -267,6 +271,15 @@ sub getSessionDataFromRequest
 
 		# If we in RCPT state, set recipient
 		if ($request->{'protocol_state'} eq "RCPT") {
+			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'RCPT', resolving policy...");
+
+			# Get policy
+			my $policy = getPolicy($server,$request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
+			if (ref $policy ne "HASH") {
+				return -1;
+			}
+	
+			$sessionData->{'Policy'} = $policy;
 			$sessionData->{'Recipient'} = $request->{'recipient'};
 		}
 	}
@@ -275,6 +288,8 @@ sub getSessionDataFromRequest
 	$sessionData->{'ProtocolState'} = $request->{'protocol_state'};
 	$sessionData->{'Timestamp'} = $request->{'_timestamp'};
 	$sessionData->{'ParsedClientAddress'} = parseCIDR($sessionData->{'ClientAddress'});
+
+	$server->log(LOG_DEBUG,"[TRACKING] Request translated into session data: ".Dumper($sessionData));
 
 	return $sessionData;
 }
