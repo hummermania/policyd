@@ -44,6 +44,7 @@ if (isset($_REQUEST['policy_id'])) {
 	$policy_stmt = $db->prepare('SELECT Name FROM policies WHERE ID = ?');
 	$policy_stmt->execute(array($_REQUEST['policy_id']));
 	$row = $policy_stmt->fetchObject();
+	$policy_stmt->closeCursor();
 ?>
 	<form id="main_form" action="policy-member-main.php" method="post">
 		<div>
@@ -106,6 +107,7 @@ if (isset($_REQUEST['policy_id'])) {
 				</tr>
 <?php
 				}
+				$stmt->closeCursor();
 ?>
 		</table>
 	</form>

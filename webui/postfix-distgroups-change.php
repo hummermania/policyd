@@ -56,6 +56,7 @@ if ($_POST['action'] == "change") {
 			$res = $stmt->execute(array($_POST['postfix_group_id']));
 
 			$row = $stmt->fetchObject();
+			$stmt->closeCursor();
 ?>
 			<table class="entry" style="width: 75%;">
 				<tr>

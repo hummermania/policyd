@@ -61,6 +61,7 @@ if ($_POST['action'] == "add")  {
 								</option>
 <?php
 							}
+							$res->closeCursor();
 ?>
 						</select>
 					</td>

@@ -58,6 +58,7 @@ if ($_POST['action'] == "change") {
 			$res = $stmt->execute(array($_POST['policy_group_member_id']));
 
 			$row = $stmt->fetchObject();
+			$stmt->closeCursor();
 ?>
 			<table class="entry" style="width: 75%;">
 				<tr>

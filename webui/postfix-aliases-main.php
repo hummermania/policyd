@@ -86,6 +86,7 @@ printHeader(array(
 				</tr>
 <?php
 			}
+			$res->closeCursor();
 ?>
 		</table>
 	</form>

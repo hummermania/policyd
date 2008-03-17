@@ -93,6 +93,7 @@ if (!isset($_POST['action']))
 				</tr>
 <?php
 			}
+			$res->closeCursor();
 ?>
 		</table>
 	</form>

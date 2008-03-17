@@ -40,6 +40,7 @@ if (isset($_REQUEST['quota_id'])) {
 	$quota_stmt = $db->prepare('SELECT Name FROM quotas WHERE ID = ?');
 	$quota_stmt->execute(array($_REQUEST['quota_id']));
 	$row = $quota_stmt->fetchObject();
+	$quota_stmt->closeCursor();
 ?>
 	<p class="pageheader">Quota Limits</p>
 
@@ -104,7 +105,8 @@ if (isset($_REQUEST['quota_id'])) {
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
-				}
+			}
+			$stmt->closeCursor();
 ?>
 		</table>
 	</form>

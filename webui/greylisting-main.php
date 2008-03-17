@@ -103,6 +103,7 @@ if (!isset($_POST['action']))
 					</tr>
 <?php
 				}
+				$res->closeCursor();
 			# Or not
 			} else {
 ?>

@@ -66,6 +66,7 @@ if ($_POST['action'] == "change") {
 			$res = $stmt->execute(array($_POST['whitelist_id']));
 
 			$row = $stmt->fetchObject();
+			$stmt->closeCursor();
 ?>
 			<table class="entry" style="width: 75%;">
 				<tr>

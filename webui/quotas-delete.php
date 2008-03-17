@@ -91,6 +91,7 @@ if ($_POST['action'] == "delete") {
 				while ($row = $res->fetchObject()) {
 					array_push($limitIDs,$row->id);
 				}
+				$res->closeCursor();
 
 			} else {
 ?>

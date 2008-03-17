@@ -46,6 +46,7 @@ if ($_POST['action'] == "change") {
 		$stmt = $db->prepare('SELECT ID, Source, Destination, Comment, Disabled FROM policy_members WHERE ID = ?');
 		$res = $stmt->execute(array($_POST['policy_member_id']));
 		$row = $stmt->fetchObject();
+		$stmt->closeCursor();
 ?>
 		<p class="pageheader">Update Policy Member</p>
 

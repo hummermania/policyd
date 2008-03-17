@@ -44,6 +44,7 @@ if (isset($_REQUEST['policy_group_id'])) {
 	$policy_group_stmt = $db->prepare('SELECT Name FROM policy_groups WHERE ID = ?');
 	$policy_group_stmt->execute(array($_REQUEST['policy_group_id']));
 	$row = $policy_group_stmt->fetchObject();
+	$policy_group_stmt->closeCursor();
 ?>
 	<form id="main_form" action="policy-group-member-main.php" method="post">
 		<div>
@@ -104,6 +105,7 @@ if (isset($_REQUEST['policy_group_id'])) {
 				</tr>
 <?php
 				}
+				$stmt->closeCursor();
 ?>
 		</table>
 	</form>

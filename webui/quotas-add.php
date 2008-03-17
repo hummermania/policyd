@@ -90,6 +90,7 @@ if ($_POST['action'] == "add") {
 							<option value="<?php echo $row->id ?>"><?php echo $row->name ?></option>
 <?php
 						}
+						$res->closeCursor();
 ?>
 					</select>
 				</td>

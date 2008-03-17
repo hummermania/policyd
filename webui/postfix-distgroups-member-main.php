@@ -44,6 +44,7 @@ if (isset($_REQUEST['postfix_group_id'])) {
 	$postfix_group_stmt = $db->prepare('SELECT MailAddress FROM distribution_groups WHERE ID = ?');
 	$postfix_group_stmt->execute(array($_REQUEST['postfix_group_id']));
 	$row = $postfix_group_stmt->fetchObject();
+	$postfix_group_stmt->closeCursor();
 ?>
 	<form id="main_form" action="postfix-distgroups-member-main.php" method="post">
 		<div>
@@ -103,7 +104,8 @@ if (isset($_REQUEST['postfix_group_id'])) {
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
-				}
+			}
+			$stmt->closeCursor();
 ?>
 		</table>
 	</form>

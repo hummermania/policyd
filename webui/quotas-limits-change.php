@@ -46,6 +46,7 @@ if ($_POST['action'] == "change") {
 		$stmt = $db->prepare('SELECT ID, Type, CounterLimit, Comment, Disabled FROM quotas_limits WHERE ID = ?');
 		$res = $stmt->execute(array($_POST['quota_limit_id']));
 		$row = $stmt->fetchObject();
+		$stmt->closeCursor();
 ?>
 		<p class="pageheader">Update Quota Limit</p>
 
