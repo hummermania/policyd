@@ -46,8 +46,9 @@ my $dbh = undef;
 # Get session data from mail_id
 sub getSessionDataFromQueueID
 {
-	my ($queueID,$clientAddress,$sender) = @_;
-	
+	my ($server,$queueID,$clientAddress,$sender) = @_;
+
+	$server->log(LOG_DEBUG,"[TRACKING] Retreiving session data for triplet: $queueID/$clientAddress/$sender");
 	
 	# Pull in session data
 	my $sth = DBSelect("
@@ -71,12 +72,14 @@ sub getSessionDataFromQueueID
 			AND Sender = ".DBQuote($sender)."
 	");
 	if (!$sth) {
-		return (LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
+		return -1;
 	}
 	my $sessionData = $sth->fetchrow_hashref();
 	
 	if (!$sessionData) {
-		return (LOG_ERR,"[TRACKING] No session data");
+		$server->log(LOG_ERR,"[TRACKING] No session data");
+		return -1;
 	}
 
 	# Pull in decoded policy
