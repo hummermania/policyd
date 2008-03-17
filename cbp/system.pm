@@ -112,7 +112,8 @@ sub bits_to_mask {
 sub parseCIDR
 {
 	my $cidr = shift;
-
+	
+	# Regex CIDR
 	if ($cidr =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))?$/) {
 		my $ip = $1;
 		my $mask = ( defined($2) && $2 >= 1 && $2 <= 32 ) ? $2 : 32;

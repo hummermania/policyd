@@ -295,13 +295,8 @@ sub process_request {
 				}
 			}
 
-			if (!$found) {
-				$self->log(LOG_ERR,"Request not understood => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
-					$server->{'sockaddr'}.":".$server->{'sockport'});
-				return;
-			}
-
-			last;
+			# Last if found
+			last if ($found);
 		}
 
 		# Again ... too large
@@ -328,6 +323,13 @@ sub process_request {
 			return;
 		}
 	}
+	# Check if a protocol handler wasn't found...
+	if (!$found) {
+		$self->log(LOG_ERR,"Request not understood => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+			$server->{'sockaddr'}.":".$server->{'sockport'});
+		return;
+	}
+
 
 	# Set protocol handler
 	$server->{'_protocol_handler'} = $found;
@@ -347,30 +349,10 @@ sub process_request {
 	my $sessionData = getSessionDataFromRequest($self,$request);
 	if (ref $sessionData ne "HASH") {
 		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error getting session data");
-		print("action=DUNNO");
+		$self->protocol_response(PROTO_ERROR);
+		print($self->protocol_getresponse());
 		return;
 	}
-
-	# Update session data
-	my $res = updateSessionData($self,$sessionData);
-	if ($res) {
-		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error updating session data");
-		print("action=DUNNO");
-		return;
-	}
-
-	# Check the data we have
-	my $response = $self->do_work($sessionData);
-
-	# Send off result
-	print($response);
-}
-
-
-# This is where the actual processing & checking of modules takes place
-sub do_work {
-	my ($self,$data) = @_;
-
 
 	# Loop with modules
 	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
@@ -383,7 +365,7 @@ sub do_work {
 		# Run request in eval
 		my $res;
 		eval {
-			$res = $module->{'request_process'}($self,$data);
+			$res = $module->{'request_process'}($self,$sessionData);
 		};
 		# Check results
 		if ($@) {
@@ -413,10 +395,17 @@ sub do_work {
 	
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Done with modules");
 
+	# Update session data
+	my $res = updateSessionData($self,$sessionData);
+	if ($res) {
+		$self->log(LOG_DEBUG,"[CBPOLICYD:$$] Error updating session data");
+		$self->protocol_response(PROTO_ERROR);
+	}
+
 	# Grab and return response
 	my $response = $self->protocol_getresponse();
 
-	return $response;
+	print($response);
 }
 
 
