@@ -32,8 +32,11 @@ our (@ISA,@EXPORT);
 );
 
 
+use cbp::logging;
 use cbp::dblayer;
 use cbp::system;
+
+use Data::Dumper;
 
 
 # Database handle
@@ -74,7 +77,7 @@ sub Error
 # 	Hash - indexed by policy priority, the value is an array of policy ID's
 sub getPolicy
 {
-    my ($sourceIP,$emailFrom,$emailTo,$saslUsername) = @_;
+    my ($server,$sourceIP,$emailFrom,$emailTo,$saslUsername) = @_;
 
 
 	# Start with blank policy list
@@ -84,8 +87,8 @@ sub getPolicy
 	# Grab all the policy members
 	my $sth = DBSelect('
 		SELECT 
-			policies.Name,
-			policy_members.PolicyID, policies.Priority, policy_members.Source, policy_members.Destination
+			policies.Name, policies.Disabled AS PolicyDisabled,
+			policy_members.PolicyID, policies.Priority, policy_members.Source, policy_members.Destination, policy_members.Disabled AS MemberDisabled
 		FROM
 			policies, policy_members
 		WHERE
@@ -100,7 +103,14 @@ sub getPolicy
 	# Loop with results
 	my @policyMembers;
 	while (my $row = $sth->fetchrow_hashref()) {
-		push(@policyMembers,$row);
+		if ($row->{'PolicyDisabled'} eq "1") {
+			$server->log(LOG_DEBUG,"[POLICIES] Policy disabled: ".Dumper($row));
+		} elsif ($row->{'MemberDisabled'} eq "1") {
+			$server->log(LOG_DEBUG,"[POLICIES] Policy member disabled: ".Dumper($row));
+		} else {
+			$server->log(LOG_DEBUG,"[POLICIES] Adding policy member to list: ".Dumper($row));
+			push(@policyMembers,$row);
+		}
 	}
 
 	# Process the Members
@@ -122,9 +132,14 @@ sub getPolicy
 
 					# Grab group members
 					my $members = getGroupMembers($group);
-					if (!$members) {
-						setError(Error());
-						return undef;
+					if (ref $members ne "ARRAY") {
+						$server->log(LOG_WARN,"[POLICIES] Error '$members' while retriving group members for source group '$group' in policy member: ".
+								Dumper($policyMember));
+						next;
+					}
+					# Check if actually have any
+					if (@{$members} < 1) {
+						$server->log(LOG_WARN,"[POLICIES] No group members for source group '$group' in policy member: ".Dumper($policyMember));
 					}
 
 					# Check if we should negate
@@ -135,13 +150,14 @@ sub getPolicy
 						push(@sources,$member);
 					}
 
-
 				# If its not a group, just add
 				} else {
 					push(@sources,$source);
 				}
+				$server->log(LOG_DEBUG,"[POLICIES] Resolved sources '".join(',',@sources)."' from policy member: ".Dumper($policyMember));
 			}
-			
+		
+
 			# Process sources and see if we match
 			foreach my $source (@sources) {
 				my $res = 0;
@@ -149,21 +165,24 @@ sub getPolicy
 				# Match IP
 				if ($source =~ /^!?\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})$/) {
 					$res = ipMatches($sourceIP,$source);
+					$server->log(LOG_DEBUG,"[POLICIES] Source '$source' is an IP/CIDR specification, match = $res");
 
 				# Match email addy
 				} elsif ($source =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailFrom,$source);
+					$server->log(LOG_DEBUG,"[POLICIES] Source '$source' is an email address specification, match = $res");
 
 				# Match sasl user
 				} elsif ($source =~ /^!?\$\S+$/) {
 					$res = saslUsernameMatches($saslUsername,$source);
+					$server->log(LOG_DEBUG,"[POLICIES] Source '$source' is sasl user specification, match = $res");
 
 				} else {
-					setError("Source '".$source."' is not valid in policy '".$policyMember->{'Name'}."' specification");
+					$server->log(LOG_WARN,"[POLICIES] Source '".$source."' is not valid in policy '".$policyMember->{'Name'}."' specification");
 					return undef;
 				}
 
-				# If we have a negative result, last and b0rk out
+				# Check result
 				if (!$res) {
 					$sourceMatch = 0;
 					last;
@@ -192,9 +211,15 @@ sub getPolicy
 
 					# Grab group members
 					my $members = getGroupMembers($group);
-					if (!$members) {
-						setError(Error());
-						return undef;
+					if (ref $members ne "ARRAY") {
+						$server->log(LOG_WARN,"[POLICIES] Error '$members' while retriving destination group members for group '$group' in policy member: ".
+								Dumper($policyMember));
+						next;
+					}
+
+					# Check if actually have any
+					if (@{$members} < 1) {
+						$server->log(LOG_WARN,"[POLICIES] No group members for destination group '$group' in policy member: ".Dumper($policyMember));
 					}
 
 					# Check if we should negate
@@ -210,6 +235,7 @@ sub getPolicy
 				} else {
 					push(@destinations,$destination);
 				}
+				$server->log(LOG_DEBUG,"[POLICIES] Resolved destinations '".join(',',@destinations)."' from policy member: ".Dumper($policyMember));
 			}
 			
 			# Process destinations and see if we match
@@ -219,9 +245,10 @@ sub getPolicy
 				# Match email addy
 				if ($destination =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailTo,$destination);
+					$server->log(LOG_DEBUG,"[POLICIES] Destination '$destination' is an email address specification, match = $res");
 
 				} else {
-					setError("Destination '".$destination."' is not valid in policy '".$policyMember->{'Name'}."' specification");
+					$server->log(LOG_WARN,"[POLICIES] Destination '".$destination."' is not valid in policy '".$policyMember->{'Name'}."' specification");
 					return undef;
 				}
 
@@ -265,8 +292,7 @@ sub getGroupMembers
 			AND policy_group_members.Disabled = 0
 	");
 	if (!$sth) {
-		setError(cbp::dblayer::Error());
-		return undef;
+		return cbp::dblayer::Error();
 	}
 	# Pull in groups
 	my @groupMembers = ();

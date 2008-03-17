@@ -37,6 +37,8 @@ use cbp::logging;
 use cbp::policies;
 use cbp::system qw(parseCIDR);
 
+use Data::Dumper;
+
 
 # Database handle
 my $dbh = undef;
@@ -159,7 +161,9 @@ sub getSessionDataFromRequest
 				
 		# If no state information, create everything we need
 		if (!$sessionData) {
-	
+
+			$server->log(LOG_DEBUG,"[TRACKING] No session tracking data exists for: ".Dumper($request));
+
 			# Should only track sessions from RCPT
 			if ($request->{'protocol_state'} eq "RCPT") {
 				DBBegin();
@@ -199,7 +203,7 @@ sub getSessionDataFromRequest
 					DBRollback();
 					return -1;
 				}
-				$server->log(LOG_DEBUG,"[TRACKING] Recorded tracking information for instance ".$request->{'instance'});
+				$server->log(LOG_DEBUG,"[TRACKING] Added session tracking information for: ".Dumper($request));
 	
 				# Grab inserted row ID
 				my $rowID = DBLastInsertID('session_tracking','ID');
@@ -234,10 +238,11 @@ sub getSessionDataFromRequest
 	
 		# If we in rcpt, caclulate and save policy
 		if ($request->{'protocol_state'} eq 'RCPT') {
+			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'RCPT', resolving policy...");
+
 			# Get policy
-			my $policy = getPolicy($request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
-			if (!defined($policy)) {
-				$server->log(LOG_ERR,"[TRACKING] Failed to retrieve policy: ".cbp::policies::Error());
+			my $policy = getPolicy($server,$request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
+			if (ref $policy ne "HASH") {
 				return -1;
 			}
 	
@@ -246,6 +251,7 @@ sub getSessionDataFromRequest
 	
 		# If we in end of message, load policy from data
 		} elsif ($request->{'protocol_state'} eq 'END-OF-MESSAGE') {
+			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'END-OF-MESSAGE', decoding policy...");
 			$sessionData->{'_Recipient_To_Policy'} = decodePolicyData($sessionData->{'RecipientData'});
 			# This must be updated here ... we may of got actual size
 			$sessionData->{'Size'} = $request->{'size'};
