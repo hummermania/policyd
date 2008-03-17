@@ -199,7 +199,7 @@ sub check {
 				# Check if IP is whitelisted
 				if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
 						$sessionData->{'ParsedClientAddress'}->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
-					$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
+					$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
 							$sessionData->{'Sender'},
@@ -271,7 +271,7 @@ sub check {
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 
-					$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=auto-whitelisted",
+					$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=auto-whitelisted",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
 							$sessionData->{'Sender'},
@@ -315,7 +315,7 @@ sub check {
 				# Check if we're within the auto-blacklisting period
 				if ($sessionData->{'Timestamp'} - $row->{'Added'} <= $policy{'AutoBlacklistPeriod'}) {
 
-					$server->maillog("module=Greylisting, action=reject, host=%s, from=%s, to=%s, reason=auto-blacklisted",
+					$server->maillog("module=Greylisting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=auto-blacklisted",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
 							$sessionData->{'Sender'},
@@ -439,7 +439,7 @@ sub check {
 								return $server->protocol_response(PROTO_DB_ERROR);
 							}
 
-							$server->maillog("module=Greylisting, action=reject, host=%s, from=%s, to=%s, reason=auto-blacklisted",
+							$server->maillog("module=Greylisting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=auto-blacklisted",
 									$sessionData->{'ClientAddress'},
 									$sessionData->{'Helo'},
 									$sessionData->{'Sender'},
@@ -630,7 +630,7 @@ sub check {
 								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
 								return $server->protocol_response(PROTO_DB_ERROR);
 							}
-							$server->maillog("module=Greylisting, action=none, host=%s, from=%s, to=%s, reason=auto-whitelisted",
+							$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=auto-whitelisted",
 									$sessionData->{'ClientAddress'},
 									$sessionData->{'Helo'},
 									$sessionData->{'Sender'},
@@ -648,7 +648,7 @@ sub check {
 		}
 
 		
-		$server->maillog("module=Greylisting, action=none, host=%s, helo=%s, from=%s, to=%s, reason=authenticated",
+		$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=authenticated",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},

@@ -175,11 +175,12 @@ sub check {
 
 		# Intended action is accept
 		if ($result->code eq "pass") {
-			$server->maillog("module=CheckSPF, action=none, host=%s, helo=%s, from=%s, to=%s, reason=pass",
+			$server->maillog("module=CheckSPF, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=spf_pass",
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
 					$sessionData->{'Sender'},
 					$sessionData->{'Recipient'});
+			return $server->protocol_response(PROTO_PASS);
 
 		# Intended action is reject
 		} elsif ($result->code eq "fail") {
@@ -192,7 +193,7 @@ sub check {
 				$action = "add_header";
 			}
 
-			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=fail",
+			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=spf_fail",
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
 					$sessionData->{'Sender'},
@@ -207,14 +208,14 @@ sub check {
 
 		# Intended action is accept and mark
 		} elsif ($result->code eq "softfail") {
-			my $action = "none";
+			my $action = "pass";
 
 			# Check if we need to add a header
 			if (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} eq "1") {
 				$action = "add_header";
 			}
 
-			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=softfail",
+			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=spf_softfail",
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
 					$sessionData->{'Sender'},
@@ -223,18 +224,20 @@ sub check {
 			# Check if we need to add a header
 			if ($action eq "add_header") {
 				return $server->protocol_response(PROTO_PREPEND,$result->received_spf_header);
+			} elsif ($action eq "pass") {
+				return $server->protocol_response(PROTO_PASS);
 			}
 
 		# Intended action is accept
 		} elsif ($result->code eq "neutral") {
-			my $action = "none";
+			my $action = "pass";
 
 			# Check if we need to add a header
 			if (defined($policy{'AddSPFHeader'}) && $policy{'AddSPFHeader'} eq "1") {
 				$action = "add_header";
 			}
 
-			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=neutral",
+			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=spf_neutral",
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
 					$sessionData->{'Sender'},
@@ -243,6 +246,8 @@ sub check {
 			# Check if we need to add a header
 			if ($action eq "add_header") {
 				return $server->protocol_response(PROTO_PREPEND,$result->received_spf_header);
+			} elsif ($action eq "pass") {
+				return $server->protocol_response(PROTO_PASS);
 			}
 
 		# Intended action is unspecified
@@ -256,7 +261,7 @@ sub check {
 				$action = "add_header";
 			}
 
-			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=permerror",
+			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=spf_permerror",
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
 					$sessionData->{'Sender'},
@@ -280,7 +285,7 @@ sub check {
 				$action = "add_header";
 			}
 
-			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=temperror",
+			$server->maillog("module=CheckSPF, action=$action, host=%s, helo=%s, from=%s, to=%s, reason=spf_temperror",
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
 					$sessionData->{'Sender'},
@@ -294,7 +299,7 @@ sub check {
 			}
 
 
-		# Intended action is accept
+		# Intended action is accept, we going to bypass instead with "none"
 		} elsif ($result->code eq "none") {
 			my $action = "none";
 

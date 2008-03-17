@@ -213,7 +213,7 @@ sub check {
 				# Check if IP is whitelisted
 				if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
 							$sessionData->{'ParsedClientAddress'}->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
-					$server->maillog("module=CheckHelo, action=none, host=%s, from=%s, to=%s, reason=whitelisted",
+					$server->maillog("module=CheckHelo, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
 							$sessionData->{'Sender'},
@@ -243,7 +243,7 @@ sub check {
 			# Check if we must reject IP address HELO's
 			if (defined($policy{'RejectIP'}) && $policy{'RejectIP'} eq "1") {
 
-				$server->maillog("module=CheckHelo, action=reject, host=%s, from=%s, to=%s, reason=ip_not_allowed",
+				$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=ip_not_allowed",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
 						$sessionData->{'Sender'},
@@ -277,7 +277,7 @@ sub check {
 					# Check if we found any valid DNS records
 					if (!$found) {
 
-						$server->maillog("module=CheckHelo, action=reject, host=%s, from=%s, to=%s, reason=resolve_notfound",
+						$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=resolve_notfound",
 								$sessionData->{'ClientAddress'},
 								$sessionData->{'Helo'},
 								$sessionData->{'Sender'},
@@ -314,7 +314,7 @@ sub check {
 
 					} elsif ($res->errorstring eq "SERVFAIL") {
 
-						$server->maillog("module=CheckHelo, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=resolve_servfail",
+						$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=resolve_servfail",
 								$sessionData->{'ClientAddress'},
 								$sessionData->{'Helo'},
 								$sessionData->{'Sender'},
