@@ -110,7 +110,17 @@ sub configure {
 	foreach my $param (@server_params) {
 		$server->{$param} = $config{'server'}{$param} if (defined($config{'server'}{$param}));
 	}
-	
+
+	# Fix up these ...
+	if (defined($server->{'cidr_allow'})) {
+		my @lst = split(/,\s;/,$server->{'cidr_allow'});
+		$server->{'cidr_allow'} = \@lst;
+	}
+	if (defined($server->{'cidr_deny'})) {
+		my @lst = split(/,\s;/,$server->{'cidr_deny'});
+		$server->{'cidr_deny'} = \@lst;
+	}
+
 	# Split off modules
 	if (!defined($config{'server'}{'modules'})) {
 		die "Server configuration error: 'modules' not found";
