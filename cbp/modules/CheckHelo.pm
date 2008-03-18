@@ -350,7 +350,7 @@ sub check {
 		# Select and compare the number of tracking HELO's in the past time with the blacklisted ones
 		$sth = DBSelect("
 			SELECT
-				Count(checkhelo_tracking.ID) AS Count
+				Count(*) AS Count
 
 			FROM
 				checkhelo_tracking, checkhelo_blacklist
@@ -404,7 +404,7 @@ sub check {
 
 						my $sth = DBSelect("
 							SELECT
-								Count(ID) AS Count
+								Count(*) AS Count
 
 							FROM
 								checkhelo_tracking
