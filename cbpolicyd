@@ -151,7 +151,6 @@ sub configure {
 		}
 	}
 
-print(STDERR "CIDR_ALLOW: ".$config{'server'}{'cidr_allow'}."\n");
 	# Save our config and stuff
 	$self->{'config'} = $cfg;
 	$self->{'cmdline'} = $cmdline;
