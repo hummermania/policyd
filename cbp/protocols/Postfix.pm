@@ -208,23 +208,32 @@ sub protocol_getresponse
 # Validate protocol data
 sub protocol_validate {
 	my ($server,$request) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'protocols'});
 	
 
 	# Check params
 	if (!defined($request->{'client_address'}) || !($request->{'client_address'} =~ /^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$/) ) {
-		return "Required parameter 'client_address' was not found or invalid format";
+		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'client_address' cannot be ".
+			defined($request->{'client_address'}) ? "'".$request->{'client_address'}."'" : "undef") if ($log);
+		return "required parameter 'client_address' was not found or invalid format";
 	}
 
 	if (!defined($request->{'sender'}) || !($request->{'sender'} =~ /^(?:\S+@\S+|)$/) ) {
-		return "Required parameter 'sender' was not found or invalid format";
+		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'sender' cannot be ".
+			defined($request->{'sender'}) ? "'".$request->{'sender'}."'" : "undef") if ($log);
+		return "required parameter 'sender' was not found or invalid format";
 	}
 
 	if (!defined($request->{'recipient'}) || !($request->{'recipient'} =~ /^\S+@\S+$/) ) {
-		return "Required parameter 'recipient' was not found or invalid format";
+		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'recipient' cannot be ".
+			defined($request->{'recipient'}) ? "'".$request->{'recipient'}."'" : "undef") if ($log);
+		return "required parameter 'recipient' was not found or invalid format";
 	}
 
 	if (!defined($request->{'instance'}) || $request->{'instance'} eq "") {
-		return "Required parameter 'instance' was not found or invalid format";
+		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'instance' cannot be ".
+			defined($request->{'instance'}) ? "'".$request->{'instance'}."'" : "undef") if ($log);
+		return "required parameter 'instance' was not found or invalid format";
 	}
 }
 
