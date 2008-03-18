@@ -89,8 +89,6 @@ sub check {
 	my $now = time();
 
 
-	my $reason = "no_quota";
-
 	#
 	# RCPT state
 	#   If we in this state we increase the RCPT counters for each key we have
@@ -278,7 +276,7 @@ sub check {
 					}
 					
 					# Log create to mail log
-					$server->maillog("module=Quotas, mode=create, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, "
+					$server->maillog("module=Quotas, mode=create, host=%s, helo=%s, from=%s, to=%s, reason=quota_create, policy=%s, quota=%s, limit=%s, "
 								."track=%s, counter=%s, quota=%s/%s (%s%%)",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
@@ -293,12 +291,11 @@ sub check {
 							$qtrack->{'CounterLimit'},
 							$pused);
 
-					$reason = "quota_create";
 
 				# If we updated ...
 				} else {
 					# Log update to mail log
-					$server->maillog("module=Quotas, mode=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, "
+					$server->maillog("module=Quotas, mode=update, host=%s, helo=%s, from=%s, to=%s, reason=quota_update, policy=%s, quota=%s, limit=%s, "
 								."track=%s, counter=%s, quota=%s/%s (%s%%)",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
@@ -313,7 +310,6 @@ sub check {
 							$qtrack->{'CounterLimit'},
 							$pused);
 
-					$reason = "quota_update";
 				}
 					
 
@@ -327,9 +323,9 @@ sub check {
 			my $pused =  sprintf('%.1f', ( $newCounters{$exceededQtrack->{'QuotasLimitsID'}} / $exceededQtrack->{'CounterLimit'} ) * 100);
 
 			# Log rejection to mail log
-			$server->maillog("module=Quotas, action=%s, host=%s, helo=%s, from=%s, to=%s, policy=%s, quota=%s, limit=%s, track=%s, "
+			$server->maillog("module=Quotas, action=%s, host=%s, helo=%s, from=%s, to=%s, reason=quota_match, policy=%s, quota=%s, limit=%s, track=%s, "
 						."counter=%s, quota=%s/%s (%s%%)",
-					$exceededQtrack->{'Verdict'},
+					lc($exceededQtrack->{'Verdict'}),
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
 					$sessionData->{'Sender'},
@@ -346,7 +342,6 @@ sub check {
 			$verdict = $exceededQtrack->{'Verdict'},
 			$verdict_data = (defined($exceededQtrack->{'VerdictData'}) && $exceededQtrack->{'VerdictData'} ne "") 
 					? $exceededQtrack->{'VerdictData'} : $hasExceeded;
-			$reason = "quota_match";
 		}
 
 	#
@@ -430,7 +425,7 @@ sub check {
 								my $pused =  sprintf('%.1f', ( $qtrack->{'Counter'} / $limit->{'CounterLimit'} ) * 100);
 
 								# Log update to mail log
-								$server->maillog("module=Quotas, mode=update, host=%s, helo=%s, from=%s, to=%s, policy=%s, "
+								$server->maillog("module=Quotas, mode=update, host=%s, helo=%s, from=%s, to=%s, reason=quota_update, policy=%s, "
 											."quota=%s, limit=%s, track=%s, counter=%s, quota=%s/%s (%s%%)",
 										$sessionData->{'ClientAddress'},
 										$sessionData->{'Helo'},
@@ -444,7 +439,6 @@ sub check {
 										sprintf('%.0f',$qtrack->{'Counter'}),
 										$limit->{'CounterLimit'},
 										$pused);
-								$reason = "quota_update";
 							} # if (lc($limit->{'Type'}) eq "messagecumulativesize")
 						} # foreach my $limit (@{$limits})
 					} # foreach my $quota (@{$quotas})
@@ -457,12 +451,11 @@ sub check {
 	
 	# Setup result
 	if (!defined($verdict)) {
-		$server->maillog("module=Quotas, action=none, host=%s, helo=%s, from=%s, to=%s, reason=%s",
+		$server->maillog("module=Quotas, action=none, host=%s, helo=%s, from=%s, to=%s, reason=no_quota",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
-				$sessionData->{'Recipient'},
-				$reason);
+				$sessionData->{'Recipient'});
 
 		return CBP_CONTINUE;
 	} if ($verdict =~ /^hold$/i) {
