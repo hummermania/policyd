@@ -233,13 +233,17 @@ sub child_init_hook
 	$self->log(LOG_DEBUG,"Starting up caching engine");
 	cbp::cache::connect($self);
 
+	# This is the database connection timestamp, if we connect, it resets to 0
+	# if not its used to check if we must kill the child and try a reconnect
+	$self->{'client'}->{'dbh_status'} = time();
+
 	# Init system stuff
 	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
 	if (defined($self->{'client'}->{'dbh'})) {
 		# Check if we succeeded
 		if (!($self->{'client'}->{'dbh'}->connect())) {
 			# If we succeeded, record OK
-			$self->{'client'}->{'dbh_ok'} = 1;
+			$self->{'client'}->{'dbh_status'} = 0;
 		} else {
 			$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
 		}
@@ -355,13 +359,13 @@ sub process_request {
 	
 	
 	# Check if we got connected, if not ... bypass
-	if (!defined($self->{'client'}->{'dbh_ok'})) {
+	if ($self->{'client'}->{'dbh_status'} > 0) {
 		my $action;
 
-		$self->log(LOG_WARN,"Client in BYPASS mode due to DB connection failure!");
+		$self->log(LOG_WARN,"[CBPOLICYD] Client in BYPASS mode due to DB connection failure!");
 		# Check bypass mode
 		if (!defined($self->{'inifile'}{'database'}{'bypass_mode'})) {
-			$self->log(LOG_ERR,"No bypass_mode specified for failed database connections");
+			$self->log(LOG_ERR,"[CBPOLICYD] No bypass_mode specified for failed database connections, defaulting to tempfail");
 			$self->protocol_response(PROTO_DB_ERROR);
 			$action = "tempfail";
 		# Check for "tempfail"
@@ -381,8 +385,23 @@ sub process_request {
 				$request->{'recipient'} ? $request->{'recipient'} : "unknown");
 
 		print($self->protocol_getresponse());
-		# Fail hard
-		exit 1;
+
+		# Check if we need to reconnect or not
+		my $timeout = $server->{'inifile'}{'database'}{'bypass_timeout'};
+		if (!defined($timeout)) {
+			$self->log(LOG_ERR,"[CBPOLICYD] No bypass_timeout specified for failed database connections, defaulting to 120s");
+			$timeout = 120;
+		}
+		# Get time left
+		my $timepassed = $request->{'_timestamp'} - $self->{'client'}->{'dbh_status'};
+		# Then check...
+		if ($timepassed >= $timeout) {
+			$self->log(LOG_NOTICE,"[CBPOLICYD] Client BYPASS timeout exceeded, reconnecting...");
+			exit 0;
+		} else {
+			$self->log(LOG_NOTICE,"[CBPOLICYD] Client still in BYPASS mode, ".( $timeout - $timepassed )."s left till next reconnect");
+			return;
+		}
 	}
 
 	# Setup database handle
