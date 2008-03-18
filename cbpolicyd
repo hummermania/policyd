@@ -360,16 +360,16 @@ sub process_request {
 
 		$self->log(LOG_WARN,"Client in BYPASS mode due to DB connection failure!");
 		# Check bypass mode
-		if (!defined($self->{'inifile'}{'server'}{'bypass_mode'})) {
+		if (!defined($self->{'inifile'}{'database'}{'bypass_mode'})) {
 			$self->log(LOG_ERR,"No bypass_mode specified for failed database connections");
 			$self->protocol_response(PROTO_DB_ERROR);
 			$action = "tempfail";
 		# Check for "tempfail"
-		}elsif ($self->{'inifile'}{'server'}{'bypass_mode'} eq "tempfail") {
+		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "tempfail") {
 			$self->protocol_response(PROTO_PASS);
 			$action = "tempfail";
 		# And for "bypass"
-		} elsif ($self->{'inifile'}{'server'}{'bypass_mode'} eq "pass") {
+		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "pass") {
 			$self->protocol_response(PROTO_DB_ERROR);
 			$action = "pass";
 		}
