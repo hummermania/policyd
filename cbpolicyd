@@ -568,7 +568,6 @@ sub maillog
 	my ($self,$msg,@args) = @_;
 	my $log_mail = $self->{'config'}{'log_mail'};
 
-	print(STDERR "Log: $log_mail\n");
 
 	# Log to syslog
 	if ($log_mail eq "maillog") {
