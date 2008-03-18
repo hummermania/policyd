@@ -54,10 +54,9 @@ INSERT INTO quotas_limits (QuotasID,Type,CounterLimit) VALUES (2,'MessageCount',
 
 /* This table is used for tracking the quotas */
 CREATE TABLE quotas_tracking (
-	ID			@SERIAL_TYPE@,
 
 	QuotasLimitsID		@SERIAL_REF_TYPE@,
-	TrackKey		VARCHAR(512),
+	TrackKey		VARCHAR(@TRACK_KEY_LEN@),
 
 	/* Last time this record was update */
 	LastUpdate		DATETIME,  /* NULL means not updated yet */	

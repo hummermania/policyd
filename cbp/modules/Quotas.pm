@@ -414,7 +414,8 @@ sub check {
 										Counter = ".DBQuote($qtrack->{'Counter'}).",
 										LastUpdate = ".DBQuote($now)."
 									WHERE
-										ID = ".DBQuote($qtrack->{'ID'})."
+										QuotasLimitsID = ".DBQuote($qtrack->{'QuotasLimitsID'})."
+										AND TrackKey = ".DBQuote($qtrack->{'TrackKey'})."
 								");
 								if (!$sth) {
 									$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
@@ -642,7 +643,7 @@ sub getTrackingInfo
 	# Query quota info
 	my $sth = DBSelect("
 		SELECT 
-			ID, QuotasLimitsID,
+			QuotasLimitsID,
 			TrackKey, Counter, LastUpdate
 		FROM
 			quotas_tracking
