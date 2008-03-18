@@ -164,15 +164,15 @@ sub post_configure_hook {
 	my $self = shift;
 
 
-	$self->log(LOG_NOTICE,"Initializing system modules.");
+	$self->log(LOG_NOTICE,"[CBPOLICYD] Initializing system modules.");
 	# Init config
 	cbp::config::Init($self);
 	# Init caching engine
 	cbp::cache::Init($self);
-	$self->log(LOG_NOTICE,"System modules initialized.");
+	$self->log(LOG_NOTICE,"[CBPOLICYD] System modules initialized.");
 
 
-	$self->log(LOG_NOTICE,"Module load started...");
+	$self->log(LOG_NOTICE,"[CBPOLICYD] Module load started...");
 	# Load modules
 	foreach my $module (@{$self->{'config'}{'module_list'}}) {
 		# Split off dir and mod name
@@ -185,15 +185,15 @@ sub post_configure_hook {
 			plugin_register(\$self,\"${mod_name}\",\$cbp::${mod_dir}::${mod_name}::pluginInfo);
 		");
 		if ($@ || (defined($res) && $res != 0)) {
-			$self->log(LOG_WARN,"WARNING: Error loading plugin $module ($@)");
+			$self->log(LOG_WARN,"[CBPOLICYD] Error loading plugin $module ($@)");
 		}
 	}
-	$self->log(LOG_NOTICE,"Module load done.");
+	$self->log(LOG_NOTICE,"[CBPOLICYD] Module load done.");
 
-	$self->log(LOG_DEBUG,"Opening syslog.");
-	Sys::Syslog::setlogsock("unix") || $self->log(LOG_ERR,"Failed to set log socket: $!");
-	Sys::Syslog::openlog("cbpolicyd",'pid|ndelay','mail') || $self->log(LOG_ERR,"Failed to open syslog socket: $!");
-	$self->log(LOG_DEBUG,"Syslog open.");
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Opening syslog.");
+	Sys::Syslog::setlogsock("unix") || $self->log(LOG_ERR,"[CBPOLICYD] Failed to set log socket: $!");
+	Sys::Syslog::openlog("cbpolicyd",'pid|ndelay','mail') || $self->log(LOG_ERR,"[CBPOLICYD] Failed to open syslog socket: $!");
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Syslog open.");
 }
 
 
@@ -204,7 +204,7 @@ sub plugin_register {
 
 	# If no info, return
 	if (!defined($info)) {
-		$self->log(LOG_WARN,"WARNING: Plugin info not found for module => $module");
+		$self->log(LOG_WARN,"[CBPOLICYD] Plugin info not found for module => $module");
 		return -1;
 	}
 
@@ -230,7 +230,7 @@ sub child_init_hook
 	
 	$self->SUPER::child_init_hook();
 	
-	$self->log(LOG_DEBUG,"Starting up caching engine");
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Starting up caching engine");
 	cbp::cache::connect($self);
 
 	# This is the database connection timestamp, if we connect, it resets to 0
@@ -245,10 +245,10 @@ sub child_init_hook
 			# If we succeeded, record OK
 			$self->{'client'}->{'dbh_status'} = 0;
 		} else {
-			$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+			$self->log(LOG_WARN,"[CBPOLICYD] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
 		}
 	} else {
-		$self->log(LOG_WARN,"Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
+		$self->log(LOG_WARN,"[CBPOLICYD] Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
 	}
 }
 
@@ -262,7 +262,7 @@ sub child_finish_hook {
 
 	$self->SUPER::child_init_hook();
 	
-	$self->log(LOG_DEBUG,"Shutting down caching engine ($$)");
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Shutting down caching engine ($$)");
 	cbp::cache::disconnect($self);
 }
 
@@ -313,7 +313,7 @@ sub process_request {
 
 		# Again ... too large
 		if (length($buf) > 16*1024) {
-			$self->log(LOG_WARN,"Request too large from => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+			$self->log(LOG_WARN,"[CBPOLICYD] Request too large from => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
 					$server->{'sockaddr'}.":".$server->{'sockport'});
 			return;
 		}
@@ -321,7 +321,7 @@ sub process_request {
 		# Check for timeout....
 		my $n = select($fdset,undef,undef,$server->{'timeout'});
 		if (!$n) {
-			$self->log(LOG_WARN,"Timeout from => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+			$self->log(LOG_WARN,"[CBPOLICYD] Timeout from => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
 					$server->{'sockaddr'}.":".$server->{'sockport'});
 			return;
 		}
@@ -330,14 +330,14 @@ sub process_request {
 		$n = sysread(STDIN,$buf,8192,length($buf));
 		if (!$n) {
 			my $reason = defined($n) ? "Client closed connection" : "sysread[$!]";
-			$self->log(LOG_WARN,"$reason => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+			$self->log(LOG_WARN,"[CBPOLICYD] $reason => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
 					$server->{'sockaddr'}.":".$server->{'sockport'});
 			return;
 		}
 	}
 	# Check if a protocol handler wasn't found...
 	if (!$found) {
-		$self->log(LOG_ERR,"Request not understood => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+		$self->log(LOG_ERR,"[CBPOLICYD] Request not understood => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
 			$server->{'sockaddr'}.":".$server->{'sockport'});
 		return;
 	}
@@ -349,13 +349,22 @@ sub process_request {
 	# Process buffer
 	my $request = $server->{'_protocol_handler'}->{'protocol_parse'}($self,$buf);
 
-	# Sanitize data
-	$request->{'sender'} = lc($request->{'sender'}) if (defined($request->{'sender'}));
-	$request->{'recipient'} = lc($request->{'recipient'}) if (defined($request->{'recipient'}));
+	# Check data is ok...
+	if ((my $res = $server->{'_protocol_handler'}->{'protocol_validate'}($self,$request))) {
+		$self->log(LOG_ERR,"[CBPOLICYD] Protocol data validation error, $res");
+		$self->protocol_response(PROTO_ERROR);
+		print($self->protocol_getresponse());
+		return;
+	}
+
+	# Data mangling...
+	$request->{'sender'} = lc($request->{'sender'});
+	$request->{'recipient'} = lc($request->{'recipient'});
+	$request->{'recipient'} = lc($request->{'recipient'});
 	$request->{'sasl_username'} = lc($request->{'sasl_username'}) if (defined($request->{'sasl_username'}));
+
 	# Internal data
 	$request->{'_timestamp'} = time();
-	($request->{'_domain'} = $request->{'recipient'}) =~ s/[^@]+@//;
 	
 	
 	# Check if we got connected, if not ... bypass

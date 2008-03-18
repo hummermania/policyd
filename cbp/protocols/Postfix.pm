@@ -37,6 +37,7 @@ our $pluginInfo = {
 	protocol_parse	=> \&protocol_parse,
 	protocol_response	=> \&protocol_response,
 	protocol_getresponse	=> \&protocol_getresponse,
+	protocol_validate	=> \&protocol_validate,
 };
 
 
@@ -202,6 +203,33 @@ sub protocol_getresponse
 
 	return "$resp\n\n"
 }
+
+
+# Validate protocol data
+sub protocol_validate {
+	my ($server,$request) = @_;
+	
+
+	# Check params
+	if (!defined($request->{'client_address'}) || !($request->{'client_address'} =~ /^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$/) ) {
+		return "Required parameter 'client_address' was not found or invalid format";
+	}
+
+	if (!defined($request->{'sender'}) || !($request->{'sender'} =~ /^\S+@\S+$/) ) {
+		return "Required parameter 'sender' was not found or invalid format";
+	}
+
+	if (!defined($request->{'recipient'}) || !($request->{'recipient'} =~ /^\S+@\S+$/) ) {
+		return "Required parameter 'recipient' was not found or invalid format";
+	}
+
+	if (!defined($request->{'instance'}) || $request->{'instance'} eq "") {
+		return "Required parameter 'instance' was not found or invalid format";
+	}
+}
+
+
+
 
 
 1;
