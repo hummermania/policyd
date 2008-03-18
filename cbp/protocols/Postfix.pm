@@ -215,7 +215,7 @@ sub protocol_validate {
 		return "Required parameter 'client_address' was not found or invalid format";
 	}
 
-	if (!defined($request->{'sender'}) || !($request->{'sender'} =~ /^\S+@\S+$/) ) {
+	if (!defined($request->{'sender'}) || !($request->{'sender'} =~ /^(?:\S+@\S+|)$/) ) {
 		return "Required parameter 'sender' was not found or invalid format";
 	}
 
