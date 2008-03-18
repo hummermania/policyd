@@ -68,7 +68,7 @@ CREATE TABLE greylisting_whitelist (
 CREATE TABLE greylisting_autowhitelist (
 	ID			@SERIAL_TYPE@,
 
-	TrackKey		VARCHAR(512) NOT NULL,
+	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL,
 
 	Added			@BIG_INTEGER@ NOT NULL,
 	LastSeen		@BIG_INTEGER@ NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE greylisting_autowhitelist (
 CREATE TABLE greylisting_autoblacklist (
 	ID			@SERIAL_TYPE@,
 
-	TrackKey		VARCHAR(512) NOT NULL,
+	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL,
 
 	Added			@BIG_INTEGER@ NOT NULL,
 
@@ -97,11 +97,9 @@ CREATE TABLE greylisting_autoblacklist (
 
 /* Greylist triplet tracking table */
 CREATE TABLE greylisting_tracking (
-	ID			@SERIAL_TYPE@,
-
 	GreylistingID		@SERIAL_REF_TYPE@,
 
-	TrackKey		VARCHAR(512) NOT NULL,  /* The address really, masked with whatever */
+	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL, /* The address really, masked with whatever */
 	Sender			VARCHAR(255) NOT NULL,
 	Recipient		VARCHAR(255) NOT NULL,
 
@@ -109,7 +107,8 @@ CREATE TABLE greylisting_tracking (
 	LastUpdate		@BIG_INTEGER@ NOT NULL,
 
 	Tries			@BIG_INTEGER@ NOT NULL,  /* Authentication tries */
-	Count			@BIG_INTEGER@ NOT NULL  /* Authenticated count */
+	Count			@BIG_INTEGER@ NOT NULL,  /* Authenticated count */
 
+	UNIQUE(TrackKey,Sender,Recipient)
 ) @CREATE_TABLE_SUFFIX@;
 

@@ -494,7 +494,6 @@ sub check {
 	# Pull triplet and check
 	$sth = DBSelect("
 		SELECT
-			ID,
 			FirstSeen,
 			LastUpdate,
 			Tries,
@@ -518,9 +517,6 @@ sub check {
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 
-	# Get ID
-	my $rowid = $row->{'ID'};
-
 	# Check if we should greylist, or not
 	my $timeElapsed = $row->{'LastUpdate'} - $row->{'FirstSeen'};
 	if ($timeElapsed < $policy{'GreylistPeriod'}) {
@@ -540,7 +536,9 @@ sub check {
 			SET
 				Tries = Tries + 1
 			WHERE
-				ID = ".DBQuote($rowid)."
+				TrackKey = ".DBQuote($key)."
+				AND Sender = ".DBQuote($sessionData->{'Sender'})."
+				AND Recipient = ".DBQuote($sessionData->{'Recipient'})."
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
@@ -557,7 +555,9 @@ sub check {
 			SET
 				Count = Count + 1
 			WHERE
-				ID = ".DBQuote($rowid)."
+				TrackKey = ".DBQuote($key)."
+				AND Sender = ".DBQuote($sessionData->{'Sender'})."
+				AND Recipient = ".DBQuote($sessionData->{'Recipient'})."
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
@@ -760,7 +760,7 @@ sub cleanup
 	
 	# Get maximum AutoWhitelistPeriod
 	my $sth = DBSelect("
-		SELECt 
+		SELECT 
 			MAX(AutoWhitelistPeriod) AS Period
 		FROM 
 			greylisting
@@ -797,7 +797,7 @@ sub cleanup
 	
 	# Get maximum AutoBlacklistPeriod
 	$sth = DBSelect("
-		SELECt 
+		SELECT 
 			MAX(AutoBlacklistPeriod) AS Period
 		FROM 
 			greylisting
@@ -833,7 +833,7 @@ sub cleanup
 	
 	# Get maximum GreylistAuthValidity
 	$sth = DBSelect("
-		SELECt 
+		SELECT 
 			MAX(GreylistAuthValidity) AS Period
 		FROM 
 			greylisting
@@ -871,7 +871,7 @@ sub cleanup
 	
 	# Get maximum GreylistUnAuthValidity
 	$sth = DBSelect("
-		SELECt 
+		SELECT 
 			MAX(GreylistUnAuthValidity) AS Period
 		FROM 
 			greylisting
