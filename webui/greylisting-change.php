@@ -81,6 +81,7 @@ if ($_POST['action'] == "change") {
 			$res = $stmt->execute(array($_POST['greylisting_id']));
 			
 			$row = $stmt->fetchObject();
+			$stmt->closeCursor();
 ?>
 			<table class="entry" style="width: 75%;">
 				<tr>
