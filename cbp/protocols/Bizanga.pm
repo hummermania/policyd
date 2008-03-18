@@ -176,18 +176,18 @@ sub protocol_response
 		return CBP_CONTINUE;
 
 	} elsif ($resp == PROTO_ERROR) {
-		$response = "504";
-		$response_data = $data;
+		$response = "503";
+		$response_data = defined($data) ? $data : "Unknown error";
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_DB_ERROR) {
-		$response = "505";
-		$response_data = $data;
+		$response = "504";
+		$response_data = defined($data) ? $data : "Database error";
 		return CBP_STOP;
 	
 	} elsif ($resp == PROTO_DATA_ERROR) {
-		$response = "506";
-		$response_data = $data;
+		$response = "502";
+		$response_data = defined($data) ? $data : "Database record error";
 		return CBP_STOP;
 	
 	# Fallthrough
