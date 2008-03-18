@@ -108,7 +108,8 @@ CREATE TABLE greylisting_tracking (
 	FirstSeen		@BIG_INTEGER@ NOT NULL,
 	LastUpdate		@BIG_INTEGER@ NOT NULL,
 
-	Authenticated		SMALLINT NOT NULL DEFAULT '0'
+	Tries			@BIG_INTEGER@ NOT NULL,  /* Authentication tries */
+	Count			@BIG_INTEGER@ NOT NULL  /* Authenticated count */
 
 ) @CREATE_TABLE_SUFFIX@;
 

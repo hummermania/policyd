@@ -307,10 +307,8 @@ sub check {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
-			my $row = $sth->fetchrow_hashref();
-
 			# Pull off first row
-			if ($row) {
+			if ((my $row =  $sth->fetchrow_hashref())) {
 
 				# Check if we're within the auto-blacklisting period
 				if ($sessionData->{'Timestamp'} - $row->{'Added'} <= $policy{'AutoBlacklistPeriod'}) {
@@ -324,7 +322,7 @@ sub check {
 					return $server->protocol_response(PROTO_REJECT,"Greylisting in effect, sending server blacklisted");
 				}
 
-			} # if ($row)
+			}
 
 		} else {  # if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0)
 			$server->log(LOG_ERR,"[GREYLISTING] Resolved policy UseAutoBlacklist is set, but AutoBlacklistPeriod is not set or invalid");
@@ -369,7 +367,7 @@ sub check {
 
 					my $sth = DBSelect("
 						SELECT
-							Count(*) AS Count
+							Count(*) AS RCount
 						FROM
 							greylisting_tracking
 						WHERE
@@ -384,7 +382,7 @@ sub check {
 
 
 					# If count exceeds or equals blacklist count, nail the server
-					if ($row->{'Count'} >= $policy{'AutoBlacklistCount'}) {
+					if ($row->{'RCount'} > 0 && $row->{'RCount'} >= $policy{'AutoBlacklistCount'}) {
 						# Start off as undef
 						my $blacklist;
 
@@ -392,13 +390,13 @@ sub check {
 						if (defined($policy{'AutoBlacklistPercentage'}) && $policy{'AutoBlacklistPercentage'} > 0) {
 							$sth = DBSelect("
 								SELECT
-									Count(*) AS Count
+									Count(*) AS RCount
 								FROM
 									greylisting_tracking
 								WHERE
 									TrackKey = ".DBQuote($key)."
 									AND FirstSeen >= ".DBQuote($addedTime)."
-									AND Authenticated = 1
+									AND Count > 0
 							");
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
@@ -406,19 +404,16 @@ sub check {
 							}
 							my $row2 = $sth->fetchrow_hashref();
 					
-							# Cannot divide by zero
-							if ($row->{'Count'} > 0) {
-								my $percentage = ( $row2->{'Count'} / $row->{'Count'} ) * 100;
-								# If we meet the percentage of unauthenticated triplets, blacklist
-								if ($percentage <= $policy{'AutoBlacklistPercentage'} ) {
-									$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s, Percentage/Threshold = %s/%s",
-											$row->{'Count'}, $policy{'AutoBlacklistCount'},
-											$percentage, $policy{'AutoBlacklistPercentage'});
-								}
+							my $percentage = ( $row2->{'RCount'} / $row->{'RCount'} ) * 100;
+							# If we meet the percentage of unauthenticated triplets, blacklist
+							if ($percentage <= $policy{'AutoBlacklistPercentage'} ) {
+								$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s, Percentage/Threshold = %s/%s",
+										$row->{'RCount'}, $policy{'AutoBlacklistCount'},
+										$percentage, $policy{'AutoBlacklistPercentage'});
 							}
 						# This is not a percentage check
 						} else {
-							$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s", $row->{'Count'}, $policy{'AutoBlacklistCount'});
+							$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s", $row->{'RCount'}, $policy{'AutoBlacklistCount'});
 						}
 					
 						# If we are to be listed, this is our reason
@@ -447,7 +442,7 @@ sub check {
 
 							return $server->protocol_response(PROTO_REJECT,"Greylisting in effect, sending server blacklisted");
 						}
-					} # if ($row->{'Count'} >= $policy{'AutoBlacklistCount'})
+					} # if ($row->{'RCount'} > 0 && $row->{'RCount'} >= $policy{'AutoBlacklistCount'})
 				} # if (defined($policy{'AutoBlacklistCount'}) && $policy{'AutoBlacklistCount'} > 0)
 
 			} else { # if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0)
@@ -459,14 +454,16 @@ sub check {
 		# Record triplet
 		$sth = DBDo("
 			INSERT INTO greylisting_tracking
-				(TrackKey,Sender,Recipient,FirstSeen,LastUpdate)
+				(TrackKey,Sender,Recipient,FirstSeen,LastUpdate,Tries,Count)
 			VALUES
 				(
 					".DBQuote($key).",
 					".DBQuote($sessionData->{'Sender'}).",
 					".DBQuote($sessionData->{'Recipient'}).",
 					".DBQuote($sessionData->{'Timestamp'}).",
-					".DBQuote($sessionData->{'Timestamp'})."
+					".DBQuote($sessionData->{'Timestamp'}).",
+					1,
+					0
 				)
 		");
 		if (!$sth) {
@@ -497,8 +494,11 @@ sub check {
 	# Pull triplet and check
 	$sth = DBSelect("
 		SELECT
+			ID,
 			FirstSeen,
-			LastUpdate
+			LastUpdate,
+			Tries,
+			Count
 
 		FROM
 			greylisting_tracking
@@ -518,16 +518,34 @@ sub check {
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 
+	# Get ID
+	my $rowid = $row->{'ID'};
+
 	# Check if we should greylist, or not
 	my $timeElapsed = $row->{'LastUpdate'} - $row->{'FirstSeen'};
 	if ($timeElapsed < $policy{'GreylistPeriod'}) {
 		# Get time left, debug and return
 		my $timeLeft = $policy{'GreylistPeriod'} - $timeElapsed;
-		$server->maillog("module=Greylisting, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=greylisted",
+		$server->maillog("module=Greylisting, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=greylisted, tries=%s",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
-				$sessionData->{'Recipient'});
+				$sessionData->{'Recipient'},
+				$row->{'Tries'} + 1);
+
+		# Update stats
+		my $sth = DBDo("
+			UPDATE 
+				greylisting_tracking
+			SET
+				Tries = Tries + 1
+			WHERE
+				ID = ".DBQuote($rowid)."
+		");
+		if (!$sth) {
+			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+			return $server->protocol_response(PROTO_DB_ERROR);
+		}
 
 		return $server->protocol_response(PROTO_DEFER,"451 4.7.1 Greylisting in effect, please come back later");
 
@@ -537,11 +555,9 @@ sub check {
 			UPDATE 
 				greylisting_tracking
 			SET
-				Authenticated = 1
+				Count = Count + 1
 			WHERE
-				TrackKey = ".DBQuote($key)."
-				AND Sender = ".DBQuote($sessionData->{'Sender'})."
-				AND Recipient = ".DBQuote($sessionData->{'Recipient'})."
+				ID = ".DBQuote($rowid)."
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
@@ -562,7 +578,7 @@ sub check {
 
 					my $sth = DBSelect("
 						SELECT
-							Count(*) AS Count
+							Count(*) AS RCount
 						FROM
 							greylisting_tracking
 						WHERE
@@ -576,20 +592,20 @@ sub check {
 					my $row = $sth->fetchrow_hashref();
 
 					# If count exceeds or equals whitelist count, nail the server
-					if ($row->{'Count'} >= $policy{'AutoWhitelistCount'}) {
+					if ($row->{'RCount'} >= $policy{'AutoWhitelistCount'}) {
 						my $whitelist;
 
 						# Check if we should whitelist this host
 						if (defined($policy{'AutoWhitelistPercentage'}) && $policy{'AutoWhitelistPercentage'} > 0) {
 							$sth = DBSelect("
 								SELECT
-									Count(*) AS Count
+									Count(*) AS RCount
 								FROM
 									greylisting_tracking
 								WHERE
 									TrackKey = ".DBQuote($key)."
 									AND FirstSeen >= ".DBQuote($addedTime)."
-									AND Authenticated = 1
+									AND Count > 0
 							");
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
@@ -598,18 +614,18 @@ sub check {
 							my $row2 = $sth->fetchrow_hashref();
 				
 							# Cannot divide by zero
-							if ($row->{'Count'} > 0) {
-								my $percentage = ( $row2->{'Count'} / $row->{'Count'} ) * 100;
+							if ($row->{'RCount'} > 0) {
+								my $percentage = ( $row2->{'RCount'} / $row->{'RCount'} ) * 100;
 								# If we meet the percentage of unauthenticated triplets, whitelist
 								if ($percentage >= $policy{'AutoWhitelistPercentage'} ) {
 									$whitelist = sprintf("Auto-whitelisted: Count/Required = %s/%s, Percentage/Threshold = %s/%s",
-											$row->{'Count'}, $policy{'AutoWhitelistCount'},
+											$row->{'RCount'}, $policy{'AutoWhitelistCount'},
 											$percentage, $policy{'AutoWhitelistPercentage'});
 								}
 							}
 	
 						} else {
-							$whitelist = sprintf("Auto-whitelisted: Count/Required = %s/%s", $row->{'Count'}, $policy{'AutoWhitelistCount'});
+							$whitelist = sprintf("Auto-whitelisted: Count/Required = %s/%s", $row->{'RCount'}, $policy{'AutoWhitelistCount'});
 						}
 	
 						# If we are to be listed, this is our reason
@@ -638,7 +654,7 @@ sub check {
 
 							return $server->protocol_response(PROTO_PASS);
 						}
-					} # if ($row->{'Count'} >= $policy{'AutoWhitelistCount'})
+					} # if ($row->{'RCount'} >= $policy{'AutoWhitelistCount'})
 				} # if (defined($policy{'AutoWhitelistCount'}) && $policy{'AutoWhitelistCount'} > 0) 
 
 			} else { # if (defined($policy{'AutoWhitelistPeriod'}) && $policy{'AutoWhitelistPeriod'} > 0)
@@ -841,7 +857,7 @@ sub cleanup
 			greylisting_tracking
 		WHERE
 			LastUpdate <= ".DBQuote($AuthPeriod)."
-			AND Authenticated = 1
+			AND Count > 0
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old authenticated records: ".cbp::dblayer::Error());
@@ -879,7 +895,7 @@ sub cleanup
 			greylisting_tracking
 		WHERE
 			LastUpdate <= ".DBQuote($UnAuthPeriod)."
-			AND Authenticated = 0
+			AND Count = 1
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old un-authenticated records: ".cbp::dblayer::Error());
