@@ -161,6 +161,17 @@ sub configure {
 		}
 	}
 
+	# Check log_mail
+	if (!defined($config{'server'}{'log_mail'}) || $config{'server'}{'log_mail'} eq "maillog") {
+		$cfg->{'log_mail'} = "maillog";
+
+	} elsif ($config{'server'}{'log_mail'} eq "main") {
+		$cfg->{'log_mail'} = "main";
+
+	} else {
+		die("ERROR: log_mail option is invalid\n");
+	}
+	
 	# Save our config and stuff
 	$self->{'config'} = $cfg;
 	$self->{'cmdline'} = $cmdline;
@@ -172,6 +183,7 @@ sub configure {
 # Run straight after ->run
 sub post_configure_hook {
 	my $self = shift;
+	my $log_mail = $self->{'config'}{'log_mail'};
 
 
 	$self->log(LOG_NOTICE,"[CBPOLICYD] Initializing system modules.");
@@ -200,10 +212,13 @@ sub post_configure_hook {
 	}
 	$self->log(LOG_NOTICE,"[CBPOLICYD] Module load done.");
 
-	$self->log(LOG_DEBUG,"[CBPOLICYD] Opening syslog.");
-	Sys::Syslog::setlogsock("unix") || $self->log(LOG_ERR,"[CBPOLICYD] Failed to set log socket: $!");
-	Sys::Syslog::openlog("cbpolicyd",'pid|ndelay','mail') || $self->log(LOG_ERR,"[CBPOLICYD] Failed to open syslog socket: $!");
-	$self->log(LOG_DEBUG,"[CBPOLICYD] Syslog open.");
+	# If we logging to syslog, open...
+	if ($log_mail eq "maillog") {
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Opening syslog.");
+		Sys::Syslog::setlogsock("unix") || $self->log(LOG_ERR,"[CBPOLICYD] Failed to set log socket: $!");
+		Sys::Syslog::openlog("cbpolicyd",'pid|ndelay','mail') || $self->log(LOG_ERR,"[CBPOLICYD] Failed to open syslog socket: $!");
+		$self->log(LOG_DEBUG,"[CBPOLICYD] Syslog open.");
+	}
 }
 
 
@@ -496,6 +511,7 @@ sub process_request {
 sub server_exit
 {
 	my $self = shift;
+	my $log_mail = $self->{'config'}{'log_mail'};
 
 	
 	$self->log(LOG_DEBUG,"Destroying system modules.");
@@ -503,9 +519,12 @@ sub server_exit
 	cbp::cache::Destroy($self);
 	$self->log(LOG_DEBUG,"System modules destroyed.");
 
-	$self->log(LOG_DEBUG,"Closing syslog.");
-	Sys::Syslog::closelog();
-	$self->log(LOG_DEBUG,"Syslog closed.");
+	# Check if we using syslog
+	if ($log_mail eq "maillog") {
+		$self->log(LOG_DEBUG,"Closing syslog.");
+		Sys::Syslog::closelog();
+		$self->log(LOG_DEBUG,"Syslog closed.");
+	};
 
 	# Parent exit
 	$self->SUPER::server_exit();
@@ -547,12 +566,22 @@ sub log
 sub maillog
 {
 	my ($self,$msg,@args) = @_;
+	my $log_mail = $self->{'config'}{'log_mail'};
 
-	# If we have args use printf style
-	if (@args) {
-		Sys::Syslog::syslog('info',$msg,@args);
-	} else {
-		Sys::Syslog::syslog('info','%s',$msg);
+	print(STDERR "Log: $log_mail\n");
+
+	# Log to syslog
+	if ($log_mail eq "maillog") {
+		# If we have args use printf style
+		if (@args) {
+			Sys::Syslog::syslog('info',$msg,@args);
+		} else {
+			Sys::Syslog::syslog('info','%s',$msg);
+		}
+
+	# Or log to main mechanism
+	} elsif ($log_mail eq "main") {
+		$self->log(LOG_INFO,sprintf($msg,@args));
 	}
 }
 
