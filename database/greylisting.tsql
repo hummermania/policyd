@@ -97,7 +97,6 @@ CREATE TABLE greylisting_autoblacklist (
 
 /* Greylist triplet tracking table */
 CREATE TABLE greylisting_tracking (
-	GreylistingID		@SERIAL_REF_TYPE@,
 
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL, /* The address really, masked with whatever */
 	Sender			VARCHAR(255) NOT NULL,
