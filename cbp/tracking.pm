@@ -53,7 +53,6 @@ sub getSessionDataFromQueueID
 	# Pull in session data
 	my $sth = DBSelect("
 		SELECT
-			ID,
 			Instance, QueueID,
 			Timestamp,
 			ClientAddress, ClientName, ClientReverseName,
@@ -112,7 +111,6 @@ sub getSessionDataFromRequest
 		# Pull in session data
 		my $sth = DBSelect("
 			SELECT
-				ID,
 				Instance, QueueID,
 				Timestamp,
 				ClientAddress, ClientName, ClientReverseName,
@@ -179,16 +177,6 @@ sub getSessionDataFromRequest
 					return -1;
 				}
 				$server->log(LOG_DEBUG,"[TRACKING] Added session tracking information for: ".Dumper($request)) if ($log);
-	
-				# Grab inserted row ID
-				my $rowID = DBLastInsertID('session_tracking','ID');
-				if (!$rowID) {
-					$server->log(LOG_ERR,"[TRACKING] Failed to get session tracking ID: ".cbp::dblayer::Error());
-					DBRollback();
-					return -1;
-				}
-			
-				$sessionData->{'ID'} = $rowID;
 	
 				DBCommit();
 			}
@@ -281,48 +269,50 @@ sub updateSessionData
 {
 	my ($server,$sessionData) = @_;
 
-	# Return if we have no ID, this would happen if we don't record rcpt info and jump direct to eom
-	return if (!defined($sessionData->{'ID'}));
 
-	# Return if we're not in RCPT state, in this case we shouldn't update the data
-	if ($sessionData->{'ProtocolState'} eq 'RCPT') {
+	# Check the protocol transport
+	if ($request->{'_protocol_transport'} eq "Postfix") {
 
-		# Get encoded policy data
-		my $policyData = encodePolicyData($sessionData->{'Recipient'},$sessionData->{'Policy'});
-		# Make sure recipient data is set
-		my $recipientData = defined($sessionData->{'RecipientData'}) ? $sessionData->{'RecipientData'} : "";
-		# Generate recipient data, make sure we don't use a undefined value either!
-		$recipientData .= "/$policyData";
-
-		# Record tracking info
-		my $sth = DBDo("
-			UPDATE 
-				session_tracking 
-			SET
-				RecipientData = ".DBQuote($recipientData)." 
-			WHERE
-				ID = ".DBQuote($sessionData->{'ID'})."
-		");
-		if (!$sth) {
-			$server->log(LOG_ERR,"[TRACKING] Failed to update recipient data in session tracking info: ".cbp::dblayer::Error());
-			return -1;
-		}
+		# Return if we're not in RCPT state, in this case we shouldn't update the data
+		if ($sessionData->{'ProtocolState'} eq 'RCPT') {
 	
-	# If we at END-OF-MESSAGE, update size
-	} elsif ($sessionData->{'ProtocolState'} eq 'END-OF-MESSAGE') {
-		# Record tracking info
-		my $sth = DBDo("
-			UPDATE 
-				session_tracking 
-			SET
-				QueueID = ".DBQuote($sessionData->{'QueueID'})." ,
-				Size = ".DBQuote($sessionData->{'Size'})." 
-			WHERE
-				ID = ".DBQuote($sessionData->{'ID'})."
-		");
-		if (!$sth) {
-			$server->log(LOG_ERR,"[TRACKING] Failed to update size in session tracking info: ".cbp::dblayer::Error());
-			return -1;
+			# Get encoded policy data
+			my $policyData = encodePolicyData($sessionData->{'Recipient'},$sessionData->{'Policy'});
+			# Make sure recipient data is set
+			my $recipientData = defined($sessionData->{'RecipientData'}) ? $sessionData->{'RecipientData'} : "";
+			# Generate recipient data, make sure we don't use a undefined value either!
+			$recipientData .= "/$policyData";
+	
+			# Record tracking info
+			my $sth = DBDo("
+				UPDATE 
+					session_tracking 
+				SET
+					RecipientData = ".DBQuote($recipientData)." 
+				WHERE
+					Instance = ".DBQuote($sessionData->{'Instance'})."
+			");
+			if (!$sth) {
+				$server->log(LOG_ERR,"[TRACKING] Failed to update recipient data in session tracking info: ".cbp::dblayer::Error());
+				return -1;
+			}
+		
+		# If we at END-OF-MESSAGE, update size
+		} elsif ($sessionData->{'ProtocolState'} eq 'END-OF-MESSAGE') {
+			# Record tracking info
+			my $sth = DBDo("
+				UPDATE 
+					session_tracking 
+				SET
+					QueueID = ".DBQuote($sessionData->{'QueueID'})." ,
+					Size = ".DBQuote($sessionData->{'Size'})." 
+				WHERE
+					Instance = ".DBQuote($sessionData->{'Instance'})."
+			");
+			if (!$sth) {
+				$server->log(LOG_ERR,"[TRACKING] Failed to update size in session tracking info: ".cbp::dblayer::Error());
+				return -1;
+			}
 		}
 	}
 

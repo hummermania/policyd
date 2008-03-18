@@ -150,6 +150,7 @@ CREATE TABLE session_tracking (
 	RecipientData		TEXT,  /* Policy state information */
 
 	UNIQUE (Instance)
+	@INDEX@ (QueueID,ClientAddress,Sender)
 )  @CREATE_TABLE_SUFFIX@;
 
 
