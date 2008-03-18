@@ -770,24 +770,24 @@ sub cleanup
 		return -1;
 	}
 	my $row = $sth->fetchrow_hashref();
-	my $AWLPeriod = $row->{'Period'};
 
-	# Bork if we didn't find anything of interest
-	return if (!($AWLPeriod > 0));
+	# Check if we have something...
+	my $AWLPeriod;
+	if (($AWLPeriod = $row->{'Period'}) && $AWLPeriod > 0) {
+		# Get start time
+		$AWLPeriod = $now - $AWLPeriod;
 
-	# Get start time
-	$AWLPeriod = $now - $AWLPeriod;
-
-	# Remove old whitelistings from database
-	$sth = DBDo("
-		DELETE FROM 
-			greylisting_autowhitelist
-		WHERE
-			LastSeen <= ".DBQuote($AWLPeriod)."
-	");
-	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autowhitelist records: ".cbp::dblayer::Error());
-		return -1;
+		# Remove old whitelistings from database
+		$sth = DBDo("
+			DELETE FROM 
+				greylisting_autowhitelist
+			WHERE
+				LastSeen <= ".DBQuote($AWLPeriod)."
+		");
+		if (!$sth) {
+			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autowhitelist records: ".cbp::dblayer::Error());
+			return -1;
+		}
 	}
 
 
@@ -807,24 +807,24 @@ sub cleanup
 		return -1;
 	}
 	$row = $sth->fetchrow_hashref();
-	my $ABLPeriod = $row->{'Period'};
 
-	# Bork if we didn't find anything of interest
-	return if (!($ABLPeriod > 0));
+	# Check if we have something...
+	my $ABLPeriod;
+	if (($ABLPeriod = $row->{'Period'}) && $ABLPeriod > 0) {
+		# Get start time
+		$ABLPeriod = $now - $ABLPeriod;
 	
-	# Get start time
-	$ABLPeriod = $now - $ABLPeriod;
-
-	# Remove blacklistings from database
-	$sth = DBDo("
-		DELETE FROM 
-			greylisting_autoblacklist
-		WHERE
-			Added <= ".DBQuote($ABLPeriod)."
-	");
-	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autoblacklist records: ".cbp::dblayer::Error());
-		return -1;
+		# Remove blacklistings from database
+		$sth = DBDo("
+			DELETE FROM 
+				greylisting_autoblacklist
+			WHERE
+				Added <= ".DBQuote($ABLPeriod)."
+		");
+		if (!$sth) {
+			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autoblacklist records: ".cbp::dblayer::Error());
+			return -1;
+		}
 	}
 	
 	#
@@ -843,27 +843,26 @@ sub cleanup
 		return -1;
 	}
 	$row = $sth->fetchrow_hashref();
-	my $AuthPeriod = $row->{'Period'};
-
-	# Bork if we didn't find anything of interest
-	return if (!($AuthPeriod > 0));
-
-	# Get start time
-	$AuthPeriod = $now - $AuthPeriod;
-
-	# Remove old authenticated records from database
-	$sth = DBDo("
-		DELETE FROM 
-			greylisting_tracking
-		WHERE
-			LastUpdate <= ".DBQuote($AuthPeriod)."
-			AND Count > 0
-	");
-	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old authenticated records: ".cbp::dblayer::Error());
-		return -1;
+	
+	# Check if we have something...
+	my $AuthPeriod;
+	if (($AuthPeriod = $row->{'Period'}) && $AuthPeriod > 0) {
+		# Get start time
+		$AuthPeriod = $now - $AuthPeriod;
+	
+		# Remove old authenticated records from database
+		$sth = DBDo("
+			DELETE FROM 
+				greylisting_tracking
+			WHERE
+				LastUpdate <= ".DBQuote($AuthPeriod)."
+				AND Count > 0
+		");
+		if (!$sth) {
+			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old authenticated records: ".cbp::dblayer::Error());
+			return -1;
+		}
 	}
-
 
 	#
 	# UnAuthenticated record cleanups
@@ -881,25 +880,25 @@ sub cleanup
 		return -1;
 	}
 	$row = $sth->fetchrow_hashref();
-	my $UnAuthPeriod = $row->{'Period'};
 
-	# Bork if we didn't find anything of interest
-	return if (!($UnAuthPeriod > 0));
-
-	# Get start time
-	$UnAuthPeriod = $now - $UnAuthPeriod;
-
-	# Remove old un-authenticated records info from database
-	$sth = DBDo("
-		DELETE FROM 
-			greylisting_tracking
-		WHERE
-			LastUpdate <= ".DBQuote($UnAuthPeriod)."
-			AND Count = 1
-	");
-	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old un-authenticated records: ".cbp::dblayer::Error());
-		return -1;
+	# Check if we have something...
+	my $UnAuthPeriod;
+	if (($UnAuthPeriod = $row->{'Period'}) && $UnAuthPeriod > 0) {
+		# Get start time
+		$UnAuthPeriod = $now - $UnAuthPeriod;
+	
+		# Remove old un-authenticated records info from database
+		$sth = DBDo("
+			DELETE FROM 
+				greylisting_tracking
+			WHERE
+				LastUpdate <= ".DBQuote($UnAuthPeriod)."
+				AND Count = 1
+		");
+		if (!$sth) {
+			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old un-authenticated records: ".cbp::dblayer::Error());
+			return -1;
+		}
 	}
 }
 

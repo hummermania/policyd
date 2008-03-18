@@ -474,7 +474,7 @@ sub cleanup
 	
 	# Get maximum periods
 	my $sth = DBSelect("
-		SELECt 
+		SELECT 
 			MAX(BlacklistPeriod) AS BlacklistPeriod, MAX(HRPPeriod) AS HRPPeriod
 		FROM 
 			checkhelo
@@ -484,6 +484,10 @@ sub cleanup
 		return -1;
 	}
 	my $row = $sth->fetchrow_hashref();
+
+	# Check we have results
+	return if (!defined($row->{'BlacklistPeriod'}) || !defined($row->{'HRPPeriod'}));
+
 	# Work out which one is largest
 	my $period = $row->{'BlacklistPeriod'} > $row->{'HRPPeriod'} ? $row->{'BlacklistPeriod'} : $row->{'HRPPeriod'};
 

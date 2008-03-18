@@ -271,7 +271,7 @@ sub updateSessionData
 
 
 	# Check the protocol transport
-	if ($request->{'_protocol_transport'} eq "Postfix") {
+	if ($sessionData->{'_protocol_transport'} eq "Postfix") {
 
 		# Return if we're not in RCPT state, in this case we shouldn't update the data
 		if ($sessionData->{'ProtocolState'} eq 'RCPT') {
