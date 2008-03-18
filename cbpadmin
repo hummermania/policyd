@@ -58,6 +58,7 @@ if (defined($opts{'config'}) && $opts{'config'} ne "") {
 # Check config file exists
 if (! -f $cfg->{'config_file'}) {
 	print(STDERR "ERROR: No configuration file '".$cfg->{'config_file'}."' found!\n");
+	displayHelp();
 	exit 1;
 }
 
@@ -70,32 +71,19 @@ tie my %inifile, 'Config::IniFiles', (
 my %config = %inifile;
 untie(%inifile);
 
-# Pull in module list
-my $modulelist = $config{'server'}{'modules'};
-foreach my $module (@{$modulelist}) {
-	$module =~ s/\s+//g;
-}
 
-# Emulate server
-my $server = new cbpserver;
-$server->{'inifile'} = \%config; 
-# Init everything
-$server->init();
+# Our fake server...
+my $server;
 
-# Load modules
-foreach my $module (@{$modulelist}) {
-	# Load module
-	my $res = eval("
-		use cbp::modules::$module;
-		plugin_register(\$server,\"$module\",\$cbp::modules::${module}::pluginInfo);
-	");
-	if ($@ || (defined($res) && $res != 0)) {
-		$server->log(LOG_ERR,"WARNING: Error loading plugin $module ($@)");
-	}
-}
+
+#
+# Check what to do
+#
 
 # We must cleanup
 if ($opts{'cleanup'}) {
+	loadModules();
+
 	# Loop with modules
 	foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$server->{'modules'}} ) {
 		$server->log(LOG_INFO,"Module: " . $module->{'name'});
@@ -105,7 +93,18 @@ if ($opts{'cleanup'}) {
 			$module->{'cleanup'}($server);
 		}
 	}
+
+# Huh, nothing todo...
+} else {
+	print(STDERR "ERROR: Nothing to do!\n");
+	displayHelp();
+	exit 1;
 }
+
+
+#
+# Misc functions
+# 
 
 
 # Register plugin info
@@ -131,6 +130,39 @@ sub plugin_register {
 
 	return 0;
 }
+
+
+# Function to load our modules
+sub loadModules
+{
+	# Pull in module list
+	my $modulelist = $config{'server'}{'modules'};
+	foreach my $module (@{$modulelist}) {
+		$module =~ s/\s+//g;
+	}
+	
+	# Emulate server
+	$server = new cbpserver;
+	$server->{'inifile'} = \%config; 
+	# Init everything
+	$server->init();
+	
+	# Load modules
+	foreach my $module (@{$modulelist}) {
+		# Load module
+		my $res = eval("
+			use cbp::modules::$module;
+			plugin_register(\$server,\"$module\",\$cbp::modules::${module}::pluginInfo);
+		");
+		if ($@ || (defined($res) && $res != 0)) {
+			$server->log(LOG_ERR,"WARNING: Error loading plugin $module ($@)");
+		}
+	}
+}
+
+
+
+
 
 
 # Display help
@@ -199,11 +231,6 @@ sub log
 	# FIXME: we shouldn't ignore $level
     print(STDERR @msg, "\n");
 }
-
-
-
-
-
 
 
 
