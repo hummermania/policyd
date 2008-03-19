@@ -58,7 +58,7 @@ if ($_POST['action'] == "add") {
 							<option value="<?php echo $row->id ?>"><?php echo $row->name ?></option>
 <?php
 						}
-						$stmt->closeCursor();
+						$res->closeCursor();
 ?>
 					</select>
 				</td>
