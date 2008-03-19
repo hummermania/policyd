@@ -62,6 +62,12 @@ sub configure {
 	$server->{'host'} = "*";
 	$server->{'port'} = 10031;
 	$server->{'timeout'} = 120;
+			
+	$server->{'min_servers'} = 4;
+	$server->{'min_spare_servers'} = 4;
+	$server->{'max_spare_servers'} = 12;
+	$server->{'max_servers'} = 25;
+	$server->{'max_requests'} = 1000;
 
 	# Parse command line params
 	%{$cmdline} = ();
@@ -106,6 +112,11 @@ sub configure {
 			'user', 'group',
 			'timeout',
 			'background',
+			'min_servers',     
+			'min_spare_servers',
+			'max_spare_servers',
+			'max_servers',
+			'max_requests',
 	);
 	foreach my $param (@server_params) {
 		$server->{$param} = $config{'server'}{$param} if (defined($config{'server'}{$param}));
