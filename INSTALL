@@ -1,6 +1,12 @@
 Installing Policyd v2.
 
 
+* Requirements for Policyd v2
+- Net::Server >= 0.96
+- Net::CIDR
+
+
+
 1. Setup MySQL  (or whichever database you plan to use)
 
 a. In database/ run...
@@ -12,30 +18,38 @@ $ done > policyd.mysql
 b. Load policyd.mysql into MySQL
 
 
-2. Adjust cbpolicyd.conf with your MySQL database details
+2. Put cbpolicyd.conf in your /etc directory and adjust cbpolicyd.conf with your MySQL database details
 
 
-3. Install the webui/*  into your apache directory, check out   includes/config.php  and adjust the MySQL server details.
+3. Copy the cbp/ directory into /usr/local/lib/policyd-2.0/
+mkdir /usr/local/lib/policyd-2.0
+cp -r cbp /usr/local/lib/policyd-2.0/
+
+4. Copy cbpolicyd and cbpadmin into /usr/local/bin
+cp cbpolicyd cbpadmin /usr/local/bin/
 
 
-4. Setup Postfix to use cbpolicyd...
+5. Install the webui/*  into your apache directory, check out   includes/config.php  and adjust the MySQL server details.
+
+
+6. Setup Postfix to use cbpolicyd...
 Add the following Postfix config...
 	check_policy_service inet:127.0.0.1:10031
 in BOTH  smtpd_recipient_restrictions and smtpd_end_of_data_restrictions.
 
 
-5. Copy your amavisd from /usr/sbin/amavisd and patch it with contrib/amavisd-new-2.5.3_policyd-200802070918.patch like this...
+7. Copy your amavisd from /usr/sbin/amavisd and patch it with contrib/amavisd-new-2.5.3_policyd-200802070918.patch like this...
 $ patch < contrib/amavisd-new-2.5.3_policyd-200802070918.patch
 After this change your initscripts to start the patched amavisd.
 
 
-6. Copy amavisd-policyd.pm where you see fit, and add this configuration line to your amavisd.conf file...
+8. Copy amavisd-policyd.pm where you see fit, and add this configuration line to your amavisd.conf file...
 include_config_files('/path/to/amavisd-policyd.pm');
 
-7. Edit the top of amavisd-policyd.pm and change ...
+9. Edit the top of amavisd-policyd.pm and change ...
 use lib('/root/cluebringer-trunk');  # to point to the directory which contains cbp/
 
 my $DB_dsn = "DBI:SQLite:dbname=/tmp/cluebringer.sqlite";  # to point to your MySQL DB
 
 
-7. Fire everything up and browse to the web gui to configure
+10. Fire everything up and browse to the web gui to configure
