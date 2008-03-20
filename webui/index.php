@@ -25,6 +25,13 @@ printHeader();
 ?>
 	<p class="pageheader">Features Supported</p>
 	<ul>
+		<li id="listtitle">Protocols
+			<ul>
+				<li>Bizanga
+				<li>Postfix
+			</ul>
+		</li>
+
 		<li id="listtitle">Policies &amp; Policy Groups
 			<ul>
 				<li>Define policy groups made up of various combinations of tags.</li>

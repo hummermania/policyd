@@ -79,7 +79,7 @@ function process_post_value($name,$option,$value) {
 
 
 # Process a list of items
-function process_post_list($option,$value) {
+function process_post_list($name,$option,$value) {
 	global $db;
 
 	$results = array();
@@ -1031,21 +1031,22 @@ if ($_POST['action'] == "change") {
 		$updates = array_merge($updates,$res);
 	}
 	if (isset($_POST['amavis_banned_files_mode']) && $_POST['amavis_banned_files_mode'] != "") {
-		$res = process_post_value('banned_files',$_POST['amavis_banned_files_mode'],
+		$res = process_post_list('banned_files',$_POST['amavis_banned_files_mode'],
 				isset($_POST['amavis_banned_files']) ? $_POST['amavis_banned_files'] : ''
 		);
+		print_r($res);
 		$updates = array_merge($updates,$res);
 	}
 
 	# Whitelist & blacklist
 	if (isset($_POST['amavis_sender_whitelist_mode']) && $_POST['amavis_sender_whitelist_mode'] != "") {
-		$res = process_post_value('sender_whitelist',$_POST['amavis_sender_whitelist_mode'],
+		$res = process_post_list('sender_whitelist',$_POST['amavis_sender_whitelist_mode'],
 				isset($_POST['amavis_sender_whitelist']) ? $_POST['amavis_sender_whitelist'] : ''
 		);
 		$updates = array_merge($updates,$res);
 	}
 	if (isset($_POST['amavis_sender_blacklist_mode']) && $_POST['amavis_sender_blacklist_mode'] != "") {
-		$res = process_post_value('sender_blacklist',$_POST['amavis_sender_blacklist_mode'],
+		$res = process_post_list('sender_blacklist',$_POST['amavis_sender_blacklist_mode'],
 				isset($_POST['amavis_sender_blacklist']) ? $_POST['amavis_sender_blacklist'] : ''
 		);
 		$updates = array_merge($updates,$res);
