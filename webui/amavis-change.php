@@ -1034,7 +1034,6 @@ if ($_POST['action'] == "change") {
 		$res = process_post_list('banned_files',$_POST['amavis_banned_files_mode'],
 				isset($_POST['amavis_banned_files']) ? $_POST['amavis_banned_files'] : ''
 		);
-		print_r($res);
 		$updates = array_merge($updates,$res);
 	}
 
