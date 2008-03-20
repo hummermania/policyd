@@ -19,7 +19,7 @@
 package Amavis::Custom;
 use strict;
 
-use lib('/root/cluebringer-trunk');
+use lib('/usr/local/lib/policyd-2.0','/usr/lib/policyd-2.0');
 
 
 my $DB_dsn = "DBI:SQLite:dbname=/tmp/cluebringer.sqlite";

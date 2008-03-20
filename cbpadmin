@@ -20,6 +20,9 @@
 use strict;
 use warnings;
 
+
+use lib('/usr/local/lib/policyd-2.0','/usr/lib/policyd-2.0');
+
 use Config::IniFiles;
 use Getopt::Long;
 
