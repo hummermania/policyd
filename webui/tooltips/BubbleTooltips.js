@@ -21,7 +21,8 @@ for(i=0;i<links.length;i++){
 function Prepare(el){
 var tooltip,t,b,s,l;
 t=el.getAttribute("title");
-if(t==null || t.length==0) t="link:";
+//if(t==null || t.length==0) t="link:";
+if (t == null) return;
 el.removeAttribute("title");
 tooltip=CreateEl("span","tooltip");
 s=CreateEl("span","top");
