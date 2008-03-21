@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -100,7 +101,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Verdict</td>
+					<td class="entrytitle">
+						Verdict
+						<?php tooltip('accesscontrol_verdict'); ?>
+					</td>
 					<td class="oldval"><?php echo $row->verdict ?></td>
 					<td>
 						<select name="accesscontrol_verdict">
@@ -114,7 +118,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Data</td>
+					<td class="entrytitle">
+						Data
+						<?php tooltip('accesscontrol_data'); ?>
+					</td>
 					<td class="oldval"><?php echo $row->data ?></td>
 					<td><input type="text" name="accesscontrol_data" /></td>
 				</tr>

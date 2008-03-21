@@ -20,6 +20,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -48,12 +49,18 @@ if ($_POST['action'] == "add")  {
 			</div>
 			<table class="entry">
 				<tr>
-					<td class="entrytitle">Source</td>
-					<td><textarea name="member_source" /></textarea></td>
+					<td class="entrytitle texttop">
+						Source
+						<?php tooltip('policy_member_source'); ?>
+					</td>
+					<td><textarea name="member_source" cols="40" rows="5"/></textarea></td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Destination</td>
-					<td><textarea name="member_destination" /></textarea></td>
+					<td class="entrytitle texttop">
+						Destination
+						<?php tooltip('policy_member_destination'); ?>
+					</td>
+					<td><textarea name="member_destination" cols="40" rows="5"/></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Comment</td>

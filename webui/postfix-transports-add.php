@@ -20,6 +20,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -49,7 +50,10 @@ if ($_POST['action'] == "add")  {
 					<td><input type="text" name="postfix_transport_domainname" /></td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Type</td>
+					<td class="entrytitle">
+						Type
+						<?php tooltip('postfix_transport_type'); ?>
+					</td>
 					<td>
 						<select name="postfix_transport_type" id="postfix_transport_type"
 								onchange="

@@ -233,7 +233,14 @@ body{
 	border: none;
 }
 
+a.help img {
+	border: none;
+}
 
+#tooltip {
+	position: absolute;
+	z-index: 200;
+}
 
 /* 
  * vim: ts=4 

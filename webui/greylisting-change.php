@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -143,7 +144,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Greylist Period</td>
+					<td class="entrytitle">
+						Greylist Period
+						<?php tooltip('greylisting_period'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->greylistperiod) ? '*inherited*' : $row->greylistperiod ?></td>
 					<td>
 						<input type="text" name="greylisting_period" />
@@ -155,7 +159,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Track</td>
+					<td class="entrytitle">
+						Track
+						<?php tooltip('greylisting_track'); ?>
+					</td>
 					<td class="oldval"><?php echo $row->track ?></td>
 					<td>
 						<select id="greylisting_track" name="greylisting_track"
@@ -178,7 +185,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Greylist Auth Validity</td>
+					<td class="entrytitle">
+						Greylist Auth Validity
+						<?php tooltip('greylisting_auth_validity'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->greylistauthvalidity) ? '*inherited*' : $row->greylistauthvalidity ?></td>
 					<td>
 						<input type="text" name="greylisting_authvalidity" />
@@ -190,7 +200,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Greylist UnAuth Validity</td>
+					<td class="entrytitle">
+						Greylist UnAuth Validity
+						<?php tooltip('greylisting_unauth_validity'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->greylistunauthvalidity) ? '*inherited*' : $row->greylistunauthvalidity ?></td>
 					<td>
 						<input type="text" name="greylisting_unauthvalidity" />
@@ -232,7 +245,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">AWL Period</td>
+					<td class="entrytitle">
+						AWL Period
+						<?php tooltip('greylisting_awl_period'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->autowhitelistperiod) ? '*inherited*' : $row->autowhitelistperiod ?></td>
 					<td>
 						<input type="text" name="greylisting_awlperiod" />
@@ -244,7 +260,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">AWL After Count</td>
+					<td class="entrytitle">
+						AWL After Count
+						<?php tooltip('greylisting_awl_count'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->autowhitelistcount) ? '*inherited*' : $row->autowhitelistcount ?></td>
 					<td>
 						<input type="text" name="greylisting_awlcount" />
@@ -257,7 +276,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">AWL After Percentage</td>
+					<td class="entrytitle">
+						AWL After Percentage
+						<?php tooltip('greylisting_awl_percentage'); ?>
+					</td>
 					<td class="oldval">
 							<?php echo is_null($row->autowhitelistpercentage) ? '*inherited*' : $row->autowhitelistpercentage ?>
 					</td>
@@ -302,7 +324,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">ABL Period</td>
+					<td class="entrytitle">
+						ABL Period
+						<?php tooltip('greylisting_abl_period'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->autoblacklistperiod) ? '*inherited*' : $row->autoblacklistperiod ?></td>
 					<td>
 						<input type="text" name="greylisting_ablperiod" />
@@ -314,7 +339,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">ABL After Count</td>
+					<td class="entrytitle">
+						ABL After Count
+						<?php tooltip('greylisting_abl_count'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->autoblacklistcount) ? '*inherited*' : $row->autoblacklistcount ?></td>
 					<td>
 						<input type="text" name="greylisting_ablcount" />
@@ -327,7 +355,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">ABL After Percentage</td>
+					<td class="entrytitle">
+						ABL After Percentage
+						<?php tooltip('greylisting_abl_percentage'); ?>
+					</td>
 					<td class="oldval">
 							<?php echo is_null($row->autoblacklistpercentage) ? '*inherited*' : $row->autoblacklistpercentage ?>
 					</td>

@@ -50,8 +50,8 @@ if ($_POST['action'] == "add")  {
 					<td><input type="text" name="policy_group_name" /></td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Comment</td>
-					<td><textarea name="policy_group_comment"></textarea></td>
+					<td class="entrytitle texttop">Comment</td>
+					<td><textarea name="policy_group_comment" cols="40" rows="5"></textarea></td>
 				</tr>
 				<tr>
 					<td colspan="2">

@@ -20,6 +20,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -74,11 +75,17 @@ if ($_POST['action'] == "add")  {
 					<td><input type="text" name="postfix_mailbox_password" id="postfix_mailbox_password" /></td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Quota (in Mbyte)</td>
+					<td class="entrytitle">
+						Quota (in Mbyte)
+						<?php tooltip('postfix_mailbox_quota'); ?>
+					</td>
 					<td><input type="text" name="postfix_mailbox_quota" size="5" id="postfix_mailbox_quota" /> (0 = unlimited)</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">BCC</td>
+					<td class="entrytitle">
+						BCC
+						<?php tooltip('postfix_mailbox_bcc'); ?>
+					</td>
 					<td><input type="text" name="postfix_mailbox_bcc" id="postfix_mailbox_bcc" /></td>
 				</tr>
 				<tr>

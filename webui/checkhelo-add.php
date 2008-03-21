@@ -19,6 +19,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -77,14 +78,19 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Blacklist Period</td>
-				<td><input type="text" name="checkhelo_blacklistperiod" /> (blank = inherit)</td>
+				<td class="entrytitle">
+					Blacklist Period
+					<?php tooltip('checkhelo_blacklist_period'); ?>
+				</td>
+				<td><input type="text" name="checkhelo_blacklistperiod" /></td>
 			</tr>
 			<tr>
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Randomization Prevention</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Use HRP</td>
+				<td class="entrytitle">
+					Use HRP
+				</td>
 				<td>
 					<select name="checkhelo_usehrp">
 						<option value="0" selected="selected">Inherit</option>
@@ -94,18 +100,27 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">HRP Period</td>
-				<td><input type="text" name="checkhelo_hrpperiod" /> (blank = inherit)</td>
+				<td class="entrytitle">
+					HRP Period
+					<?php tooltip('checkhelo_blacklist_hrpperiod'); ?>
+				</td>
+				<td><input type="text" name="checkhelo_hrpperiod" /></td>
 			</tr>
 			<tr>
-				<td class="entrytitle">HRP Limit</td>
-				<td><input type="text" name="checkhelo_hrplimit" /> (blank = inherit)</td>
+				<td class="entrytitle">
+					HRP Limit
+					<?php tooltip('checkhelo_blacklist_hrplimit'); ?>
+				</td>
+				<td><input type="text" name="checkhelo_hrplimit" /></td>
 			</tr>
 			<tr>
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Reject (RFC non-compliance)</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Reject Invalid</td>
+				<td class="entrytitle">
+					Reject Invalid
+					<?php tooltip('checkhelo_rejectinvalid'); ?>
+				</td>
 				<td>
 					<select name="checkhelo_rejectinvalid">
 						<option value="0" selected="selected">Inherit</option>
@@ -115,7 +130,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Reject non-literal IP</td>
+				<td class="entrytitle">
+					Reject non-literal IP
+					<?php tooltip('checkhelo_rejectip'); ?>
+				</td>
 				<td>
 					<select name="checkhelo_rejectip">
 						<option value="0" selected="selected">Inherit</option>
@@ -125,7 +143,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Reject Unresolvable</td>
+				<td class="entrytitle">
+					Reject Unresolvable
+					<?php tooltip('checkhelo_rejectunresolv'); ?>
+				</td>
 				<td>
 					<select name="checkhelo_rejectunresolvable">
 						<option value="0" selected="selected">Inherit</option>

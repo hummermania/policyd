@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -70,7 +71,10 @@ if ($_POST['action'] == "change") {
 					<td></td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Type</td>
+					<td class="entrytitle">
+						Type
+						<?php tooltip('postfix_transport_type'); ?>
+					</td>
 					<td class="oldval"><?php
 		   				# Translate type	
 						if ($row->type == "0") {

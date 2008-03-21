@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -138,7 +139,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Blacklist Period</td>
+					<td class="entrytitle">
+						Blacklist Period
+						<?php tooltip('checkhelo_blacklist_period'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->blacklistperiod) ? '*inherited*' : $row->blacklistperiod ?></td>
 					<td>
 						<input type="text" name="checkhelo_blacklistperiod" />
@@ -153,7 +157,9 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Randomization Prevention</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Use HRP</td>
+					<td class="entrytitle">
+						Use HRP
+					</td>
 					<td class="oldval"><?php 
 							switch ($row->usehrp) {
 								case null:
@@ -180,7 +186,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">HRP Period</td>
+					<td class="entrytitle">
+						HRP Period
+						<?php tooltip('checkhelo_blacklist_hrpperiod'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->hrpperiod) ? '*inherited*' : $row->hrpperiod ?></td>
 					<td>
 						<input type="text" name="checkhelo_hrpperiod" />
@@ -192,7 +201,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">HRP Limit</td>
+					<td class="entrytitle">
+						HRP Limit
+						<?php tooltip('checkhelo_blacklist_hrplimit'); ?>
+					</td>
 					<td class="oldval"><?php echo is_null($row->hrplimit) ? '*inherited*' : $row->hrplimit ?></td>
 					<td>
 						<input type="text" name="checkhelo_hrplimit" />
@@ -207,7 +219,10 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Reject (RFC non-compliance)</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Reject Invalid</td>
+					<td class="entrytitle">
+						Reject Invalid
+						<?php tooltip('checkhelo_rejectinvalid'); ?>
+					</td>
 					<td class="oldval"><?php 
 							switch ($row->rejectinvalid) {
 								case null:
@@ -234,7 +249,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Reject non-literal IP</td>
+					<td class="entrytitle">
+						Reject non-literal IP
+						<?php tooltip('checkhelo_rejectip'); ?>
+					</td>
 					<td class="oldval"><?php 
 							switch ($row->rejectip) {
 								case null:
@@ -261,7 +279,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Reject Unresolvable</td>
+					<td class="entrytitle">
+						Reject Unresolvable
+						<?php tooltip('checkhelo_rejectunresolv'); ?>
+					</td>
 					<td class="oldval"><?php 
 							switch ($row->rejectunresolvable) {
 								case null:

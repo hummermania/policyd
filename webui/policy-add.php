@@ -19,6 +19,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -49,10 +50,13 @@ if ($_POST['action'] == "add") {
 			</tr>
 			<tr>
 				<td class="entrytitle">Priority</td>
-				<td><input type="text" size="4" name="policy_priority" /> (50-100: 50 lowest, 100 highest)</td>
+				<td>
+					<input type="text" size="4" name="policy_priority" />
+					<?php tooltip('policy_priority'); ?>
+				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Description</td>
+				<td class="entrytitle texttop">Description</td>
 				<td><textarea name="policy_description" cols="40" rows="5" /></textarea></td>
 			</tr>
 			<tr>

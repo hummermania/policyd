@@ -19,6 +19,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -129,7 +130,10 @@ if ($_POST['action'] == "add") {
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Bypass Checks</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Virus</td>
+				<td class="entrytitle">
+					Virus
+					<?php tooltip('amavis_bypass_virus_checks'); ?>
+				</td>
 				<td>
 					<select name="amavis_bypass_virus_checks">
 						<option value="0" selected="selected">Inherit</option>
@@ -139,7 +143,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Banned File</td>
+				<td class="entrytitle">
+					Banned File
+					<?php tooltip('amavis_bypass_banned_checks'); ?>
+				</td>
 				<td>
 					<select name="amavis_bypass_banned_checks">
 						<option value="0" selected="selected">Inherit</option>
@@ -149,7 +156,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Spam</td>
+				<td class="entrytitle">
+					Spam
+					<?php tooltip('amavis_bypass_spam_checks'); ?>
+				</td>
 				<td>
 					<select name="amavis_bypass_spam_checks">
 						<option value="0" selected="selected">Inherit</option>
@@ -159,7 +169,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Header</td>
+				<td class="entrytitle">
+					Header
+					<?php tooltip('amavis_bypass_header_checks'); ?>
+				</td>
 				<td>
 					<select name="amavis_bypass_header_checks">
 						<option value="0" selected="selected">Inherit</option>
@@ -172,7 +185,10 @@ if ($_POST['action'] == "add") {
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Anti-spam Settings</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Tag Level</td>
+				<td class="entrytitle">
+					Tag Level
+					<?php tooltip('amavis_spam_tag_level'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_tag_level_mode" id="amavis_spam_tag_level_mode"
 						onchange="
@@ -194,7 +210,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Tag2 Level</td>
+				<td class="entrytitle">
+					Tag2 Level
+					<?php tooltip('amavis_spam_tag2_level'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_tag2_level_mode" id="amavis_spam_tag2_level_mode"
 						onchange="
@@ -216,7 +235,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Tag3 Level</td>
+				<td class="entrytitle">
+					Tag3 Level
+					<?php tooltip('amavis_spam_tag3_level'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_tag3_level_mode" id="amavis_spam_tag3_level_mode"
 						onchange="
@@ -238,7 +260,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Kill Level</td>
+				<td class="entrytitle">
+					Kill Level
+					<?php tooltip('amavis_spam_kill_level'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_kill_level_mode" id="amavis_spam_kill_level_mode"
 						onchange="
@@ -260,7 +285,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">DSN Cutoff Level</td>
+				<td class="entrytitle">
+					DSN Cutoff Level
+					<?php tooltip('amavis_spam_dsn_cutoff_level'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_dsn_cutoff_level_mode" id="amavis_spam_dsn_cutoff_level_mode"
 						onchange="
@@ -282,7 +310,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Quarantine Cutoff Level</td>
+				<td class="entrytitle">
+					Quarantine Cutoff Level
+					<?php tooltip('amavis_spam_quarantine_cutoff_level'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_quarantine_cutoff_level_mode" id="amavis_spam_quarantine_cutoff_level_mode"
 						onchange="
@@ -305,7 +336,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Modify Subject</td>
+				<td class="entrytitle">
+					Modify Subject
+					<?php tooltip('amavis_spam_modifies_subject'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_modifies_subject">
 						<option value="0" selected="selected">Inherit</option>
@@ -315,7 +349,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Tag Subject</td>
+				<td class="entrytitle">
+					Tag Subject
+					<?php tooltip('amavis_spam_tag_subject'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_tag_subject_mode" id="amavis_spam_tag_subject_mode"
 						onchange="
@@ -338,7 +375,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Tag2 Subject</td>
+				<td class="entrytitle">
+					Tag2 Subject
+					<?php tooltip('amavis_spam_tag2_subject'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_tag2_subject_mode" id="amavis_spam_tag2_subject_mode"
 						onchange="
@@ -361,7 +401,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Tag3 Subject</td>
+				<td class="entrytitle">
+					Tag3 Subject
+					<?php tooltip('amavis_spam_tag3_subject'); ?>
+				</td>
 				<td>
 					<select name="amavis_spam_tag3_subject_mode" id="amavis_spam_tag3_subject_mode"
 						onchange="
@@ -387,7 +430,10 @@ if ($_POST['action'] == "add") {
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">General Checks</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Max Message Size (in Kbyte)</td>
+				<td class="entrytitle">
+					Max Message Size (in Kbyte)
+					<?php tooltip('amavis_max_message_size'); ?>
+				</td>
 				<td>
 					<select name="amavis_max_message_size_mode" id="amavis_max_message_size_mode"
 						onchange="
@@ -410,7 +456,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle texttop">Banned Files</td>
+				<td class="entrytitle texttop">
+					Banned Files
+					<?php tooltip('amavis_banned_files'); ?>
+				</td>
 				<td class="texttop">
 					<select name="amavis_banned_files_mode" id="amavis_banned_files_mode"
 						onchange="
@@ -437,7 +486,10 @@ if ($_POST['action'] == "add") {
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Whitelist &amp; Blacklist</td>
 			</tr>
 			<tr>
-				<td class="entrytitle texttop">Sender Whitelist</td>
+				<td class="entrytitle texttop">
+					Sender Whitelist
+					<?php tooltip('amavis_sender_whitelist'); ?>
+				</td>
 				<td class="texttop">
 					<select name="amavis_sender_whitelist_mode" id="amavis_sender_whitelist_mode"
 						onchange="
@@ -461,7 +513,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle texttop">Sender Blacklist</td>
+				<td class="entrytitle texttop">
+					Sender Blacklist
+					<?php tooltip('amavis_sender_blacklist'); ?>
+				</td>
 				<td class="texttop">
 					<select name="amavis_sender_blacklist_mode" id="amavis_sender_blacklist_mode"
 						onchange="
@@ -488,7 +543,10 @@ if ($_POST['action'] == "add") {
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Admin Notifications</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">New Virus</td>
+				<td class="entrytitle">
+					New Virus
+					<?php tooltip('amavis_notify_admin_newvirus'); ?>
+				</td>
 				<td>
 					<select name="amavis_notify_admin_newvirus_mode" id="amavis_notify_admin_newvirus_mode"
 						onchange="
@@ -511,7 +569,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Virus</td>
+				<td class="entrytitle">
+					Virus
+					<?php tooltip('amavis_notify_admin_virus'); ?>
+				</td>
 				<td>
 					<select name="amavis_notify_admin_virus_mode" id="amavis_notify_admin_virus_mode"
 						onchange="
@@ -534,7 +595,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Spam</td>
+				<td class="entrytitle">
+					Spam
+					<?php tooltip('amavis_notify_admin_spam'); ?>
+				</td>
 				<td>
 					<select name="amavis_notify_admin_spam_mode" id="amavis_notify_admin_spam_mode"
 						onchange="
@@ -557,7 +621,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Banned File</td>
+				<td class="entrytitle">
+					Banned File
+					<?php tooltip('amavis_notify_admin_banned_file'); ?>
+				</td>
 				<td>
 					<select name="amavis_notify_admin_banned_file_mode" id="amavis_notify_admin_banned_file_mode"
 						onchange="
@@ -580,7 +647,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Bad Header</td>
+				<td class="entrytitle">
+					Bad Header
+					<?php tooltip('amavis_notify_admin_bad_header'); ?>
+				</td>
 				<td>
 					<select name="amavis_notify_admin_bad_header_mode" id="amavis_notify_admin_bad_header_mode"
 						onchange="
@@ -606,7 +676,10 @@ if ($_POST['action'] == "add") {
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Quarantine</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Virus</td>
+				<td class="entrytitle">
+					Virus
+					<?php tooltip('amavis_quarantine_virus'); ?>
+				</td>
 				<td>
 					<select name="amavis_quarantine_virus_mode" id="amavis_quarantine_virus_mode"
 						onchange="
@@ -629,7 +702,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Spam</td>
+				<td class="entrytitle">
+					Spam
+					<?php tooltip('amavis_quarantine_spam'); ?>
+				</td>
 				<td>
 					<select name="amavis_quarantine_spam_mode" id="amavis_quarantine_spam_mode"
 						onchange="
@@ -652,7 +728,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Banned File</td>
+				<td class="entrytitle">
+					Banned File
+					<?php tooltip('amavis_quarantine_banned_file'); ?>
+				</td>
 				<td>
 					<select name="amavis_quarantine_banned_file_mode" id="amavis_quarantine_banned_file_mode"
 						onchange="
@@ -675,7 +754,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Bad Header</td>
+				<td class="entrytitle">
+					Bad Header
+					<?php tooltip('amavis_quarantine_bad_header'); ?>
+				</td>
 				<td>
 					<select name="amavis_quarantine_bad_header_mode" id="amavis_quarantine_bad_header_mode"
 						onchange="
@@ -701,7 +783,10 @@ if ($_POST['action'] == "add") {
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">Interception</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">BCC To</td>
+				<td class="entrytitle">
+					BCC To
+					<?php tooltip('amavis_bcc_to'); ?>
+				</td>
 				<td>
 					<select name="amavis_bcc_to_mode" id="amavis_bcc_to_mode"
 						onchange="
@@ -727,7 +812,7 @@ if ($_POST['action'] == "add") {
 				<td colspan="2" class="textcenter" style="border-bottom: 1px dashed black;">&nbsp;</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Comment</td>
+				<td class="entrytitle texttop">Comment</td>
 				<td><textarea name="amavis_comment" cols="40" rows="5"></textarea></td>
 			</tr>
 			<tr>

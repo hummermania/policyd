@@ -19,6 +19,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -44,13 +45,16 @@ if ($_POST['action'] == "add") {
 		</div>
 		<table class="entry">
 			<tr>
-				<select id="whitelist_type" name="whitelist_type">
-					<option value="SenderIP">Sender IP</option>
-				</select>
-			</tr>
-			<tr>
-				<td class="entrytitle">Source</td>
-				<td><input type="text" name="whitelist_source" /></td>
+				<td class="entrytitle">
+					Source
+					<?php tooltip('checkhelo_whitelist_source'); ?>
+				</td>
+				<td>
+					<select id="whitelist_type" name="whitelist_type">
+						<option value="SenderIP">Sender IP</option>
+					</select>
+					<input type="text" name="whitelist_source" />
+				</td>
 			</tr>
 			<tr>
 				<td class="entrytitle">Comment</td>

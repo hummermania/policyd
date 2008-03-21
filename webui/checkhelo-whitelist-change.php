@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -74,7 +75,10 @@ if ($_POST['action'] == "change") {
 					<td class="entrytitle textcenter">New Value</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Source</td>
+					<td class="entrytitle">
+						Source
+						<?php tooltip('checkhelo_whitelist_source'); ?>
+					</td>
 					<td class="oldval"><?php echo $row->source ?></td>
 					<td>
 						<select id="whitelist_type" name="whitelist_type">

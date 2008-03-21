@@ -20,6 +20,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -45,7 +46,9 @@ if ($_POST['action'] == "add")  {
 			</div>
 			<table class="entry">
 				<tr>
-					<td class="entrytitle">Alias Address</td>
+					<td class="entrytitle">
+						Alias Address
+					</td>
 					<td>
 						<input type="text" name="postfix_alias_address" /> @
 						<select name="postfix_transport_id">
@@ -66,7 +69,10 @@ if ($_POST['action'] == "add")  {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Goto</td>
+					<td class="entrytitle">
+						Goto
+						<?php tooltip('postfix_alias_goto'); ?>
+					</td>
 					<td><input type="text" name="postfix_alias_goto" /></td>
 				</tr>
 				<tr>

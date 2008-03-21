@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -72,7 +73,10 @@ if ($_POST['action'] == "change") {
 				<tr>
 					<td class="entrytitle">Priority</td>
 					<td class="oldval"><?php echo $row->priority ?></td>
-					<td><input type="text" name="policy_priority" /> (50-100: 50 lowest, 100 highest)</td>
+					<td>
+						<input type="text" name="policy_priority" />
+						<?php tooltip('policy_priority'); ?>
+					</td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Description</td>

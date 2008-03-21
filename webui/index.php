@@ -25,14 +25,25 @@ printHeader();
 ?>
 	<p class="pageheader">Features Supported</p>
 	<ul>
-		<li id="listtitle">Protocols
+		<li>Protocols
 			<ul>
-				<li>Bizanga
+				<li>Bizanga 
+					<a title="Help on Bizanga protocol" href="http://www.policyd.org/v2/features-protocol-bizanga.html" class="help">
+						<img src="images/help.gif" alt="Help" />
+					</a>
+				</li>
 				<li>Postfix
+					<a title="Help on Postfix protocol" href="http://www.policyd.org/v2/features-protocol-postfix.html" class="help">
+						<img src="images/help.gif" alt="Help" />
+					</a>
+				</li>
 			</ul>
 		</li>
 
-		<li id="listtitle">Policies &amp; Policy Groups
+		<li>Policies &amp; Policy Groups
+			<a title="Help on policies and groups" href="http://www.policyd.org/v2/features-policies.html" class="help">
+				<img src="images/help.gif" alt="Help" />
+			</a>
 			<ul>
 				<li>Define policy groups made up of various combinations of tags.</li>
 				<li>Define and manage policies comprising of ACL's which can include groups.</li>
@@ -40,12 +51,18 @@ printHeader();
 		</li>
 
 		<li>Access Control
+			<a title="Help on access control" href="http://www.policyd.org/v2/features-accesscontrol.html" class="help">
+				<img src="images/help.gif" alt="Help" />
+			</a>
 			<ul>
 				<li>Control access based on policy. eg. Rejecting mail matching a specific policy.</li>
 			</ul>
 		</li>
 
 		<li>Amavis Integration
+			<a title="Help on Amavis integration" href="http://www.policyd.org/v2/features-amavis.html" class="help">
+				<img src="images/help.gif" alt="Help" />
+			</a>
 			<ul>
 				<li>Anti-virus checks.</li>
 				<li>Anti-spam checks.</li>
@@ -58,6 +75,9 @@ printHeader();
 		</li>
 
 		<li>Greylisting
+			<a title="Help on greylisting" href="http://www.policyd.org/v2/features-greylisting.html" class="help">
+				<img src="images/help.gif" alt="Help" />
+			</a>
 			<ul>
 				<li>Support for greylisting and masking sender IP addresses.</li>
 				<li>Support for auto-whitelisting and auto-greylisting based on count or count+percentage.</li>
@@ -65,14 +85,34 @@ printHeader();
 		</li>
 
 		<li>HELO/EHLO Checks
+			<a title="Help on HELO/EHLO checks" href="http://www.policyd.org/v2/features-checkhelo.html" class="help">
+				<img src="images/help.gif" alt="Help" />
+			</a>
 			<ul>
+				<li>HELO/EHLO randomization prevention</li>
+				<li>Blacklisting of HELO/EHLO's ... those used by your own servers</li>
+				<li>Whitelisting of CIDR's which are known to be braindead</li>
 				<li>Check sending server HELO/EHLO for validity and RFC compliance.</li>
 			</ul>
 		</li>
 
 		<li>SPF Checks
+			<a title="Help on SPF checks" href="http://www.policyd.org/v2/features-checkspf.html" class="help">
+				<img src="images/help.gif" alt="Help" />
+			</a>
 			<ul>
 				<li>Check the SPF records of a domain and see if the inbound email is allowed or prohibited.</li>
+			</ul>
+		</li>
+
+		<li>Quotas
+			<a title="Help on quotas" href="http://www.policyd.org/v2/features-quotas.html" class="help">
+				<img src="images/help.gif" alt="Help" />
+			</a>
+			<ul>
+				<li>Define message count quotas for policies.</li>
+				<li>Define cumulative size quotas for policies.</li>
+				<li>Track these quotas based on various methods, including sender IP block, sender user/domain/email address.</li>
 			</ul>
 		</li>
 
@@ -82,14 +122,6 @@ printHeader();
 				<li>Create mailboxes.</li>
 				<li>Create mailbox aliases.</li>
 				<li>Manage distribution groups.</li>
-			</ul>
-		</li>
-		
-		<li>Quotas
-			<ul>
-				<li>Define message count quotas for policies.</li>
-				<li>Define cumulative size quotas for policies.</li>
-				<li>Track these quotas based on various methods, including sender IP block, sender user/domain/email address.</li>
 			</ul>
 		</li>
 

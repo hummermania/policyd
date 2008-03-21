@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -126,7 +127,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Reject Failed SPF</td>
+					<td class="entrytitle">
+						Reject Failed SPF
+						<?php tooltip('checkspf_rejectfailed'); ?>
+					</td>
 					<td class="oldval"><?php 
 							switch ($row->rejectfailedspf) {
 								case null:
@@ -153,7 +157,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Add SPF Header</td>
+					<td class="entrytitle">
+						Add SPF Header
+						<?php tooltip('checkspf_addheader'); ?>
+					</td>
 					<td class="oldval"><?php 
 							switch ($row->addspfheader) {
 								case null:

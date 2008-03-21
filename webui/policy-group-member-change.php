@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -43,7 +44,7 @@ if ($_POST['action'] == "change") {
 	# Check a policy was selected
 	if (isset($_POST['policy_group_member_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('SELECT ID, Member, Disabled FROM policy_group_members WHERE ID = ?');
+		$stmt = $db->prepare('SELECT ID, Member, Comment, Disabled FROM policy_group_members WHERE ID = ?');
 ?>
 		<p class="pageheader">Update Policy Group Member</p>
 
@@ -67,9 +68,17 @@ if ($_POST['action'] == "change") {
 					<td class="entrytitle textcenter">New Value</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Member</td>
+					<td class="entrytitle">
+						Member
+						<?php tooltip('policy_group_member'); ?>
+					</td>
 					<td class="oldval"><?php echo $row->member ?></td>
 					<td><input type="text" name="policy_group_member_member" /></td>
+				</tr>
+				<tr>
+					<td class="entrytitle texttop">Comment</td>
+					<td class="oldval texttop"><?php echo $row->comment ?></td>
+					<td><textarea name="policy_group_member_comment" cols="40" rows="5"></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Disabled</td>
@@ -107,6 +116,9 @@ if ($_POST['action'] == "change") {
 
 	if (!empty($_POST['policy_group_member_member'])) {
 		array_push($updates,"Member = ".$db->quote($_POST['policy_group_member_member']));
+	}
+	if (!empty($_POST['policy_group_member_comment'])) {
+		array_push($updates,"Comment = ".$db->quote($_POST['policy_group_member_comment']));
 	}
 	if (isset($_POST['policy_group_member_disabled']) && $_POST['policy_group_member_disabled'] != "") {
 		array_push($updates ,"Disabled = ".$db->quote($_POST['policy_group_member_disabled']));

@@ -19,6 +19,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -73,7 +74,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Reject Failed SPF</td>
+				<td class="entrytitle">
+					Reject Failed SPF
+					<?php tooltip('checkspf_rejectfailed'); ?>
+				</td>
 				<td>
 					<select name="checkspf_rejectfailed">
 						<option value="0" selected="selected">Inherit</option>
@@ -83,7 +87,10 @@ if ($_POST['action'] == "add") {
 				</td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Add SPF Header</td>
+				<td class="entrytitle">
+					Add SPF Header
+					<?php tooltip('checkspf_addheader'); ?>
+				</td>
 				<td>
 					<select name="checkspf_addheader">
 						<option value="0" selected="selected">Inherit</option>

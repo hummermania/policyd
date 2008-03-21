@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -71,7 +72,10 @@ if ($_POST['action'] == "change") {
 					<td></td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Goto</td>
+					<td class="entrytitle">
+						Goto
+						<?php tooltip('postfix_alias_goto'); ?>
+					</td>
 					<td class="oldval"><?php echo $row->goto ?></td>
 					<td><input type="text" name="postfix_alias_goto" /></td>
 				</tr>

@@ -19,6 +19,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -44,7 +45,10 @@ if ($_POST['action'] == "add") {
 		</div>
 		<table class="entry">
 			<tr>
-				<td class="entrytitle">Helo</td>
+				<td class="entrytitle">
+					Helo
+					<?php tooltip('checkhelo_blacklist_helo'); ?>
+				</td>
 				<td><input type="text" name="blacklist_helo" /></td>
 			</tr>
 			<tr>

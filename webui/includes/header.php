@@ -29,9 +29,15 @@ function printHeader($params = NULL)
     <head>
 	<title>Policyd Web Administration</title>
 	<link rel="stylesheet" type="text/css" href="stylesheet.css" />
+	
+	<script type="text/javascript" src="tooltips/BubbleTooltips.js"></script>
+	<script type="text/javascript">
+		window.onload=function(){enableTooltips(null,"img")};
+	</script>
     </head>
 
-    <body<?php if (!empty($jsOnLoad)) { echo " onLoad=\"".$jsOnLoad."\""; } ?>>
+
+	<body<?php if (!empty($jsOnLoad)) { echo " onLoad=\"".$jsOnLoad."\""; } ?>>
 
 
 	<table id="maintable">

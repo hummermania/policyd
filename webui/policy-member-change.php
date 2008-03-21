@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -63,12 +64,18 @@ if ($_POST['action'] == "change") {
 					<td class="entrytitle textcenter">New Value</td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">Source</td>
+					<td class="entrytitle texttop">
+						Source
+						<?php tooltip('policy_member_source'); ?>
+					</td>
 					<td class="oldval texttop"><?php echo $row->source ?></td>
 					<td><textarea name="policy_member_source" cols="40" rows="5"></textarea></td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">Destination</td>
+					<td class="entrytitle texttop">
+						Destination
+						<?php tooltip('policy_member_destination'); ?>
+					</td>
 					<td class="oldval texttop"><?php echo $row->destination ?></td>
 					<td><textarea name="policy_member_destination" cols="40" rows="5"></textarea></td>
 				</tr>

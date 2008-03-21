@@ -21,6 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
+include_once("includes/tooltips.php");
 
 
 
@@ -255,7 +256,10 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Bypass Checks</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Virus Checks</td>
+					<td class="entrytitle">
+						Virus Checks
+						<?php tooltip('amavis_bypass_virus_checks'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_option($row->bypass_virus_checks_m,$row->bypass_virus_checks) ?></td>
 					<td>
 						<select name="amavis_bypass_virus_checks">
@@ -267,7 +271,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Banned File Checks</td>
+					<td class="entrytitle">
+						Banned File Checks
+						<?php tooltip('amavis_bypass_banned_checks'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_option($row->bypass_banned_checks_m,$row->bypass_banned_checks) ?></td>
 					<td>
 						<select name="amavis_bypass_banned_checks">
@@ -279,7 +286,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Spam Checks</td>
+					<td class="entrytitle">
+						Spam Checks
+						<?php tooltip('amavis_bypass_spam_checks'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_option($row->bypass_spam_checks_m,$row->bypass_spam_checks) ?></td>
 					<td>
 						<select name="amavis_bypass_spam_checks">
@@ -291,7 +301,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Header Checks</td>
+					<td class="entrytitle">
+						Header Checks
+						<?php tooltip('amavis_bypass_header_checks'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_option($row->bypass_header_checks_m,$row->bypass_header_checks) ?></td>
 					<td>
 						<select name="amavis_bypass_header_checks">
@@ -306,7 +319,10 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Anti-spam Settings</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Tag Level</td>
+					<td class="entrytitle">
+						Tag Level
+						<?php tooltip('amavis_spam_tag_level'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_tag_level_m,$row->spam_tag_level) ?></td>
 					<td>
 						<select name="amavis_spam_tag_level_mode" id="amavis_spam_tag_level_mode"
@@ -330,7 +346,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Tag2 Level</td>
+					<td class="entrytitle">
+						Tag2 Level
+						<?php tooltip('amavis_spam_tag2_level'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_tag2_level_m,$row->spam_tag2_level) ?></td>
 					<td>
 						<select name="amavis_spam_tag2_level_mode" id="amavis_spam_tag2_level_mode"
@@ -354,7 +373,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Tag3 Level</td>
+					<td class="entrytitle">
+						Tag3 Level
+						<?php tooltip('amavis_spam_tag3_level'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_tag3_level_m,$row->spam_tag3_level) ?></td>
 					<td>
 						<select name="amavis_spam_tag3_level_mode" id="amavis_spam_tag3_level_mode"
@@ -378,7 +400,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Kill Level</td>
+					<td class="entrytitle">
+						Kill Level
+						<?php tooltip('amavis_spam_kill_level'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_kill_level_m,$row->spam_kill_level) ?></td>
 					<td>
 						<select name="amavis_spam_kill_level_mode" id="amavis_spam_kill_level_mode"
@@ -402,7 +427,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">DSN Cutoff Level</td>
+					<td class="entrytitle">
+						DSN Cutoff Level
+						<?php tooltip('amavis_spam_dsn_cutoff_level'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_dsn_cutoff_level_m,$row->spam_dsn_cutoff_level) ?></td>
 					<td>
 						<select name="amavis_spam_dsn_cutoff_level_mode" id="amavis_spam_dsn_cutoff_level_mode"
@@ -426,7 +454,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Quarantine Cutoff Level</td>
+					<td class="entrytitle">
+						Quarantine Cutoff Level
+						<?php tooltip('amavis_spam_quarantine_cutoff_level'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_quarantine_cutoff_level_m,$row->spam_quarantine_cutoff_level) ?></td>
 					<td>
 						<select name="amavis_spam_quarantine_cutoff_level_mode" id="amavis_spam_quarantine_cutoff_level_mode"
@@ -451,7 +482,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Modify Subject</td>
+					<td class="entrytitle">
+						Modify Subject
+						<?php tooltip('amavis_spam_modifies_subject'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_option($row->spam_modifies_subject_m,$row->spam_modifies_subject) ?></td>
 					<td>
 						<select name="amavis_spam_modifies_subject">
@@ -463,7 +497,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Tag Subject</td>
+					<td class="entrytitle">
+						Tag Subject
+						<?php tooltip('amavis_spam_tag_subject'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_tag_subject_m,$row->spam_tag_subject) ?></td>
 					<td>
 						<select name="amavis_spam_tag_subject_mode" id="amavis_spam_tag_subject_mode"
@@ -488,7 +525,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Tag2 Subject</td>
+					<td class="entrytitle">
+						Tag2 Subject
+						<?php tooltip('amavis_spam_tag2_subject'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_tag2_subject_m,$row->spam_tag2_subject) ?></td>
 					<td>
 						<select name="amavis_spam_tag2_subject_mode" id="amavis_spam_tag2_subject_mode"
@@ -513,7 +553,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Tag3 Subject</td>
+					<td class="entrytitle">
+						Tag3 Subject
+						<?php tooltip('amavis_spam_tag3_subject'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->spam_tag3_subject_m,$row->spam_tag3_subject) ?></td>
 					<td>
 						<select name="amavis_spam_tag3_subject_mode" id="amavis_spam_tag3_subject_mode"
@@ -541,7 +584,10 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">General Checks</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Max Message Size (Kbyte)</td>
+					<td class="entrytitle">
+						Max Message Size (Kbyte)
+						<?php tooltip('amavis_max_message_size'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->max_message_size_m,$row->max_message_size) ?></td>
 					<td>
 						<select name="amavis_max_message_size_mode" id="amavis_max_message_size_mode"
@@ -566,7 +612,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">Banned Files</td>
+					<td class="entrytitle texttop">
+						Banned Files	
+						<?php tooltip('amavis_banned_files'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->banned_files_m,$row->banned_files) ?></td>
 					<td>
 						<select name="amavis_banned_files_mode" id="amavis_banned_files_mode"
@@ -595,7 +644,10 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Whitelist &amp; Blacklist</td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">Sender Whitelist</td>
+					<td class="entrytitle texttop">
+						Sender Whitelist
+						<?php tooltip('amavis_sender_whitelist'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->sender_whitelist_m,$row->sender_whitelist) ?></td>
 					<td class="texttop">
 						<select name="amavis_sender_whitelist_mode" id="amavis_sender_whitelist_mode"
@@ -621,7 +673,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">Sender Blacklist</td>
+					<td class="entrytitle texttop">
+						Sender Blacklist
+						<?php tooltip('amavis_sender_blacklist'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->sender_blacklist_m,$row->sender_blacklist) ?></td>
 					<td class="texttop">
 						<select name="amavis_sender_blacklist_mode" id="amavis_sender_blacklist_mode"
@@ -650,7 +705,10 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Admin Notifications</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">New Virus</td>
+					<td class="entrytitle">
+						New Virus
+						<?php tooltip('amavis_notify_admin_newvirus'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->notify_admin_newvirus_m,$row->notify_admin_newvirus) ?></td>
 					<td>
 						<select name="amavis_notify_admin_newvirus_mode" id="amavis_notify_admin_newvirus_mode"
@@ -674,7 +732,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Virus</td>
+					<td class="entrytitle">
+						Virus
+						<?php tooltip('amavis_notify_admin_virus'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->notify_admin_virus_m,$row->notify_admin_virus) ?></td>
 					<td>
 						<select name="amavis_notify_admin_virus_mode" id="amavis_notify_admin_virus_mode"
@@ -698,7 +759,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Spam</td>
+					<td class="entrytitle">
+						Spam
+						<?php tooltip('amavis_notify_admin_spam'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->notify_admin_spam_m,$row->notify_admin_spam) ?></td>
 					<td>
 						<select name="amavis_notify_admin_spam_mode" id="amavis_notify_admin_spam_mode"
@@ -722,7 +786,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Banned File</td>
+					<td class="entrytitle">
+						Banned File
+						<?php tooltip('amavis_notify_admin_banned_file'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->notify_admin_banned_file_m,$row->notify_admin_banned_file) ?></td>
 					<td>
 						<select name="amavis_notify_admin_banned_file_mode" id="amavis_notify_admin_banned_file_mode"
@@ -746,7 +813,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Bad Header</td>
+					<td class="entrytitle">
+						Bad Header
+						<?php tooltip('amavis_notify_admin_bad_header'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->notify_admin_bad_header_m,$row->notify_admin_bad_header) ?></td>
 					<td>
 						<select name="amavis_notify_admin_bad_header_mode" id="amavis_notify_admin_bad_header_mode"
@@ -773,7 +843,10 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Quarantine</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Virus</td>
+					<td class="entrytitle">
+						Virus
+						<?php tooltip('amavis_quarantine_virus'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->quarantine_virus_m,$row->quarantine_virus) ?></td>
 					<td>
 						<select name="amavis_quarantine_virus_mode" id="amavis_quarantine_virus_mode"
@@ -797,7 +870,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Spam</td>
+					<td class="entrytitle">
+						Spam
+						<?php tooltip('amavis_quarantine_spam'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->quarantine_spam_m,$row->quarantine_spam) ?></td>
 					<td>
 						<select name="amavis_quarantine_spam_mode" id="amavis_quarantine_spam_mode"
@@ -821,7 +897,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Banned File</td>
+					<td class="entrytitle">
+						Banned File
+						<?php tooltip('amavis_quarantine_banned_file'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->quarantine_banned_file_m,$row->quarantine_banned_file) ?></td>
 					<td>
 						<select name="amavis_quarantine_banned_file_mode" id="amavis_quarantine_banned_file_mode"
@@ -845,7 +924,10 @@ if ($_POST['action'] == "change") {
 					</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">Bad Header</td>
+					<td class="entrytitle">
+						Bad Header
+						<?php tooltip('amavis_quarantine_bad_header'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->quarantine_bad_header_m,$row->quarantine_bad_header) ?></td>
 					<td>
 						<select name="amavis_quarantine_bad_header_mode" id="amavis_quarantine_bad_header_mode"
@@ -872,7 +954,10 @@ if ($_POST['action'] == "change") {
 					<td colspan="3" class="textcenter" style="border-bottom: 1px dashed black;">Interception</td>
 				</tr>
 				<tr>
-					<td class="entrytitle">BCC To</td>
+					<td class="entrytitle">
+						BCC To
+						<?php tooltip('amavis_bcc_to'); ?>
+					</td>
 					<td class="oldval"><?php echo decode_db_value($row->bcc_to_m,$row->bcc_to) ?></td>
 					<td>
 						<select name="amavis_bcc_to_mode" id="amavis_bcc_to_mode"
