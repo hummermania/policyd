@@ -154,7 +154,10 @@ if ($_POST['action'] == "change") {
 	}
 
 	if (!empty($_POST['postfix_mailbox_password'])) {
-		array_push($updates,"Password = ".$db->quote($_POST['postfix_mailbox_password']));
+		# Encrypt password
+		$password = "{MD5}".base64_encode(pack("H*", md5($_POST['postfix_mailbox_password'])));
+
+		array_push($updates,"Password = ".$db->quote($password));
 	}
 
 	if (isset($_POST['postfix_mailbox_quota'])) {

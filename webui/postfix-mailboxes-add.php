@@ -118,11 +118,14 @@ if ($_POST['action'] == "add")  {
 
 	$stmt = $db->prepare("INSERT INTO mailboxes (TransportID,Address,Mailbox,Password,Quota,Name,BCC,Comment,Disabled) VALUES (?,?,?,?,?,?,?,?,1)");
 
+	# Encrypt password
+	$password = "{MD5}".base64_encode(pack("H*", md5($_POST['postfix_mailbox_password'])));
+
 	$res = $stmt->execute(array(
 		$_POST['postfix_transport_id'],
 		$_POST['postfix_mailbox_address'],
 		$mailbox,
-		$_POST['postfix_mailbox_password'],
+		$password,
 		$_POST['postfix_mailbox_quota'],
 		$_POST['postfix_mailbox_name'],
 		$_POST['postfix_mailbox_bcc'],
