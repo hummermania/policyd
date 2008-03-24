@@ -177,7 +177,7 @@ if ($_POST['action'] == "change") {
 		array_push($updates,"Comment = ".$db->quote($_POST['postfix_mailbox_comment']));
 	}
 
-	if (!empty($_POST['postfix_mailbox_disabled'])) {
+	if (isset($_POST['postfix_mailbox_disabled']) && $_POST['postfix_mailbox_disabled'] != "") {
 		array_push($updates,"Disabled = ".$db->quote($_POST['postfix_mailbox_disabled']));
 	}
 
