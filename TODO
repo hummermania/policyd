@@ -5,20 +5,20 @@ Use prefork, we cannot guarantee how long the plugins/modules will take to run a
 Immediate requirements:
 
 - Web interface
-* Bigger blocks in policy group members & policies & policy groups? hard to add stuff
-* BCC To in amavis plugin needs Merge option
+* BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
 
-- Backend
-* Add function to modules  cleanup(), this should cleanup accounting info
-
-* Add removal of tracking information in each webui remove request
-- Groups, delete members
-- Quotas, delete tracking
-- HELO checks, delete tracking
-- Policies, delete ACL's
-- Greylisting, optionally store HELO aswell
 
 --------------
+
+* Blacklist on excessive greylist retries, ie 50 in 1 minute ... etc.
+- num triplets?
+- num attempts?
+
+* Email notify on whitelist/blacklist
+
+* Accounting module, limits & counters
+
+* Caching
 
 * Spamtrap where the IP address get blacklisted for configurable time
 period per trap
