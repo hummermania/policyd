@@ -509,6 +509,7 @@ sub cleanup
 		return -1;
 	}
 
+	$server->log(LOG_INFO,"[CHECKHELO] Removed ".( $sth ne "0E0" ? $sth : 0)." records from tracking table");
 }
 
 

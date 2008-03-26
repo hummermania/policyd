@@ -798,6 +798,7 @@ sub cleanup
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autowhitelist records: ".cbp::dblayer::Error());
 			return -1;
 		}
+		$server->log(LOG_INFO,"[GREYLISTING] Removed ".( $sth ne "0E0" ? $sth : 0)." records from autowhitelist table");
 	}
 
 
@@ -835,6 +836,7 @@ sub cleanup
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autoblacklist records: ".cbp::dblayer::Error());
 			return -1;
 		}
+		$server->log(LOG_INFO,"[GREYLISTING] Removed ".( $sth ne "0E0" ? $sth : 0)." records from autoblacklist table");
 	}
 	
 	#
@@ -872,6 +874,7 @@ sub cleanup
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old authenticated records: ".cbp::dblayer::Error());
 			return -1;
 		}
+		$server->log(LOG_INFO,"[GREYLISTING] Removed ".( $sth ne "0E0" ? $sth : 0)." authenticated records from greylist tracking table");
 	}
 
 	#
@@ -909,6 +912,7 @@ sub cleanup
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old un-authenticated records: ".cbp::dblayer::Error());
 			return -1;
 		}
+		$server->log(LOG_INFO,"[GREYLISTING] Removed ".( $sth ne "0E0" ? $sth : 0)." unauthenticated records from greylist tracking table");
 	}
 }
 

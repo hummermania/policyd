@@ -53,6 +53,7 @@ sub cleanup
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CORE] Failed to remove old session tracking records: ".cbp::dblayer::Error());
 	}
+	$server->log(LOG_INFO,"[CORE] Removed ".( $sth ne "0E0" ? $sth : 0)." records from session tracking table");
 }
 
 
