@@ -11,5 +11,7 @@
 196.2.16.0/24		Mweb South Africa, behind single nat'd IP
 196.211.173.234		Internet Solutions South Africa, mailserves behind single IP
 196.25.30.66		saoutsourcing.com - Servers behind single IP
-207.46.51.80		pervasive.com - Servers behind single IP
+207.46.51.80		Bigfish.com - Servers behind single IP
+216.32.180.0/22		Bigfish.com - Servers behind single IP
+213.199.154.10		Bigfish.com - Servers behind single IP
 
