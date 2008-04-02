@@ -80,7 +80,7 @@ case "$database" in
 			-e 's/@PRELOAD@/SET CONSTRAINTS ALL DEFERRED;/' \
 			-e 's/@POSTLOAD@//' \
 			-e 's/@CREATE_TABLE_SUFFIX@//' \
-			-e 's/@SERIAL_TYPE@/SERIAL/' \
+			-e 's/@SERIAL_TYPE@/SERIAL PRIMARY KEY/' \
 			-e 's/@BIG_INTEGER@/INT8/' \
 			-e 's/@TRACK_KEY_LEN@/512/' \
 			-e 's/@INDEX@/, INDEX/' \
