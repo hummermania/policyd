@@ -59,7 +59,7 @@ CREATE TABLE quotas_tracking (
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@),
 
 	/* Last time this record was update */
-	LastUpdate		DATETIME,  /* NULL means not updated yet */	
+	LastUpdate		@BIG_INTEGER@,  /* NULL means not updated yet */	
 
 	Counter			NUMERIC(10,4),
 	
