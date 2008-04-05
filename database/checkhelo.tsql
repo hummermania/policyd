@@ -8,7 +8,7 @@ CREATE TABLE checkhelo (
 
 	PolicyID		@SERIAL_REF_TYPE@,
 
-	Name			TINYTEXT NOT NULL,
+	Name			VARCHAR(255) NOT NULL,
 
 
 	/* Blacklisting, we want to reject people impersonating us */

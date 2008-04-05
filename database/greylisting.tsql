@@ -8,7 +8,7 @@ CREATE TABLE greylisting (
 
 	PolicyID		@SERIAL_REF_TYPE@,
 
-	Name			TINYTEXT NOT NULL,
+	Name			VARCHAR(255) NOT NULL,
 
 
 	/* General greylisting settings */
@@ -16,7 +16,7 @@ CREATE TABLE greylisting (
 	GreylistPeriod			@BIG_INTEGER@,  /* Period in seconds to greylist for */
 
 	/* Record tracking */
-	Track				TINYTEXT NOT NULL,  /* Format:   <type>:<spec>
+	Track				VARCHAR(255) NOT NULL,  /* Format:   <type>:<spec>
 							SenderIP - This takes a bitmask to mask the IP with, A good default is /24
 						*/
 

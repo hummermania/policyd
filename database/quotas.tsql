@@ -5,10 +5,10 @@ CREATE TABLE quotas (
 
 	PolicyID		@SERIAL_REF_TYPE@,
 	
-	Name			TINYTEXT NOT NULL,
+	Name			VARCHAR(255) NOT NULL,
 
 	/* Tracking Options */
-	Track			TINYTEXT NOT NULL,  /* Format:   <type>:<spec>
+	Track			VARCHAR(255) NOT NULL,  /* Format:   <type>:<spec>
 
 					      SenderIP - This takes a bitmask to mask the IP with. A good default is /24 
 
@@ -19,7 +19,7 @@ CREATE TABLE quotas (
 	/* Period over which this policy is valid,  this is in seconds */
 	Period			@BIG_INTEGER@,
 
-	Verdict			TINYTEXT,
+	Verdict			VARCHAR(255),
 	Data			TEXT,
 		
 	Comment			VARCHAR(1024),
@@ -38,7 +38,7 @@ CREATE TABLE quotas_limits (
 
 	QuotasID		@SERIAL_REF_TYPE@,
 
-	Type			TINYTEXT,  /* "MessageCount" or "MessageCumulativeSize" */
+	Type			VARCHAR(255),  /* "MessageCount" or "MessageCumulativeSize" */
 	CounterLimit		@BIG_INTEGER@,
 
 	Comment			VARCHAR(1024),

@@ -12,7 +12,7 @@ Priorities...
 CREATE TABLE policies (
 	ID			@SERIAL_TYPE@,
 
-	Name			TINYTEXT NOT NULL,
+	Name			VARCHAR(255) NOT NULL,
 
 	Priority		SMALLINT NOT NULL,
 

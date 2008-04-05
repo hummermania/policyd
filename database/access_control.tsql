@@ -6,9 +6,9 @@ CREATE TABLE access_control (
 
 	PolicyID		@SERIAL_REF_TYPE@,
 
-	Name			TINYTEXT NOT NULL,
+	Name			VARCHAR(255) NOT NULL,
 
-	Verdict			TINYTEXT,
+	Verdict			VARCHAR(255),
 	Data			TEXT,
 
 

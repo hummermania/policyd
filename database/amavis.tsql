@@ -6,7 +6,7 @@ CREATE TABLE amavis_rules (
 
 	PolicyID		@SERIAL_REF_TYPE@,
 
-	Name			TINYTEXT NOT NULL,
+	Name			VARCHAR(255) NOT NULL,
 
 /*
 Mode of operation (the _m columns):
@@ -56,13 +56,13 @@ Mode of operation (the _m columns):
 	spam_modifies_subject	SMALLINT,
 	spam_modifies_subject_m	SMALLINT NOT NULL DEFAULT '0',
 
-	spam_tag_subject	TINYTEXT,  /* _SCORE_ is the score, _REQD_ is the required score */
+	spam_tag_subject	VARCHAR(255),  /* _SCORE_ is the score, _REQD_ is the required score */
 	spam_tag_subject_m	SMALLINT NOT NULL DEFAULT '0',
 	
-	spam_tag2_subject	TINYTEXT,
+	spam_tag2_subject	VARCHAR(255),
 	spam_tag2_subject_m	SMALLINT NOT NULL DEFAULT '0',
 	
-	spam_tag3_subject	TINYTEXT,
+	spam_tag3_subject	VARCHAR(255),
 	spam_tag3_subject_m	SMALLINT NOT NULL DEFAULT '0',
 
 
@@ -83,38 +83,38 @@ Mode of operation (the _m columns):
 
 
 	/* Admin notifications */
-	notify_admin_newvirus	TINYTEXT,
+	notify_admin_newvirus	VARCHAR(255),
 	notify_admin_newvirus_m	SMALLINT NOT NULL DEFAULT '0',
 
-	notify_admin_virus	TINYTEXT,
+	notify_admin_virus	VARCHAR(255),
 	notify_admin_virus_m	SMALLINT NOT NULL DEFAULT '0',
 
-	notify_admin_spam	TINYTEXT,
+	notify_admin_spam	VARCHAR(255),
 	notify_admin_spam_m	SMALLINT NOT NULL DEFAULT '0',
 
-	notify_admin_banned_file	TINYTEXT,
+	notify_admin_banned_file	VARCHAR(255),
 	notify_admin_banned_file_m	SMALLINT NOT NULL DEFAULT '0',
 
-	notify_admin_bad_header	TINYTEXT,
+	notify_admin_bad_header	VARCHAR(255),
 	notify_admin_bad_header_m	SMALLINT NOT NULL DEFAULT '0',
 
 
 	/* Quarantine options */
-	quarantine_virus	TINYTEXT,
+	quarantine_virus	VARCHAR(255),
 	quarantine_virus_m	SMALLINT NOT NULL DEFAULT '0',
 
-	quarantine_banned_file	TINYTEXT,
+	quarantine_banned_file	VARCHAR(255),
 	quarantine_banned_file_m	SMALLINT NOT NULL DEFAULT '0',
 
-	quarantine_bad_header	TINYTEXT,
+	quarantine_bad_header	VARCHAR(255),
 	quarantine_bad_header_m	SMALLINT NOT NULL DEFAULT '0',
 	
-	quarantine_spam		TINYTEXT,
+	quarantine_spam		VARCHAR(255),
 	quarantine_spam_m	SMALLINT NOT NULL DEFAULT '0',
 
 
 	/* Interception options */
-	bcc_to			TINYTEXT,
+	bcc_to			VARCHAR(255),
 	bcc_to_m		SMALLINT NOT NULL DEFAULT '0',
 
 
