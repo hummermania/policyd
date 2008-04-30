@@ -1,7 +1,7 @@
-SenderIP:127.0.0.1		Local loopback address
+SenderIP:127.0.0.0/8		Local loopback address
 SenderIP:192.168.0.0/16		Private range
 SenderIP:10.0.0.0/8		Private range
-SenderIP:172.16.0.0/16		Private range
+SenderIP:172.16.0.0/12		Private range
 
 # Servers that don't like greylisting
 SenderIP:12.5.136.141		Southwest Airlines (unique sender, no retry)
