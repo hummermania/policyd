@@ -231,7 +231,7 @@ sub getSessionDataFromRequest
 	# Check for HTTP protocol transport
 	} elsif ($request->{'_protocol_transport'} eq "HTTP") {
 		$sessionData->{'ClientAddress'} = $request->{'client_address'};
-		$sessionData->{'Helo'} = "";
+		$sessionData->{'Helo'} = $request->{'helo_name'} if (defined($request->{'helo_name'}));
 		$sessionData->{'Sender'} = $request->{'sender'};
 
 		# If we in RCPT state, set recipient
