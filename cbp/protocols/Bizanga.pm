@@ -192,7 +192,7 @@ sub protocol_response
 	
 	# Fallthrough
 	} else {
-		$server->log(LOG_ERR,"[PROTOCOL/Postfix] Cannot understand response code '$resp'");
+		$server->log(LOG_ERR,"[PROTOCOL/Bizanga] Cannot understand response code '$resp'");
 		return CBP_ERROR;
 	}
 }
