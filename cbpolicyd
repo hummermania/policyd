@@ -62,7 +62,6 @@ sub configure {
 
 	$server->{'host'} = "*";
 	$server->{'port'} = 10031;
-	$server->{'timeout'} = 120;
 			
 	$server->{'min_servers'} = 4;
 	$server->{'min_spare_servers'} = 4;
@@ -433,7 +432,7 @@ sub process_request {
 		print($self->protocol_getresponse());
 
 		# Check if we need to reconnect or not
-		my $timeout = $server->{'inifile'}{'database'}{'bypass_timeout'};
+		my $timeout = $self->{'inifile'}{'database'}{'bypass_timeout'};
 		if (!defined($timeout)) {
 			$self->log(LOG_ERR,"[CBPOLICYD] No bypass_timeout specified for failed database connections, defaulting to 120s");
 			$timeout = 120;
