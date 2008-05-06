@@ -33,3 +33,5 @@ period per trap
 
 * Per receipient email address whitelists & blacklists?
 
+* Dump stats to file so we can pickup in net-snmp
+
