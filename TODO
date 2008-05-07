@@ -4,6 +4,11 @@ Use prefork, we cannot guarantee how long the plugins/modules will take to run a
 
 Immediate requirements:
 
+- ability to disable tcp connection logs while keeping action=* logs (perhaps move the latter from info to notice?)
+
+- option to not add timestamps to logs (we capture logs with daemontools which adds (numeric) timestamps)
+* log_timestamp=false in options
+
 - Web interface
 * BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
 
@@ -33,5 +38,4 @@ period per trap
 
 * Per receipient email address whitelists & blacklists?
 
-* Dump stats to file so we can pickup in net-snmp
 

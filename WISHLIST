@@ -2,3 +2,5 @@
 
 * Weighted tests
 
+* Dump stats to file so we can pickup in net-snmp
+
