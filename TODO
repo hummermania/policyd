@@ -9,6 +9,8 @@ Immediate requirements:
 - option to not add timestamps to logs (we capture logs with daemontools which adds (numeric) timestamps)
 * log_timestamp=false in options
 
+- make the responses ("Greylisting in effect") configurable
+
 - Web interface
 * BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
 
