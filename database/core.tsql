@@ -61,16 +61,16 @@ INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
 	(1,NULL,NULL);
 /* Default Outbound System Policy */
 INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
-	(2,"%internal_ips,%internal_domains","!%internal_domains");
+	(2,'%internal_ips,%internal_domains','!%internal_domains');
 /* Default Inbound System Policy */
 INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
-	(3,"!%internal_ips,!%internal_domains","%internal_domains");
+	(3,'!%internal_ips,!%internal_domains','%internal_domains');
 /* Default Internal System Policy */
 INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
-	(4,"%internal_ips,%internal_domains","%internal_domains");
+	(4,'%internal_ips,%internal_domains','%internal_domains');
 /* Test Policy */
 INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
-	(5,"@lbsd.net",NULL);
+	(5,'@example.net',NULL);
 
 
 
@@ -89,8 +89,8 @@ CREATE TABLE policy_groups (
 	UNIQUE (Name)
 )  @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO policy_groups (Name) VALUES ("internal_ips");
-INSERT INTO policy_groups (Name) VALUES ("internal_domains");
+INSERT INTO policy_groups (Name) VALUES ('internal_ips');
+INSERT INTO policy_groups (Name) VALUES ('internal_domains');
 
 
 
@@ -111,10 +111,9 @@ CREATE TABLE policy_group_members (
 	FOREIGN KEY (PolicyGroupID) REFERENCES policy_groups(ID)
 )  @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (1,"10.0.0.0/8");
-INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,"@example.org");
-INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,"@example.net");
-INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,"@example.com");
+INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (1,'10.0.0.0/8');
+INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,'@example.org');
+INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,'@example.com');
 
 
 
