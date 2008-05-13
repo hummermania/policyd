@@ -257,6 +257,9 @@ sub getSessionDataFromRequest
 	$sessionData->{'Timestamp'} = $request->{'_timestamp'};
 	$sessionData->{'ParsedClientAddress'} = parseCIDR($sessionData->{'ClientAddress'});
 
+	# Make sure HELO is clean...
+	$sessionData->{'Helo'} = defined($sessionData->{'Helo'}) ? $sessionData->{'Helo'} : '';
+
 	$server->log(LOG_DEBUG,"[TRACKING] Request translated into session data: ".Dumper($sessionData)) if ($log);
 
 	return $sessionData;
