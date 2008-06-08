@@ -31,7 +31,7 @@ use cbp::logging;
 use cbp::version;
 
 	
-print(STDERR "Policyd Admin Tool (ClueBringer) v".VERSION." - Copyright (c) 2007-2008 LinuxRulz\n");
+print("Policyd Admin Tool (ClueBringer) v".VERSION." - Copyright (c) 2007-2008 LinuxRulz\n");
 
 # Fire up commandline processing...
 my %opts;
@@ -170,7 +170,7 @@ sub loadModules
 
 # Display help
 sub displayHelp {
-	print(STDERR<<EOF);
+	print(<<EOF);
 
 Usage: $0 [args]
     --config=<file>        Configuration file
@@ -232,7 +232,7 @@ sub log
 	my ($self,$level,@msg) = @_;
 
 	# FIXME: we shouldn't ignore $level
-    print(STDERR @msg, "\n");
+    print(@msg, "\n");
 }
 
 
