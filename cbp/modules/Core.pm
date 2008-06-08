@@ -48,7 +48,7 @@ sub cleanup
 		DELETE FROM 
 			session_tracking
 		WHERE
-			Timestamp <= ".DBQuote($yesterday)."	
+			Timestamp < ".DBQuote($yesterday)."	
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CORE] Failed to remove old session tracking records: ".cbp::dblayer::Error());

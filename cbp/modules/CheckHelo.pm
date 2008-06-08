@@ -502,7 +502,7 @@ sub cleanup
 		DELETE FROM 
 			checkhelo_tracking
 		WHERE
-			LastUpdate <= ".DBQuote($period)."
+			LastUpdate < ".DBQuote($period)."
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Failed to remove old helo records: ".cbp::dblayer::Error());

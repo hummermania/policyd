@@ -792,7 +792,7 @@ sub cleanup
 			DELETE FROM 
 				greylisting_autowhitelist
 			WHERE
-				LastSeen <= ".DBQuote($AWLPeriod)."
+				LastSeen < ".DBQuote($AWLPeriod)."
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autowhitelist records: ".cbp::dblayer::Error());
@@ -830,7 +830,7 @@ sub cleanup
 			DELETE FROM 
 				greylisting_autoblacklist
 			WHERE
-				Added <= ".DBQuote($ABLPeriod)."
+				Added < ".DBQuote($ABLPeriod)."
 		");
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autoblacklist records: ".cbp::dblayer::Error());
@@ -867,7 +867,7 @@ sub cleanup
 			DELETE FROM 
 				greylisting_tracking
 			WHERE
-				LastUpdate <= ".DBQuote($AuthPeriod)."
+				LastUpdate < ".DBQuote($AuthPeriod)."
 				AND Count != 0
 		");
 		if (!$sth) {
@@ -905,7 +905,7 @@ sub cleanup
 			DELETE FROM 
 				greylisting_tracking
 			WHERE
-				LastUpdate <= ".DBQuote($UnAuthPeriod)."
+				LastUpdate < ".DBQuote($UnAuthPeriod)."
 				AND Count = 0
 		");
 		if (!$sth) {

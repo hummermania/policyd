@@ -704,7 +704,7 @@ sub cleanup
 		DELETE FROM 
 			quotas_tracking
 		WHERE
-			LastUpdate <= ".DBQuote($lastMonth)."
+			LastUpdate < ".DBQuote($lastMonth)."
 	");
 	if (!$sth) {
 		$server->log(LOG_ERR,"[QUOTAS] Failed to remove old quota tracking records: ".cbp::dblayer::Error());
