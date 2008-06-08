@@ -84,6 +84,7 @@ CREATE TABLE checkhelo_tracking (
 	Helo			VARCHAR(255) NOT NULL,
 	LastUpdate		BIGINT UNSIGNED NOT NULL,
 
-	UNIQUE (Address,Helo)
+	UNIQUE (Address,Helo),
+	@INDEX@ (LastUpdate)
 ) @CREATE_TABLE_SUFFIX@;
 

@@ -108,6 +108,7 @@ CREATE TABLE greylisting_tracking (
 	Tries			@BIG_INTEGER@ NOT NULL,  /* Authentication tries */
 	Count			@BIG_INTEGER@ NOT NULL,  /* Authenticated count */
 
-	UNIQUE(TrackKey,Sender,Recipient)
+	UNIQUE(TrackKey,Sender,Recipient),
+	@INDEX@ (LastUpdate,Count)
 ) @CREATE_TABLE_SUFFIX@;
 
