@@ -38,7 +38,7 @@ printHeader(array(
 
 
 # Display change screen
-if ($_POST['action'] == "change") {
+if ($_POST['frmaction'] == "change") {
 
 	# Check a mailbox was selected
 	if (isset($_POST['postfix_mailbox_id'])) {
@@ -62,7 +62,7 @@ if ($_POST['action'] == "change") {
 
 		<form action="postfix-mailboxes-change.php" method="post">
 			<div>
-				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="postfix_mailbox_id" value="<?php echo $_POST['postfix_mailbox_id']; ?>" />
 			</div>
 <?php
@@ -143,7 +143,7 @@ if ($_POST['action'] == "change") {
 	
 	
 # SQL Updates
-} elseif ($_POST['action'] == "change2") {
+} elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Mailbox Update Results</p>
 <?

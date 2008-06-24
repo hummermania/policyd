@@ -31,7 +31,7 @@ printHeader(array(
 ));
 
 # If we have no action, display list
-if (!isset($_POST['action']))
+if (!isset($_POST['frmaction']))
 {
 ?>
 	<p class="pageheader">SPF Checks</p>
@@ -40,7 +40,7 @@ if (!isset($_POST['action']))
 
 		<div class="textcenter">
 			Action
-			<select id="main_form_action" name="action" 
+			<select id="main_form_action" name="frmaction" 
 					onchange="
 						var myform = document.getElementById('main_form');
 						var myobj = document.getElementById('main_form_action');

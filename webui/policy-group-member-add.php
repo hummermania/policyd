@@ -36,14 +36,14 @@ printHeader(array(
 ));
 
 
-if ($_POST['action'] == "add")  {
+if ($_POST['frmaction'] == "add")  {
 ?>
 	<p class="pageheader">Add Policy Group Member</p>
 <?php
 ?>
 		<form method="post" action="policy-group-member-add.php">
 			<div>
-				<input type="hidden" name="action" value="add2" />
+				<input type="hidden" name="frmaction" value="add2" />
 				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id'] ?>" />
 			</div>
 			<table class="entry">
@@ -70,7 +70,7 @@ if ($_POST['action'] == "add")  {
 	
 	
 # Check we have all params
-} elseif ($_POST['action'] == "add2") {
+} elseif ($_POST['frmaction'] == "add2") {
 ?>
 	<p class="pageheader">Policy Group Member Add Results</p>
 

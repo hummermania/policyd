@@ -53,7 +53,7 @@ if (isset($_REQUEST['quota_id'])) {
 			<div class="notice">Quota: <?php echo $row->name ?></div>
 
 			Action
-			<select id="main_form_action" name="action" 
+			<select id="main_form_action" name="frmaction" 
 					onchange="
 						var myform = document.getElementById('main_form');
 						var myobj = document.getElementById('main_form_action');

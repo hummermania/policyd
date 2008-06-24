@@ -152,7 +152,7 @@ function decode_db_value($option,$value)
 
 
 # Display change screen
-if ($_POST['action'] == "change") {
+if ($_POST['frmaction'] == "change") {
 
 	# Check a amavis rule was selected
 	if (isset($_POST['amavis_id'])) {
@@ -214,7 +214,7 @@ if ($_POST['action'] == "change") {
 
 		<form action="amavis-change.php" method="post">
 			<div>
-				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="amavis_id" value="<?php echo $_POST['amavis_id']; ?>" />
 			</div>
 <?php
@@ -1016,7 +1016,7 @@ if ($_POST['action'] == "change") {
 	
 	
 # SQL Updates
-} elseif ($_POST['action'] == "change2") {
+} elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Amavis Rule Update Results</p>
 <?

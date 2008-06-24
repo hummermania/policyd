@@ -37,7 +37,7 @@ printHeader(array(
 
 
 # Display change screen
-if ($_POST['action'] == "change") {
+if ($_POST['frmaction'] == "change") {
 
 	# Check a policy was selected
 	if (isset($_POST['policy_group_id'])) {
@@ -48,7 +48,7 @@ if ($_POST['action'] == "change") {
 
 		<form action="policy-group-change.php" method="post">
 			<div>
-				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
 			</div>
 <?php
@@ -97,7 +97,7 @@ if ($_POST['action'] == "change") {
 	
 	
 # SQL Updates
-} elseif ($_POST['action'] == "change2") {
+} elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Policy Group Update Results</p>
 <?

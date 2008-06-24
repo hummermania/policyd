@@ -38,7 +38,7 @@ printHeader(array(
 
 
 # Display change screen
-if ($_POST['action'] == "change") {
+if ($_POST['frmaction'] == "change") {
 
 	# Check a helo check was selected
 	if (isset($_POST['checkhelo_id'])) {
@@ -70,7 +70,7 @@ if ($_POST['action'] == "change") {
 
 		<form action="checkhelo-change.php" method="post">
 			<div>
-				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="checkhelo_id" value="<?php echo $_POST['checkhelo_id']; ?>" />
 			</div>
 <?php
@@ -344,7 +344,7 @@ if ($_POST['action'] == "change") {
 	
 	
 # SQL Updates
-} elseif ($_POST['action'] == "change2") {
+} elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">HELO/EHLO Update Results</p>
 <?

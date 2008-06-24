@@ -38,7 +38,7 @@ printHeader(array(
 
 
 # Display change screen
-if ($_POST['action'] == "change") {
+if ($_POST['frmaction'] == "change") {
 
 	# Check a greylisting was selected
 	if (isset($_POST['greylisting_id'])) {
@@ -74,7 +74,7 @@ if ($_POST['action'] == "change") {
 
 		<form action="greylisting-change.php" method="post">
 			<div>
-				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="greylisting_id" value="<?php echo $_POST['greylisting_id']; ?>" />
 			</div>
 <?php
@@ -408,7 +408,7 @@ if ($_POST['action'] == "change") {
 	
 	
 # SQL Updates
-} elseif ($_POST['action'] == "change2") {
+} elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Greylisting Update Results</p>
 <?

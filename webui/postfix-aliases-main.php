@@ -38,7 +38,7 @@ printHeader(array(
 
 		<div class="textcenter">
 			Action
-			<select id="main_form_action" name="action" 
+			<select id="main_form_action" name="frmaction" 
 					onchange="
 						var myform = document.getElementById('main_form');
 						var myobj = document.getElementById('main_form_action');

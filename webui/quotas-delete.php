@@ -37,7 +37,7 @@ printHeader(array(
 
 
 # Display delete confirm screen
-if ($_POST['action'] == "delete") {
+if ($_POST['frmaction'] == "delete") {
 
 	# Check a quota was selected
 	if (isset($_POST['quota_id'])) {
@@ -46,7 +46,7 @@ if ($_POST['action'] == "delete") {
 
 		<form action="quotas-delete.php" method="post">
 			<div>
-				<input type="hidden" name="action" value="delete2" />
+				<input type="hidden" name="frmaction" value="delete2" />
 				<input type="hidden" name="quota_id" value="<?php echo $_POST['quota_id']; ?>" />
 			</div>
 			
@@ -66,7 +66,7 @@ if ($_POST['action'] == "delete") {
 	
 	
 # SQL Updates
-} elseif ($_POST['action'] == "delete2") {
+} elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Quota Delete Results</p>
 <?

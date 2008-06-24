@@ -38,7 +38,7 @@ printHeader(array(
 
 
 # Display change screen
-if ($_POST['action'] == "change") {
+if ($_POST['frmaction'] == "change") {
 
 	# Check a SPF check was selected
 	if (isset($_POST['checkspf_id'])) {
@@ -62,7 +62,7 @@ if ($_POST['action'] == "change") {
 
 		<form action="checkspf-change.php" method="post">
 			<div>
-				<input type="hidden" name="action" value="change2" />
+				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="checkspf_id" value="<?php echo $_POST['checkspf_id']; ?>" />
 			</div>
 <?php
@@ -219,7 +219,7 @@ if ($_POST['action'] == "change") {
 	
 	
 # SQL Updates
-} elseif ($_POST['action'] == "change2") {
+} elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">SPF Check Update Results</p>
 <?

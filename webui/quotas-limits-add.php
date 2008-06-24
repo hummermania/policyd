@@ -35,7 +35,7 @@ printHeader(array(
 ));
 
 
-if ($_POST['action'] == "add")  {
+if ($_POST['frmaction'] == "add")  {
 ?>
 	<p class="pageheader">Add Quota Limit</p>
 <?php
@@ -43,7 +43,7 @@ if ($_POST['action'] == "add")  {
 ?>
 		<form method="post" action="quotas-limits-add.php">
 			<div>
-				<input type="hidden" name="action" value="add2" />
+				<input type="hidden" name="frmaction" value="add2" />
 				<input type="hidden" name="quota_id" value="<?php echo $_POST['quota_id'] ?>" />
 			</div>
 			<table class="entry">
@@ -81,7 +81,7 @@ if ($_POST['action'] == "add")  {
 	
 	
 # Check we have all params
-} elseif ($_POST['action'] == "add2") {
+} elseif ($_POST['frmaction'] == "add2") {
 ?>
 	<p class="pageheader">Quota Limit Add Results</p>
 
