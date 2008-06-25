@@ -18,7 +18,7 @@ function connect_db()
 		$dbh->setAttribute(PDO::ATTR_CASE,PDO::CASE_LOWER);
 
 	} catch (PDOException $e) {
-		die("Error conneting to DB: " . $e->getMessage());
+		die("Error connecting to Policyd v2 DB: " . $e->getMessage());
 	}
 
 	return $dbh;
@@ -40,7 +40,7 @@ function connect_postfix_db()
 		$dbh->setAttribute(PDO::ATTR_CASE,PDO::CASE_LOWER);
 
 	} catch (PDOException $e) {
-		die("Error conneting to Postfix DB: " . $e->getMessage());
+		die("Error connecting to Postfix DB: " . $e->getMessage());
 	}
 
 	return $dbh;
