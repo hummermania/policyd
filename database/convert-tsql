@@ -59,7 +59,6 @@ case "$database" in
 			-e 's/@SERIAL_TYPE@/SERIAL/' \
 			-e 's/@BIG_INTEGER@/BIGINT UNSIGNED/' \
 			-e 's/@TRACK_KEY_LEN@/255/' \
-			-e 's/@INDEX@/, INDEX/' \
 			-e 's/@SERIAL_REF_TYPE@/BIGINT UNSIGNED/' < "$file"
 		;;
 
@@ -71,7 +70,6 @@ case "$database" in
 			-e 's/@SERIAL_TYPE@/SERIAL/' \
 			-e 's/@BIG_INTEGER@/BIGINT UNSIGNED/' \
 			-e 's/@TRACK_KEY_LEN@/512/' \
-			-e 's/@INDEX@/, INDEX/' \
 			-e 's/@SERIAL_REF_TYPE@/BIGINT UNSIGNED/' < "$file"
 		;;
 
@@ -83,7 +81,6 @@ case "$database" in
 			-e 's/@SERIAL_TYPE@/SERIAL PRIMARY KEY/' \
 			-e 's/@BIG_INTEGER@/INT8/' \
 			-e 's/@TRACK_KEY_LEN@/512/' \
-			-e 's/@INDEX@/, INDEX/' \
 			-e 's/@SERIAL_REF_TYPE@/INT8/' < "$file"
 		;;
 
@@ -95,7 +92,6 @@ case "$database" in
 			-e 's/@SERIAL_TYPE@/INTEGER PRIMARY KEY AUTOINCREMENT/' \
 			-e 's/@BIG_INTEGER@/INT8/' \
 			-e 's/@TRACK_KEY_LEN@/512/' \
-			-e 's/@INDEX@.*//' \
 			-e 's/@SERIAL_REF_TYPE@/INT8/' < "$file"
 		;;
 

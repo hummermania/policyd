@@ -9,7 +9,7 @@ CREATE TABLE checkspf (
 
 	PolicyID		@SERIAL_REF_TYPE@,
 
-	Name			TINYTEXT NOT NULL,
+	Name			VARCHAR(255) NOT NULL,
 
 	/* Do we want to use SPF?  1 or 0 */
 	UseSPF				SMALLINT,

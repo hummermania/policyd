@@ -64,10 +64,7 @@ CREATE TABLE quotas_tracking (
 	Counter			NUMERIC(10,4),
 	
 	UNIQUE (QuotasLimitsID,TrackKey),
-	@INDEX@ (LastUpdate),
 	FOREIGN KEY (QuotasLimitsID) REFERENCES quotas_limits(ID)
 ) @CREATE_TABLE_SUFFIX@;
-
-
-
+CREATE INDEX quotas_tracking_idx1 ON quotas_tracking (LastUpdate);
 

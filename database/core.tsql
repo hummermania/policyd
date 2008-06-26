@@ -146,11 +146,10 @@ CREATE TABLE session_tracking (
 
 	RecipientData		TEXT,  /* Policy state information */
 
-	UNIQUE (Instance),
-	@INDEX@ (QueueID,ClientAddress,Sender),
-	@INDEX@ (Timestamp)
+	UNIQUE (Instance)
 )  @CREATE_TABLE_SUFFIX@;
-
+CREATE INDEX session_tracking_idx1 ON session_tracking (QueueID,ClientAddress,Sender);
+CREATE INDEX session_tracking_idx2 ON session_tracking (Timestamp);
 
 
 
