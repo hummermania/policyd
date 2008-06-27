@@ -79,8 +79,8 @@ sub Init
 
 	# Create Cache
 	$ch = Cache::FastMmap->new(
-		'page_size' => 1024,
-		'num_pages' => 2048,
+		'page_size' => 2048,
+		'num_pages' => 1000,
 		'raw_values' => 1,
 		'unlink_on_exit'	=> 1,
 	);
