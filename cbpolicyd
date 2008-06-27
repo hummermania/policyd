@@ -395,8 +395,7 @@ sub process_request {
 
 	# Data mangling...
 	$request->{'sender'} = lc($request->{'sender'});
-	$request->{'recipient'} = lc($request->{'recipient'});
-	$request->{'recipient'} = lc($request->{'recipient'});
+	$request->{'recipient'} = lc($request->{'recipient'}) if (defined($request->{'recipient'}));
 	$request->{'sasl_username'} = lc($request->{'sasl_username'}) if (defined($request->{'sasl_username'}));
 
 	# Internal data
