@@ -116,7 +116,7 @@ if ($_POST['frmaction'] == "add")  {
 
 	$mailbox = $_POST['postfix_mailbox_address'] . '@' . $row->domainname;
 
-	$stmt = $db->prepare("INSERT INTO mailboxes (TransportID,Address,Mailbox,Password,Quota,Name,BCC,Comment,Disabled) VALUES (?,?,?,?,?,?,?,?,1)");
+	$stmt = $db->prepare("INSERT INTO mailboxes (TransportID,Address,Mailbox,Password,Quota,Name,BCC,Comment,Disabled) VALUES (?,?,?,?,?,?,?,?,0)");
 
 	# Encrypt password
 	$password = "{MD5}".base64_encode(pack("H*", md5($_POST['postfix_mailbox_password'])));

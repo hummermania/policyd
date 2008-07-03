@@ -100,7 +100,7 @@ if ($_POST['frmaction'] == "add")  {
 	$mailbox = $_POST['postfix_alias_address'] . '@' . $row->domainname;
 
 
-	$stmt = $db->prepare("INSERT INTO aliases (TransportID,Address,MailAddress,Goto,Disabled) VALUES (?,?,?,?,1)");
+	$stmt = $db->prepare("INSERT INTO aliases (TransportID,Address,MailAddress,Goto,Disabled) VALUES (?,?,?,?,0)");
 	$res = $stmt->execute(array(
 		$row->id,
 		$_POST['postfix_alias_address'],

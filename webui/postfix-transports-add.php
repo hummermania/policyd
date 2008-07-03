@@ -95,7 +95,7 @@ if ($_POST['frmaction'] == "add")  {
 
 <?php
 
-	$stmt = $db->prepare("INSERT INTO transports (DomainName,Type,Transport,PTransport,Disabled) VALUES (?,?,?,?,1)");
+	$stmt = $db->prepare("INSERT INTO transports (DomainName,Type,Transport,PTransport,Disabled) VALUES (?,?,?,?,0)");
 
 	# virtual
 	if ($_POST['postfix_transport_type'] == "0") {

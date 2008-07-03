@@ -95,7 +95,7 @@ if ($_POST['frmaction'] == "add")  {
 	$mailbox = $_POST['postfix_group_address'] . '@' . $row->domainname;
 
 
-	$stmt = $db->prepare("INSERT INTO distribution_groups (TransportID,Address,MailAddress,Comment,Disabled) VALUES (?,?,?,?,1)");
+	$stmt = $db->prepare("INSERT INTO distribution_groups (TransportID,Address,MailAddress,Comment,Disabled) VALUES (?,?,?,?,0)");
 
 	$res = $stmt->execute(array(
 		$row->id,
