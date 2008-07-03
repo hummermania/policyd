@@ -73,17 +73,62 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['postfix_mailbox_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM mailboxes WHERE ID = ".$db->quote($_POST['postfix_mailbox_id']));
-			if ($res) {
-?>
-				<div class="notice">Mailbox deleted</div>
-<?php
+			# Grab tracking limits we must delete for
+			$res = $db->query("
+					SELECT 
+						Mailbox
+					FROM 
+						mailboxes
+					WHERE
+						ID = ".$db->quote($_POST['postfix_mailbox_id'])."
+			");
+
+			if ($res !== FALSE) {
+				# Pull in limit ID's
+				$row = $res->fetchObject();
+				$res->closeCursor();
+				$mailbox = $row->mailbox;
 			} else {
 ?>
-				<div class="warning">Error deleting mailbox!</div>
+				<div class="warning">Error selecting mailbox!</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 			}
+
+			$db->beginTransaction();
+
+			$res = $db->exec("DELETE FROM distribution_group_members WHERE Goto = ".$db->quote($mailbox));
+			if ($res !== FALSE) {
+?>
+				<div class="notice">Mailbox removed from distribution groups</div>
+<?php
+			} else {
+?>
+				<div class="warning">Error removing mailbox from distribution groups!</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+				$db->rollBack();
+			}
+
+			if ($res !== FALSE) {	
+				$res = $db->exec("DELETE FROM mailboxes WHERE ID = ".$db->quote($_POST['postfix_mailbox_id']));
+				if ($res !== FALSE) {
+?>
+					<div class="notice">Mailbox deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting mailbox!</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+					$db->rollBack();
+				}
+			}
+
+			if ($res) {
+				$db->commit();
+			}
+
 		} else {
 ?>
 			<div class="notice">Mailbox not deleted, aborted by user</div>
