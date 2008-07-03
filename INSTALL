@@ -7,6 +7,8 @@ Installing Policyd v2.
 
 
 
+
+
 1. Setup MySQL  (or whichever database you plan to use)
 
 a. In database/ run...
@@ -15,10 +17,14 @@ $ do
 $        ./convert-tsql mysql $i
 $ done > policyd.mysql
 
+This will build policyd.mysql, be sure to ALWAYS load core.tsql first, you only really need the
+schema for the modules you plan to use, no harm in adding all of them though.
+
 b. Load policyd.mysql into MySQL
+$ mysql -u root -p policyd < policyd.mysql
 
 
-2. Put cbpolicyd.conf in your /etc directory and adjust cbpolicyd.conf with your MySQL database details
+2. Put cluebringer.conf in your /etc directory and adjust cluebringer.conf with your MySQL database details
 
 
 3. Copy the cbp/ directory into /usr/local/lib/policyd-2.0/
