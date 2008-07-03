@@ -90,7 +90,7 @@ if (isset($_REQUEST['postfix_group_id'])) {
 			</tr>
 <?php
 
-			$stmt = $db->prepare('SELECT ID, Goto, Disabled FROM distribution_group_members WHERE DistributionGroupID = ?');
+			$stmt = $db->prepare('SELECT ID, Goto, Disabled FROM distribution_group_members WHERE DistributionGroupID = ? ORDER BY Goto');
 			$res = $stmt->execute(array($_REQUEST['postfix_group_id']));
 
 			$i = 0;
