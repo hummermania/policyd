@@ -8,7 +8,7 @@
 24.71.223.10		SHAW.CA - Residential 1, behind single IP
 64.59.128.220		SHAW.CA - Business 1, behind single IP
 64.59.134.9		SHAW.CA - Residential 2, behind single IP
-196.2.16.0/24		Mweb South Africa, behind single nat'd IP
+196.2.16.0/24		Mweb South Africa, behind single IP
 196.211.173.234		Internet Solutions South Africa, mailserves behind single IP
 196.25.30.66		saoutsourcing.com - Servers behind single IP
 207.46.51.80		Bigfish.com - Servers behind single IP
