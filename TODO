@@ -4,6 +4,8 @@ Use prefork, we cannot guarantee how long the plugins/modules will take to run a
 
 Immediate requirements:
 
+- add server ID/name column to tables to track which server is adding/updating?
+
 - ability to disable tcp connection logs while keeping action=* logs (perhaps move the latter from info to notice?)
 
 - option to not add timestamps to logs (we capture logs with daemontools which adds (numeric) timestamps)
