@@ -143,6 +143,7 @@ if ($_POST['frmaction'] == "change") {
 							<option value="">--</option>
 							<option value="HOLD">Hold</option>
 							<option value="REJECT">Reject</option>
+							<option value="DEFER">Defer (delay)</option>
 							<option value="DISCARD">Discard (drop)</option>
 							<option value="FILTER">Filter</option>
 							<option value="REDIRECT">Redirect</option>

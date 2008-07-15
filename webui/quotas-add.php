@@ -101,6 +101,7 @@ if ($_POST['frmaction'] == "add") {
 					<select name="quota_verdict">
 						<option value="HOLD">Hold</option>
 						<option value="REJECT" selected="selected">Reject</option>
+						<option value="DEFER">Defer (delay)</option>
 						<option value="DISCARD">Discard (drop)</option>
 						<option value="FILTER">Filter</option>
 						<option value="REDIRECT">Redirect</option>
