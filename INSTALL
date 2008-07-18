@@ -12,7 +12,7 @@ Installing Policyd v2.
 1. Setup MySQL  (or whichever database you plan to use)
 
 a. In database/ run...
-$ for i in  core.tsql access_control.tsql quotas.tsql amavis.tsql checkhelo.tsql checkspf.tsql
+$ for i in  core.tsql access_control.tsql quotas.tsql amavis.tsql checkhelo.tsql checkspf.tsql greylisting.tsql
 $ do 
 $        ./convert-tsql mysql $i
 $ done > policyd.mysql
