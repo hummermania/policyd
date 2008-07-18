@@ -33,6 +33,7 @@ our $pluginInfo = {
 	name 			=> "Postfix SMTP Access Delegation Protocol Suppot Module",
 	init		 	=> \&init,
 	priority	 	=> 50,
+	protocol_init	=> \&protocol_init,
 	protocol_check	=> \&protocol_check,
 	protocol_parse	=> \&protocol_parse,
 	protocol_response	=> \&protocol_response,
@@ -61,6 +62,13 @@ sub init {
 		$server->log(LOG_NOTICE,"  => Protocol(Postfix): enabled");
 		$config{'enable'} = 1;
 	}
+}
+
+
+# Initialize per request data...
+sub protocol_init {
+	$response = undef;
+	$response_data = undef;
 }
 
 

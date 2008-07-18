@@ -381,6 +381,9 @@ sub process_request {
 
 	# Set protocol handler
 	$server->{'_protocol_handler'} = $found;
+
+	# If we have a init function, call it before processing...
+	$server->{'_protocol_handler'}->{'protocol_init'}($self) if (defined($server->{'_protocol_handler'}->{'protocol_init'}));
 	
 	# Process buffer
 	my $request = $server->{'_protocol_handler'}->{'protocol_parse'}($self,$buf);
