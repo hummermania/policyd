@@ -6,6 +6,9 @@ Immediate requirements:
 
 - Accounting module, similar to Quotas but no rolling window
 
+- Whitelist/Blacklist of email addy or sending server or regex on reverse dns name
+* This should allow an admin to whitelist a sender and bypass all future checks for a sending email addy
+
 - Greylisting: regex 
 * Option, bypass greylisting for non-dynamic reverse DNS hosts
 * Option, bypass greylisting for hosts where HELO == reverse dns
