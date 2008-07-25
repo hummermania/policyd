@@ -459,6 +459,8 @@ sub check {
 				$sessionData->{'Recipient'});
 
 		return CBP_CONTINUE;
+	} if ($verdict =~ /^defer$/i) {
+		return $server->protocol_response(PROTO_DEFER,$verdict_data);
 	} if ($verdict =~ /^hold$/i) {
 		return $server->protocol_response(PROTO_HOLD,$verdict_data);
 	} elsif ($verdict =~ /^reject$/i) {
