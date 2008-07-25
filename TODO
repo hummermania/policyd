@@ -13,6 +13,9 @@ Immediate requirements:
 * Option, bypass greylisting for non-dynamic reverse DNS hosts
 * Option, bypass greylisting for hosts where HELO == reverse dns
 
+- CheckHelo Blacklisting against regex/wildcard?
+* Select the current helo's and compare to the helo blacklist list
+
 - add server ID/name column to tables to track which server is adding/updating?
 
 - ability to disable tcp connection logs while keeping action=* logs (perhaps move the latter from info to notice?)
