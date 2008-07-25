@@ -4,26 +4,33 @@ Use prefork, we cannot guarantee how long the plugins/modules will take to run a
 
 Immediate requirements:
 
-- Accounting module, similar to Quotas but no rolling window
+- Accounting module, similar to Quotas but no rolling window.  (2.1)
+* Limits & counters
 
-- Whitelist/Blacklist of email addy or sending server or regex on reverse dns name
+- Whitelist/Blacklist of email addy or sending server or regex on reverse dns name  (2.1)
 * This should allow an admin to whitelist a sender and bypass all future checks for a sending email addy
 
-- Greylisting: regex 
+- Greylisting: regex   (2.1)
 * Option, bypass greylisting for non-dynamic reverse DNS hosts
 * Option, bypass greylisting for hosts where HELO == reverse dns
 
-- CheckHelo Blacklisting against regex/wildcard?
+- CheckHelo Blacklisting against regex/wildcard?  (2.1)
 * Select the current helo's and compare to the helo blacklist list
 
-- add server ID/name column to tables to track which server is adding/updating?
+- Add server IP column to tables to track which server is adding/updating?  (2.1)
 
-- ability to disable tcp connection logs while keeping action=* logs (perhaps move the latter from info to notice?)
-
-- option to not add timestamps to logs (we capture logs with daemontools which adds (numeric) timestamps)
+- option to not add timestamps to logs (we capture logs with daemontools which adds (numeric) timestamps)  (2.1)
 * log_timestamp=false in options
 
-- make the responses ("Greylisting in effect") configurable
+- make the responses ("Greylisting in effect") configurable  (2.1)
+
+- Email notification when hosts are added to whitelist/blacklist  (2.1)
+
+* Blacklist on excessive greylist retries, ie 50 in 1 minute ... etc. (2.1)
+- num triplets?
+- num attempts?
+
+- Spamtrap where the IP address get blacklisted for configurable time period per trap (2.1)
 
 - Web interface
 * BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
@@ -31,27 +38,13 @@ Immediate requirements:
 
 --------------
 
-* Blacklist on excessive greylist retries, ie 50 in 1 minute ... etc.
-- num triplets?
-- num attempts?
+Planned Features:
 
-* Email notify on whitelist/blacklist
-
-* Accounting module, limits & counters
-
-* Caching
-
-* Spamtrap where the IP address get blacklisted for configurable time
-period per trap
-
-* Sender blacklisting
- 
-* Sender Whitelisting
-
-* DNS name whitelisting???   (resolved address wildcard)
+* Caching (2.2)
 
 * IPv6
 
-* Per receipient email address whitelists & blacklists?
+- ability to disable tcp connection logs while keeping action=* logs (perhaps move the latter from info to notice?)
+
 
 
