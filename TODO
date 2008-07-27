@@ -32,6 +32,8 @@ Immediate requirements:
 
 - Spamtrap where the IP address get blacklisted for configurable time period per trap (2.1)
 
+- Allow configuration if postmaster@ bypasses tests (2.1) (#4)
+
 - Web interface
 * BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
 
