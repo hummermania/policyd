@@ -4,6 +4,7 @@ Installing Policyd v2.
 * Requirements for Policyd v2
 - Net::Server >= 0.96
 - Net::CIDR
+- Config::IniFiles
 
 
 
