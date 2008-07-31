@@ -44,6 +44,8 @@ Immediate requirements:
 
 Planned Features:
 
+* Milter support as a different Protocol
+
 * Caching (2.2)
 
 * IPv6
