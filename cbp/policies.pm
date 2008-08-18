@@ -143,7 +143,7 @@ sub getPolicy
 					# Grab group members
 					my $members = getGroupMembers($group);
 					if (ref $members ne "ARRAY") {
-						$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error '$members' while retriving group members for source group '$group'");
+						$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error '$members' while retrieving group members for source group '$group'");
 						next;
 					}
 					# Check if actually have any
@@ -222,13 +222,13 @@ sub getPolicy
 					# Grab group members
 					my $members = getGroupMembers($group);
 					if (ref $members ne "ARRAY") {
-						$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error '$members' while retriving group members for destination group '$group'");
+						$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error '$members' while retrieving group members for destination group '$group'");
 						next;
 					}
 
 					# Check if actually have any
 					if (@{$members} < 1) {
-						$server->log(LOG_WARN,"[POLICIES] $debugTxt: No group members for source group '$group'");
+						$server->log(LOG_WARN,"[POLICIES] $debugTxt: No group members for destination group '$group'");
 					}
 
 					# Check if we should negate
