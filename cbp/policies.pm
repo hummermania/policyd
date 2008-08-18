@@ -174,7 +174,7 @@ sub getPolicy
 				} elsif ($source =~ /^!?\$\S+$/) {
 					$res = saslUsernameMatches($saslUsername,$source);
 					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
-							"' source '$source' is sasl user specification, match = $res") if ($log);
+							"' source '$source' is SASL user specification, match = $res") if ($log);
 
 				# Match email addy
 				} elsif ($source =~ /^!?\S*@\S+$/) {
@@ -394,7 +394,12 @@ sub saslUsernameMatches
 	# Decipher template
 	my ($template_negate,$template_user) = ($template =~ /^(!?)?\$(\S+)$/);
 
-	if (lc($saslUsername) eq lc($template_user) || $template_user eq "*") {
+	# $- is a special case which allows matching against no SASL username
+	if ($template_user eq '-' && !$saslUsername) {
+		if (!$template_negate) {
+			$match = 1;
+		}
+	} elsif (lc($saslUsername) eq lc($template_user) || $template_user eq "*") {
 		if (!$template_negate) {
 			$match = 1;
 		}
