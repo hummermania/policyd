@@ -116,14 +116,23 @@ sub getPolicy
 
 	# Process the Members
 	foreach my $policyMember (@policyMembers) {
+		# Make debugging a bit easier
+		my $debugTxt = sprintf('ID:%s/Name:%s',$policyMember->{'ID'},$policyMember->{'Name'});
 
 		#
 		# Source Test
 		#
-		my $sourceMatch = 1;
-		if (defined($policyMember->{'Source'}) && lc($policyMember->{'Source'}) ne "any") {
+		my $sourceMatch = 0;
+
+		# No source or "any"
+		if (!defined($policyMember->{'Source'}) || lc($policyMember->{'Source'}) eq "any") {
+			$sourceMatch = 1;
+
+		} else {
 			# Split off sources
 			my @rawSources = split(/,/,$policyMember->{'Source'});
+			
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Raw sources '".join(',',@rawSources)."'") if ($log);
 
 			# Parse in group data
 			my @sources;
@@ -134,14 +143,12 @@ sub getPolicy
 					# Grab group members
 					my $members = getGroupMembers($group);
 					if (ref $members ne "ARRAY") {
-						$server->log(LOG_WARN,"[POLICIES] Error '$members' while retriving group members for source group '$group' in ".
-								"policy '".$policyMember->{'Name'}."', policy member ID '".$policyMember->{'ID'}."' ");
+						$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error '$members' while retriving group members for source group '$group'");
 						next;
 					}
 					# Check if actually have any
 					if (@{$members} < 1) {
-						$server->log(LOG_WARN,"[POLICIES] No group members for source group '$group' in policy '".$policyMember->{'Name'}.
-								"', policy member ID '".$policyMember->{'ID'}."' ");
+						$server->log(LOG_WARN,"[POLICIES] $debugTxt: No group members for source group '$group'");
 					}
 
 					# Check if we should negate
@@ -156,7 +163,7 @@ sub getPolicy
 				} else {
 					push(@sources,$source);
 				}
-				$server->log(LOG_DEBUG,"[POLICIES] Resolved sources '".join(',',@sources)."' from policy member ID '".$policyMember->{'ID'}."'") if ($log);
+				$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Resolved sources '".join(',',@sources)."'") if ($log);
 			}
 		
 
@@ -167,46 +174,44 @@ sub getPolicy
 				# Match IP
 				if ($source =~ /^!?\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})$/) {
 					$res = ipMatches($sourceIP,$source);
-					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
-							"' source '$source' is an IP/CIDR specification, match = $res") if ($log);
+					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$source' to a IP/CIDR specification, match = $res") if ($log);
 
 				# Match SASL user, must be above email addy to match SASL usernames in the same format as email addies
 				} elsif ($source =~ /^!?\$\S+$/) {
 					$res = saslUsernameMatches($saslUsername,$source);
-					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
-							"' source '$source' is SASL user specification, match = $res") if ($log);
+					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$source' to a SASL user specification, match = $res") if ($log);
 
 				# Match email addy
 				} elsif ($source =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailFrom,$source);
-					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
-							"' source '$source' is an email address specification, match = $res") if ($log);
+					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$source' to a email address specification, match = $res") if ($log);
 
 				} else {
-					$server->log(LOG_WARN,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
-							"' source '".$source."' is not a valid specification");
+					$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Source '".$source."' is not a valid specification");
 				}
 
 				# Check result
-				if (!$res) {
-					$sourceMatch = 0;
-					last;
-				}
-
+				$sourceMatch = 1 if ($res);
 			}
-
-			# Check if we passed the tests
-			next if (!$sourceMatch);
 		}
-
+		$server->log(LOG_INFO,"[POLICIES] $debugTxt: Source matching result: matched=$sourceMatch");
+		# Check if we passed the tests
+		next if (!$sourceMatch);
 
 		#
 		# Destination Test
 		#
-		my $destinationMatch = 1;
-		if (defined($policyMember->{'Destination'}) && lc($policyMember->{'Destination'}) ne "any") {
+		my $destinationMatch = 0;
+
+		# No destination or "any"
+		if (!defined($policyMember->{'Destination'}) || lc($policyMember->{'Destination'}) eq "any") {
+			$destinationMatch = 1;
+		
+		} else {
 			# Split off destinations
 			my @rawDestinations = split(/,/,$policyMember->{'Destination'});
+				
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Raw destinations '".join(',',@rawDestinations)."'") if ($log);
 
 			# Parse in group data
 			my @destinations;
@@ -217,20 +222,18 @@ sub getPolicy
 					# Grab group members
 					my $members = getGroupMembers($group);
 					if (ref $members ne "ARRAY") {
-						$server->log(LOG_WARN,"[POLICIES] Error '$members' while retriving group members for destination group '$group' in ".
-								"policy '".$policyMember->{'Name'}."', policy member ID '".$policyMember->{'ID'}."' ");
+						$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error '$members' while retriving group members for destination group '$group'");
 						next;
 					}
 
 					# Check if actually have any
 					if (@{$members} < 1) {
-						$server->log(LOG_WARN,"[POLICIES] No group members for source group '$group' in policy '".$policyMember->{'Name'}.
-								"', policy member ID '".$policyMember->{'ID'}."' ");
+						$server->log(LOG_WARN,"[POLICIES] $debugTxt: No group members for source group '$group'");
 					}
 
 					# Check if we should negate
 					foreach my $member (@{$members}) {
-						if (!($destination =~ /^!/) && $negate) {
+						if (!($member =~ /^!/) && $negate) {
 							$member = "!$member";
 						}
 						push(@destinations,$member);
@@ -241,8 +244,7 @@ sub getPolicy
 				} else {
 					push(@destinations,$destination);
 				}
-				$server->log(LOG_DEBUG,"[POLICIES] Resolved destinations '".join(',',@destinations)."' from policy member ID '".
-						$policyMember->{'ID'}."'") if ($log);
+				$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Resolved destinations '".join(',',@destinations)."'") if ($log);
 			}
 			
 			# Process destinations and see if we match
@@ -252,29 +254,29 @@ sub getPolicy
 				# Match email addy
 				if ($destination =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailTo,$destination);
-					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
-							"' destination '$destination' is an email address specification, match = $res") if ($log);
+					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved destination '$destination' to a email address specification, match = $res") if ($log);
 
 				} else {
-					$server->log(LOG_WARN,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
-								"' destination '".$destination."' is not a valid specification");
+					$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Destination '".$destination."' is not a valid specification");
 				}
 
-				# If we have a negative result, last and b0rk out
-				if (!$res) {
-					$destinationMatch = 0;
-					last;
-				}
-
+				# Check result
+				$destinationMatch = 1 if ($res);
 			}
-
-			# Check if we passed the tests
-			next if (!$destinationMatch);
 		}
+		$server->log(LOG_INFO,"[POLICIES] $debugTxt: Destination matching result: matched=$destinationMatch") if ($log);
+		# Check if we passed the tests
+		next if (!$destinationMatch);
 
 		push(@{$matchedPolicies{$policyMember->{'Priority'}}},$policyMember->{'PolicyID'});
 	}
 
+	# If we logging, display a list
+	if ($log) {
+		foreach my $prio (sort keys %matchedPolicies) {
+			$server->log(LOG_DEBUG,"[POLICIES] END RESULT: prio=$prio - policy_list=".join(',',@{$matchedPolicies{$prio}}));
+		}
+	}
 
 	return \%matchedPolicies;
 }
