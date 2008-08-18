@@ -53,6 +53,7 @@ sub configure {
 
 	# Set defaults
 	$cfg->{'config_file'} = "/etc/cluebringer.conf";
+	$cfg->{'track_sessions'} = 0;
 
 	$server->{'timeout'} = 120;
 	$server->{'background'} = "yes";
@@ -222,6 +223,13 @@ sub post_configure_hook {
 		}
 	}
 	$self->log(LOG_NOTICE,"[CBPOLICYD] Module load done.");
+	
+	# Report if session tracking is on
+	if ($self->{'config'}{'track_sessions'}) {
+		$self->log(LOG_NOTICE,"[CBPOLICYD] Session tracking is ENABLED.");
+	} else {
+		$self->log(LOG_NOTICE,"[CBPOLICYD] Session tracking is DISABLED.");
+	}
 
 	# If we logging to syslog, open...
 	if ($log_mail eq "maillog") {

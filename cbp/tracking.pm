@@ -107,80 +107,91 @@ sub getSessionDataFromRequest
 
 	# Check protocol
 	if ($request->{'_protocol_transport'} eq "Postfix") {
+		my $initSessionData = 0;
 
-		# Pull in session data
-		my $sth = DBSelect("
-			SELECT
-				Instance, QueueID,
-				Timestamp,
-				ClientAddress, ClientName, ClientReverseName,
-				Protocol,
-				EncryptionProtocol, EncryptionCipher, EncryptionKeySize,
-				SASLMethod, SASLSender, SASLUsername,
-				Helo,
-				Sender,
-				Size,
-				RecipientData
-			FROM
-				session_tracking
-			WHERE
-				Instance = ".DBQuote($request->{'instance'})."
-		");
-		if (!$sth) {
-			$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
-			return -1;
-		}
-		$sessionData = $sth->fetchrow_hashref();
-				
-		# If no state information, create everything we need
-		if (!$sessionData) {
+		# Check if we need to track the sessions...
+		if ($server->{'config'}->{'track_sessions'}) {
 
-			$server->log(LOG_DEBUG,"[TRACKING] No session tracking data exists for request: ".Dumper($request)) if ($log);
-
-			# Should only track sessions from RCPT
-			if ($request->{'protocol_state'} eq "RCPT") {
-				DBBegin();
-	
-				# Record tracking info
-				$sth = DBDo("
-					INSERT INTO session_tracking 
-						(
-							Instance,QueueID,
-							Timestamp,
-							ClientAddress, ClientName, ClientReverseName,
-							Protocol,
-							EncryptionProtocol,EncryptionCipher,EncryptionKeySize,
-							SASLMethod,SASLSender,SASLUsername,
-							Helo,
-							Sender,
-							Size
-						)
-					VALUES
-						(
-							".DBQuote($request->{'instance'}).", ".DBQuote($request->{'queue_id'}).",
-							".DBQuote($request->{'_timestamp'}).",
-							".DBQuote($request->{'client_address'}).", ".DBQuote($request->{'client_name'}).", 
-							".DBQuote($request->{'reverse_client_name'}).",
-							".DBQuote($request->{'protocol_name'}).",
-							".DBQuote($request->{'encryption_protocol'}).", ".DBQuote($request->{'encryption_cipher'}).", 
-							".DBQuote($request->{'encryption_keysize'}).",
-							".DBQuote($request->{'sasl_method'}).", ".DBQuote($request->{'sasl_sender'}).",
-									".DBQuote($request->{'sasl_username'}).",
-							".DBQuote($request->{'helo_name'}).",
-							".DBQuote($request->{'sender'}).",
-							".DBQuote($request->{'size'})."
-						)
-				");
-				if (!$sth) {
-					$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".cbp::dblayer::Error());
-					DBRollback();
-					return -1;
-				}
-				$server->log(LOG_DEBUG,"[TRACKING] Added session tracking information for: ".Dumper($request)) if ($log);
-	
-				DBCommit();
+			# Pull in session data
+			my $sth = DBSelect("
+				SELECT
+					Instance, QueueID,
+					Timestamp,
+					ClientAddress, ClientName, ClientReverseName,
+					Protocol,
+					EncryptionProtocol, EncryptionCipher, EncryptionKeySize,
+					SASLMethod, SASLSender, SASLUsername,
+					Helo,
+					Sender,
+					Size,
+					RecipientData
+				FROM
+					session_tracking
+				WHERE
+					Instance = ".DBQuote($request->{'instance'})."
+			");
+			if (!$sth) {
+				$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
+				return -1;
 			}
+			$sessionData = $sth->fetchrow_hashref();
+				
+			# If no state information, create everything we need
+			if (!$sessionData) {
+
+				$server->log(LOG_DEBUG,"[TRACKING] No session tracking data exists for request: ".Dumper($request)) if ($log);
+
+				# Should only track sessions from RCPT
+				if ($request->{'protocol_state'} eq "RCPT") {
+					DBBegin();
 	
+					# Record tracking info
+					$sth = DBDo("
+						INSERT INTO session_tracking 
+							(
+								Instance,QueueID,
+								Timestamp,
+								ClientAddress, ClientName, ClientReverseName,
+								Protocol,
+								EncryptionProtocol,EncryptionCipher,EncryptionKeySize,
+								SASLMethod,SASLSender,SASLUsername,
+								Helo,
+								Sender,
+								Size
+							)
+						VALUES
+							(
+								".DBQuote($request->{'instance'}).", ".DBQuote($request->{'queue_id'}).",
+								".DBQuote($request->{'_timestamp'}).",
+								".DBQuote($request->{'client_address'}).", ".DBQuote($request->{'client_name'}).", 
+								".DBQuote($request->{'reverse_client_name'}).",
+								".DBQuote($request->{'protocol_name'}).",
+								".DBQuote($request->{'encryption_protocol'}).", ".DBQuote($request->{'encryption_cipher'}).", 
+								".DBQuote($request->{'encryption_keysize'}).",
+								".DBQuote($request->{'sasl_method'}).", ".DBQuote($request->{'sasl_sender'}).",
+										".DBQuote($request->{'sasl_username'}).",
+								".DBQuote($request->{'helo_name'}).",
+								".DBQuote($request->{'sender'}).",
+								".DBQuote($request->{'size'})."
+							)
+					");
+					if (!$sth) {
+						$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".cbp::dblayer::Error());
+						DBRollback();
+						return -1;
+					}
+					$server->log(LOG_DEBUG,"[TRACKING] Added session tracking information for: ".Dumper($request)) if ($log);
+	
+					DBCommit();
+
+					# Initialize session data later on, we didn't get anything from the DB
+					$initSessionData = 1;
+				}
+			}
+		}
+
+		# Check if we must initialize the session data from the request
+		if ($initSessionData) {	
 			$sessionData->{'Instance'} = $request->{'instance'};
 			$sessionData->{'QueueID'} = $request->{'queue_id'};
 			$sessionData->{'ClientAddress'} = $request->{'client_address'};
@@ -198,7 +209,7 @@ sub getSessionDataFromRequest
 			$sessionData->{'Size'} = $request->{'size'};
 			$sessionData->{'RecipientData'} = "";
 		}
-	
+
 		# If we in rcpt, caclulate and save policy
 		if ($request->{'protocol_state'} eq 'RCPT') {
 			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'RCPT', resolving policy...") if ($log);
@@ -217,8 +228,10 @@ sub getSessionDataFromRequest
 		# If we in end of message, load policy from data
 		} elsif ($request->{'protocol_state'} eq 'END-OF-MESSAGE') {
 			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'END-OF-MESSAGE', decoding policy...") if ($log);
-			# Decode...
-			$sessionData->{'_Recipient_To_Policy'} = decodePolicyData($sessionData->{'RecipientData'});
+			# Decode... only if we actually have session data from the DB, which means initSessionData is 0
+			if (!$initSessionData) {
+				$sessionData->{'_Recipient_To_Policy'} = decodePolicyData($sessionData->{'RecipientData'});
+			}
 			
 			$server->log(LOG_DEBUG,"[TRACKING] Decoded into: ".Dumper($sessionData->{'_Recipient_To_Policy'})) if ($log);
 

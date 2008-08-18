@@ -61,6 +61,8 @@ sub init {
 	if ($config{'enable'} =~ /^\s*(y|yes|1|on)\s*$/i) {
 		$server->log(LOG_NOTICE,"  => Quotas: enabled");
 		$config{'enable'} = 1;
+		# Enable tracking, we need this to recipients for the message in END-OF-DATA
+		$server->{'config'}{'track_sessions'} = 1;
 	}
 }
 
