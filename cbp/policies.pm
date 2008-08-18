@@ -170,17 +170,17 @@ sub getPolicy
 					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
 							"' source '$source' is an IP/CIDR specification, match = $res") if ($log);
 
+				# Match SASL user, must be above email addy to match SASL usernames in the same format as email addies
+				} elsif ($source =~ /^!?\$\S+$/) {
+					$res = saslUsernameMatches($saslUsername,$source);
+					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
+							"' source '$source' is sasl user specification, match = $res") if ($log);
+
 				# Match email addy
 				} elsif ($source =~ /^!?\S*@\S+$/) {
 					$res = emailAddressMatches($emailFrom,$source);
 					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
 							"' source '$source' is an email address specification, match = $res") if ($log);
-
-				# Match sasl user
-				} elsif ($source =~ /^!?\$\S+$/) {
-					$res = saslUsernameMatches($saslUsername,$source);
-					$server->log(LOG_DEBUG,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
-							"' source '$source' is sasl user specification, match = $res") if ($log);
 
 				} else {
 					$server->log(LOG_WARN,"[POLICIES] Resolved policy '".$policyMember->{'Name'}.
