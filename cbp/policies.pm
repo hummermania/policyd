@@ -146,7 +146,7 @@ sub getPolicy
 
 					# Check if we should negate
 					foreach my $member (@{$members}) {
-						if (!($source =~ /^!/) && $negate) {
+						if (!($member =~ /^!/) && $negate) {
 							$member = "!$member";
 						}
 						push(@sources,$member);
