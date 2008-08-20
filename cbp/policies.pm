@@ -180,7 +180,7 @@ sub getPolicy
 			my $history = {};  # Used to track depth & loops
 			foreach my $item (@rawDestinations) {
 				# Process item
-				my $res = policyDestinationItemMatches($server,$debugTxt,{},$item,$emailFrom);
+				my $res = policyDestinationItemMatches($server,$debugTxt,{},$item,$emailTo);
 				# Check for error
 				if ($res < 0) {
 					$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error while processing destination item '$item', skipping...");
