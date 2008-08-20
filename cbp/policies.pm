@@ -117,7 +117,7 @@ sub getPolicy
 	# Process the Members
 	foreach my $policyMember (@policyMembers) {
 		# Make debugging a bit easier
-		my $debugTxt = sprintf('ID:%s/Name:%s',$policyMember->{'ID'},$policyMember->{'Name'});
+		my $debugTxt = sprintf('[ID:%s/Name:%s]',$policyMember->{'ID'},$policyMember->{'Name'});
 
 		#
 		# Source Test
@@ -126,6 +126,7 @@ sub getPolicy
 
 		# No source or "any"
 		if (!defined($policyMember->{'Source'}) || lc($policyMember->{'Source'}) eq "any") {
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Source not defined or 'any', explicit match: matched=1") if ($log);
 			$sourceMatch = 1;
 
 		} else {
@@ -165,6 +166,7 @@ sub getPolicy
 
 		# No destination or "any"
 		if (!defined($policyMember->{'Destination'}) || lc($policyMember->{'Destination'}) eq "any") {
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Destination not defined or 'any', explicit match: matched=1") if ($log);
 			$destinationMatch = 1;
 		
 		} else {
@@ -274,7 +276,7 @@ sub policySourceItemMatches
 		if (@{$groupMembers} > 0) {
 			foreach my $gmember (@{$groupMembers}) {
 				# Process this group member
-				my $res = policySourceItemMatches($server,"$debugTxt=>$gmember",$gmember,$sourceIP,$emailFrom,$saslUsername);
+				my $res = policySourceItemMatches($server,"$debugTxt=>(group:$item)",$gmember,$sourceIP,$emailFrom,$saslUsername);
 				# Check for match
 				if ($res) {
 					$match = 1;
@@ -347,7 +349,7 @@ sub policyDestinationItemMatches
 		if (@{$groupMembers} > 0) {
 			foreach my $gmember (@{$groupMembers}) {
 				# Process this group member
-				my $res = policyDestinationItemMatches($server,"$debugTxt=>$gmember",$gmember,$emailTo);
+				my $res = policyDestinationItemMatches($server,"$debugTxt=>(group:$item)",$gmember,$emailTo);
 				# Check for match
 				if ($res) {
 					$match = 1;
