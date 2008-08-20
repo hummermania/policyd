@@ -394,7 +394,7 @@ sub policyDestinationItemMatches
 		} else {
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: No group members for destination group '$item'");
 		}
-		$server->log(LOG_WARN,"[POLICIES] $debugTxt=>(group:$item): Destination group result: matched=$match");
+		$server->log(LOG_DEBUG,"[POLICIES] $debugTxt=>(group:$item): Destination group result: matched=$match");
 
 	# Normal member
 	} else {
