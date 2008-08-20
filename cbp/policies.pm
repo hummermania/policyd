@@ -133,12 +133,13 @@ sub getPolicy
 			# Split off sources
 			my @rawSources = split(/,/,$policyMember->{'Source'});
 			
-			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Raw sources '".join(',',@rawSources)."'") if ($log);
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Main policy sources '".join(',',@rawSources)."'") if ($log);
 
 			# Default to no match
+			my $history = {};  # Used to track depth & loops
 			foreach my $item (@rawSources) {
 				# Process item
-				my $res = policySourceItemMatches($server,$debugTxt,$item,$sourceIP,$emailFrom,$saslUsername);
+				my $res = policySourceItemMatches($server,$debugTxt,$history,$item,$sourceIP,$emailFrom,$saslUsername);
 				# Check for error
 				if ($res < 0) {
 					$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error while processing source item '$item', skipping...");
@@ -147,7 +148,7 @@ sub getPolicy
 				# Check for success
 				} elsif ($res == 1) {
 					$sourceMatch = 1;
-				# Check for failure
+				# Check for failure, 0 and anything else
 				} else {
 					$sourceMatch = 0;
 					last;
@@ -173,13 +174,13 @@ sub getPolicy
 			# Split off destinations
 			my @rawDestinations = split(/,/,$policyMember->{'Destination'});
 				
-			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Raw destinations '".join(',',@rawDestinations)."'") if ($log);
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Main policy destinations '".join(',',@rawDestinations)."'") if ($log);
 
 			# Parse in group data
-			my @destinations;
+			my $history = {};  # Used to track depth & loops
 			foreach my $item (@rawDestinations) {
 				# Process item
-				my $res = policyDestinationItemMatches($server,$debugTxt,$item,$emailFrom);
+				my $res = policyDestinationItemMatches($server,$debugTxt,{},$item,$emailFrom);
 				# Check for error
 				if ($res < 0) {
 					$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error while processing destination item '$item', skipping...");
@@ -188,7 +189,7 @@ sub getPolicy
 				# Check for success
 				} elsif ($res == 1) {
 					$destinationMatch = 1;
-				# Check for failure
+				# Check for failure, 0 and anything else
 				} else {
 					$destinationMatch = 0;
 					last;
@@ -205,7 +206,7 @@ sub getPolicy
 	# If we logging, display a list
 	if ($log) {
 		foreach my $prio (sort keys %matchedPolicies) {
-			$server->log(LOG_DEBUG,"[POLICIES] END RESULT: prio=$prio - policy_list=".join(',',@{$matchedPolicies{$prio}}));
+			$server->log(LOG_DEBUG,"[POLICIES] END RESULT: prio=$prio => policy ids: ".join(',',@{$matchedPolicies{$prio}}));
 		}
 	}
 
@@ -254,7 +255,7 @@ sub getGroupMembers
 # Check if this source item matches, this function automagically resolves groups aswell
 sub policySourceItemMatches
 {
-    my ($server,$debugTxt,$rawItem,$sourceIP,$emailFrom,$saslUsername) = @_;
+	my ($server,$debugTxt,$history,$rawItem,$sourceIP,$emailFrom,$saslUsername) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'policies'});
 
 
@@ -266,29 +267,45 @@ sub policySourceItemMatches
 	# Check if this is a group
 	my $match = 0;
 	if ($isGroup) {
+		# Make sure we're not looping
+		if (defined($history->{$item})) {
+			$server->log(LOG_WARN,"[POLICIES] $debugTxt: Source policy group '$item' appears to be used more than once, possible loop, aborting!");
+			return -1;
+		}
+		
+		# We going deeper, record the depth
+		$history->{$item} = keys(%{$history});
+		# Check if we not tooo deep
+		if ($history->{$item} > 5) {
+			$server->log(LOG_WARN,"[POLICIES] $debugTxt: This source policy is recursing too deep, aborting!");
+			return -1;
+		}
+
 		# Get group members
 		my $groupMembers = getGroupMembers($item);
 		if (ref $groupMembers ne "ARRAY") {
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error '$groupMembers' while retrieving group members for source group '$item'");
 			return -1;
 		}
+		$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Group '$item' has ".@{$groupMembers}." source(s) => ".join(',',@{$groupMembers})) if ($log);
 		# Check if actually have any
 		if (@{$groupMembers} > 0) {
 			foreach my $gmember (@{$groupMembers}) {
 				# Process this group member
-				my $res = policySourceItemMatches($server,"$debugTxt=>(group:$item)",$gmember,$sourceIP,$emailFrom,$saslUsername);
+				my $res = policySourceItemMatches($server,"$debugTxt=>(group:$item)",$history,$gmember,$sourceIP,$emailFrom,$saslUsername);
+				# Check for hard error
+				if ($res < 0) {
+					return $res;
 				# Check for match
-				if ($res) {
+				} elsif ($res) {
 					$match = 1;
 					last;
-				# Check for hard error
-				} elsif ($res < 0) {
-					return $res;
 				}
 			}
 		} else {
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: No group members for source group '$item'");
 		}
+		$server->log(LOG_DEBUG,"[POLICIES] $debugTxt=>(group:$item): Source group result: matched=$match") if ($log);
 
 	# Normal member
 	} else {
@@ -327,7 +344,7 @@ sub policySourceItemMatches
 # Check if this destination item matches, this function automagically resolves groups aswell
 sub policyDestinationItemMatches
 {
-    my ($server,$debugTxt,$rawItem,$emailTo) = @_;
+	my ($server,$debugTxt,$history,$rawItem,$emailTo) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'policies'});
 
 
@@ -339,29 +356,45 @@ sub policyDestinationItemMatches
 	# Check if this is a group
 	my $match = 0;
 	if ($isGroup) {
+		# Make sure we're not looping
+		if (defined($history->{$item})) {
+			$server->log(LOG_WARN,"[POLICIES] $debugTxt: Destination policy group '$item' appears to be used more than once, possible loop, aborting!");
+			return -1;
+		}
+		
+		# We going deeper, record the depth
+		$history->{$item} = keys(%{$history});
+		# Check if we not tooo deep
+		if ($history->{$item} > 5) {
+			$server->log(LOG_WARN,"[POLICIES] $debugTxt: This destination policy is recursing too deep, aborting!");
+			return -1;
+		}
+
 		# Get group members
 		my $groupMembers = getGroupMembers($item);
 		if (ref $groupMembers ne "ARRAY") {
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error '$groupMembers' while retrieving group members for destination group '$item'");
 			return -1;
 		}
+		$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Group '$item' has ".@{$groupMembers}." destination(s) => ".join(',',@{$groupMembers})) if ($log);
 		# Check if actually have any
 		if (@{$groupMembers} > 0) {
 			foreach my $gmember (@{$groupMembers}) {
 				# Process this group member
-				my $res = policyDestinationItemMatches($server,"$debugTxt=>(group:$item)",$gmember,$emailTo);
+				my $res = policyDestinationItemMatches($server,"$debugTxt=>(group:$item)",$history,$gmember,$emailTo);
+				# Check for hard error
+				if ($res < 0) {
+					return $res;
 				# Check for match
-				if ($res) {
+				} elsif ($res) {
 					$match = 1;
 					last;
-				# Check for hard error
-				} elsif ($res < 0) {
-					return $res;
 				}
 			}
 		} else {
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: No group members for destination group '$item'");
 		}
+		$server->log(LOG_WARN,"[POLICIES] $debugTxt=>(group:$item): Destination group result: matched=$match");
 
 	# Normal member
 	} else {
