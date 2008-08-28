@@ -245,6 +245,7 @@ sub getSessionDataFromRequest
 	# Check for HTTP protocol transport
 	} elsif ($request->{'_protocol_transport'} eq "HTTP") {
 		$sessionData->{'ClientAddress'} = $request->{'client_address'};
+		$sessionData->{'ClientReverseName'} = $request->{'client_reverse_name'} if (defined($request->{'client_reverse_name'}));
 		$sessionData->{'Helo'} = $request->{'helo_name'} if (defined($request->{'helo_name'}));
 		$sessionData->{'Sender'} = $request->{'sender'};
 
