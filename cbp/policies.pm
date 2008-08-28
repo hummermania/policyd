@@ -36,6 +36,8 @@ use cbp::logging;
 use cbp::dblayer;
 use cbp::system;
 
+use Data::Dumper;
+
 
 # Database handle
 my $dbh = undef;
@@ -78,6 +80,8 @@ sub getPolicy
 	my ($server,$sessionData) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'policies'});
 
+
+	$server->log(LOG_DEBUG,"[POLICIES] Going to resolve session data into policy: ".Dumper($sessionData)) if ($log);
 
 	# Start with blank policy list
 	my %matchedPolicies = ();
@@ -326,6 +330,11 @@ sub policySourceItemMatches
 			$res = emailAddressMatches($sessionData->{'Sender'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a email address specification, match = $res") if ($log);
 
+		# Match domain name (for reverse dns)
+		} elsif ($item =~ /^(?:[a-z0-9\-_\*]+\.)+[a-z0-9]+$/i) {
+			$res = reverseDNSMatches($sessionData->{'ClientReverseName'},$item);
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a reverse dns specification, match = $res") if ($log);
+
 		# Not valid
 		} else {
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Source '".$item."' is not a valid specification");
@@ -402,7 +411,7 @@ sub policyDestinationItemMatches
 
 		# Match email addy
 		if ($item =~ /^!?\S*@\S+$/) {
-			$res = emailAddressMatches($sessionData->{'Receipient'},$item);
+			$res = emailAddressMatches($sessionData->{'Recipient'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved destination '$item' to a email address specification, match = $res") if ($log);
 
 		} else {
@@ -492,6 +501,40 @@ sub saslUsernameMatches
 		$match = 1;
 	}
 
+	return $match;
+}
+
+
+# Check if first arg lies within the scope of second arg reverse dns specification
+sub reverseDNSMatches
+{
+	my ($reverseDNSMatches,$template) = @_;
+
+	my $match = 0;
+	my $partial = 0;
+
+	# Check if we have a . at the beginning of the line to match partials
+	if ($template =~ /^\./) {
+		$partial = 1;
+	}
+
+	# Replace all .'s with \.'s
+	$template =~ s/\./\\./g;
+	# Change *'s into a proper regex expression
+	$template =~ s/\*/[a-z0-9\-_\.]*/g;
+
+	# Check for partial match
+	if ($partial) {
+		if ($reverseDNSMatches =~ /$template$/i) {
+			$match = 1;
+		}
+	# Check for exact match
+	} else {
+		if ($reverseDNSMatches =~ /^$template$/i) {
+			$match = 1;
+		}
+	}
+	
 	return $match;
 }
 
