@@ -125,6 +125,7 @@ if ($_POST['frmaction'] == "change") {
 							<option value="Recipient:user@domain">Recipient:user@domain</option>
 							<option value="Recipient:@domain">Recipient:@domain</option>
 							<option value="Recipient:user@">Recipient:user@</option>
+							<option value="SASLUsername">SASLUsername:username</option>
 							<option value="Policy">Policy</option>
 						</select>
 						<input type="text" id="quota_trackextra" name="quota_trackextra" size="18" value="n/a" disabled="disabled" />
