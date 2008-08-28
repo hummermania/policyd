@@ -75,7 +75,7 @@ sub Error
 # 	Hash - indexed by policy priority, the value is an array of policy ID's
 sub getPolicy
 {
-    my ($server,$sourceIP,$emailFrom,$emailTo,$saslUsername) = @_;
+	my ($server,$sessionData) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'policies'});
 
 
@@ -139,7 +139,7 @@ sub getPolicy
 			my $history = {};  # Used to track depth & loops
 			foreach my $item (@rawSources) {
 				# Process item
-				my $res = policySourceItemMatches($server,$debugTxt,$history,$item,$sourceIP,$emailFrom,$saslUsername);
+				my $res = policySourceItemMatches($server,$debugTxt,$history,$item,$sessionData);
 				# Check for error
 				if ($res < 0) {
 					$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error while processing source item '$item', skipping...");
@@ -180,7 +180,7 @@ sub getPolicy
 			my $history = {};  # Used to track depth & loops
 			foreach my $item (@rawDestinations) {
 				# Process item
-				my $res = policyDestinationItemMatches($server,$debugTxt,{},$item,$emailTo);
+				my $res = policyDestinationItemMatches($server,$debugTxt,$history,$item,$sessionData);
 				# Check for error
 				if ($res < 0) {
 					$server->log(LOG_WARN,"[POLICIES] $debugTxt: Error while processing destination item '$item', skipping...");
@@ -255,7 +255,7 @@ sub getGroupMembers
 # Check if this source item matches, this function automagically resolves groups aswell
 sub policySourceItemMatches
 {
-	my ($server,$debugTxt,$history,$rawItem,$sourceIP,$emailFrom,$saslUsername) = @_;
+	my ($server,$debugTxt,$history,$rawItem,$sessionData) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'policies'});
 
 
@@ -292,7 +292,7 @@ sub policySourceItemMatches
 		if (@{$groupMembers} > 0) {
 			foreach my $gmember (@{$groupMembers}) {
 				# Process this group member
-				my $res = policySourceItemMatches($server,"$debugTxt=>(group:$item)",$history,$gmember,$sourceIP,$emailFrom,$saslUsername);
+				my $res = policySourceItemMatches($server,"$debugTxt=>(group:$item)",$history,$gmember,$sessionData);
 				# Check for hard error
 				if ($res < 0) {
 					return $res;
@@ -313,17 +313,17 @@ sub policySourceItemMatches
 
 		# Match IP
 		if ($item =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})$/) {
-			$res = ipMatches($sourceIP,$item);
+			$res = ipMatches($sessionData->{'ClientAddress'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a IP/CIDR specification, match = $res") if ($log);
 
 		# Match SASL user, must be above email addy to match SASL usernames in the same format as email addies
 		} elsif ($item =~ /^\$\S+$/) {
-			$res = saslUsernameMatches($saslUsername,$item);
+			$res = saslUsernameMatches($sessionData->{'SASLUsername'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a SASL user specification, match = $res") if ($log);
 
 		# Match email addy
 		} elsif ($item =~ /^\S*@\S+$/) {
-			$res = emailAddressMatches($emailFrom,$item);
+			$res = emailAddressMatches($sessionData->{'Sender'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a email address specification, match = $res") if ($log);
 
 		# Not valid
@@ -344,7 +344,7 @@ sub policySourceItemMatches
 # Check if this destination item matches, this function automagically resolves groups aswell
 sub policyDestinationItemMatches
 {
-	my ($server,$debugTxt,$history,$rawItem,$emailTo) = @_;
+	my ($server,$debugTxt,$history,$rawItem,$sessionData) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'policies'});
 
 
@@ -381,7 +381,7 @@ sub policyDestinationItemMatches
 		if (@{$groupMembers} > 0) {
 			foreach my $gmember (@{$groupMembers}) {
 				# Process this group member
-				my $res = policyDestinationItemMatches($server,"$debugTxt=>(group:$item)",$history,$gmember,$emailTo);
+				my $res = policyDestinationItemMatches($server,"$debugTxt=>(group:$item)",$history,$gmember,$sessionData);
 				# Check for hard error
 				if ($res < 0) {
 					return $res;
@@ -402,7 +402,7 @@ sub policyDestinationItemMatches
 
 		# Match email addy
 		if ($item =~ /^!?\S*@\S+$/) {
-			$res = emailAddressMatches($emailTo,$item);
+			$res = emailAddressMatches($sessionData->{'Receipient'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved destination '$item' to a email address specification, match = $res") if ($log);
 
 		} else {

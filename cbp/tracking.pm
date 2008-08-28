@@ -214,8 +214,10 @@ sub getSessionDataFromRequest
 		if ($request->{'protocol_state'} eq 'RCPT') {
 			$server->log(LOG_DEBUG,"[TRACKING] Protocol state is 'RCPT', resolving policy...") if ($log);
 
+			$sessionData->{'Recipient'} = $request->{'recipient'};
+
 			# Get policy
-			my $policy = getPolicy($server,$request->{'client_address'},$request->{'sender'},$request->{'recipient'},$request->{'sasl_username'});
+			my $policy = getPolicy($server,$sessionData);
 			if (ref $policy ne "HASH") {
 				return -1;
 			}
@@ -223,7 +225,6 @@ sub getSessionDataFromRequest
 			$server->log(LOG_DEBUG,"[TRACKING] Policy resolved into: ".Dumper($policy)) if ($log);
 	
 			$sessionData->{'Policy'} = $policy;
-			$sessionData->{'Recipient'} = $request->{'recipient'};
 	
 		# If we in end of message, load policy from data
 		} elsif ($request->{'protocol_state'} eq 'END-OF-MESSAGE') {
