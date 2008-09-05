@@ -304,7 +304,7 @@ sub child_finish_hook {
 	my $self = shift;
 	my $server = $self->{'server'};
 
-	$self->SUPER::child_init_hook();
+	$self->SUPER::child_finish_hook();
 	
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Shutting down caching engine ($$)");
 	cbp::cache::disconnect($self);
