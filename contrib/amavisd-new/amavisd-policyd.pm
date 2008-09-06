@@ -717,6 +717,11 @@ sub getAmavisRule
 	my $row = $sth->fetchrow_hashref();
 	DBFreeRes($sth);
 
+	# Database compatibility, quick and dirty
+	if ($row) {
+		$row->{'ID'} = $row->{'id'};
+	}
+
 	return $row;
 }
 

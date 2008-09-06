@@ -113,31 +113,31 @@ sub check {
 			}
 			while (my $row = $sth->fetchrow_hashref()) {
 				# If defined, its to override
-				if (defined($row->{'UseBlacklist'})) {
-					$policy{'UseBlacklist'} = $row->{'UseBlacklist'};
+				if (defined($row->{'useblacklist'})) {
+					$policy{'UseBlacklist'} = $row->{'useblacklist'};
 				}
-				if (defined($row->{'BlacklistPeriod'})) {
-					$policy{'BlacklistPeriod'} = $row->{'BlacklistPeriod'};
-				}
-	
-				if (defined($row->{'UseHRP'})) {
-					$policy{'UseHRP'} = $row->{'UseHRP'};
-				}
-				if (defined($row->{'HRPPeriod'})) {
-					$policy{'HRPPeriod'} = $row->{'HRPPeriod'};
-				}
-				if (defined($row->{'HRPLimit'})) {
-					$policy{'HRPLimit'} = $row->{'HRPLimit'};
+				if (defined($row->{'blacklistperiod'})) {
+					$policy{'BlacklistPeriod'} = $row->{'blacklistperiod'};
 				}
 	
-				if (defined($row->{'RejectInvalid'})) {
-					$policy{'RejectInvalid'} = $row->{'RejectInvalid'};
+				if (defined($row->{'usehrp'})) {
+					$policy{'UseHRP'} = $row->{'usehrp'};
 				}
-				if (defined($row->{'RejectIP'})) {
-					$policy{'RejectIP'} = $row->{'RejectIP'};
+				if (defined($row->{'hrpperiod'})) {
+					$policy{'HRPPeriod'} = $row->{'hrpperiod'};
 				}
-				if (defined($row->{'RejectUnresolvable'})) {
-					$policy{'RejectUnresolvable'} = $row->{'RejectUnresolvable'};
+				if (defined($row->{'hrplimit'})) {
+					$policy{'HRPLimit'} = $row->{'hrplimit'};
+				}
+	
+				if (defined($row->{'rejectinvalid'})) {
+					$policy{'RejectInvalid'} = $row->{'rejectinvalid'};
+				}
+				if (defined($row->{'rejectip'})) {
+					$policy{'RejectIP'} = $row->{'rejectip'};
+				}
+				if (defined($row->{'rejectunresolvable'})) {
+					$policy{'RejectUnresolvable'} = $row->{'rejectunresolvable'};
 				}
 			} # while (my $row = $sth->fetchrow_hashref())
 		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
@@ -204,7 +204,7 @@ sub check {
 	# Loop with whitelist and calculate
 	while (my $row = $sth->fetchrow_hashref()) {
 		# Check format is SenderIP
-		if ((my $address = $row->{'Source'}) =~ s/^SenderIP://i) {
+		if ((my $address = $row->{'source'}) =~ s/^SenderIP://i) {
 
 			# Parse CIDR into its various peices
 			my $parsedIP = parseCIDR($address);
@@ -228,7 +228,7 @@ sub check {
 			}
 
 		} else {
-			$server->log(LOG_ERR,"[CHECKHELO] Whitelist entry '".$row->{'Source'}."' is invalid.");
+			$server->log(LOG_ERR,"[CHECKHELO] Whitelist entry '".$row->{'source'}."' is invalid.");
 			DBFreeRes($sth);
 			return $server->protocol_response(PROTO_DATA_ERROR);
 		}
@@ -368,7 +368,7 @@ sub check {
 		my $row = $sth->fetchrow_hashref();
 
 		# If count > 0 , then its blacklisted
-		if ($row->{'Count'} > 0) {
+		if ($row->{'count'} > 0) {
 			$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=blacklisted",
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
@@ -421,7 +421,7 @@ sub check {
 
 
 						# If count > $limit , reject
-						if ($row->{'Count'} > $policy{'HRPLimit'}) {
+						if ($row->{'count'} > $policy{'HRPLimit'}) {
 							$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=hrp_blacklisted",
 									$sessionData->{'ClientAddress'},
 									$sessionData->{'Helo'},
@@ -486,10 +486,10 @@ sub cleanup
 	my $row = $sth->fetchrow_hashref();
 
 	# Check we have results
-	return if (!defined($row->{'BlacklistPeriod'}) || !defined($row->{'HRPPeriod'}));
+	return if (!defined($row->{'blacklistperiod'}) || !defined($row->{'hrpperiod'}));
 
 	# Work out which one is largest
-	my $period = $row->{'BlacklistPeriod'} > $row->{'HRPPeriod'} ? $row->{'BlacklistPeriod'} : $row->{'HRPPeriod'};
+	my $period = $row->{'blacklistperiod'} > $row->{'hrpperiod'} ? $row->{'blacklistperiod'} : $row->{'hrpperiod'};
 
 	# Bork if we didn't find anything of interest
 	return if (!($period > 0));

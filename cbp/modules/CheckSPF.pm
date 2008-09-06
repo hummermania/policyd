@@ -111,16 +111,16 @@ sub check {
 			}
 			while (my $row = $sth->fetchrow_hashref()) {
 				# If defined, its to override
-				if (defined($row->{'UseSPF'})) {
-					$policy{'UseSPF'} = $row->{'UseSPF'};
+				if (defined($row->{'usespf'})) {
+					$policy{'UseSPF'} = $row->{'usespf'};
 				}
 				# If defined, its to override
-				if (defined($row->{'RejectFailedSPF'})) {
-					$policy{'RejectFailedSPF'} = $row->{'RejectFailedSPF'};
+				if (defined($row->{'rejectfailedspf'})) {
+					$policy{'RejectFailedSPF'} = $row->{'rejectfailedspf'};
 				}
 				# If defined, its to override
-				if (defined($row->{'AddSPFHeader'})) {
-					$policy{'AddSPFHeader'} = $row->{'AddSPFHeader'};
+				if (defined($row->{'addspfheader'})) {
+					$policy{'AddSPFHeader'} = $row->{'addspfheader'};
 				}
 			} # while (my $row = $sth->fetchrow_hashref())
 		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})

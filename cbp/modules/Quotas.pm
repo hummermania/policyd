@@ -580,7 +580,7 @@ sub getQuotas
 		return -1;
 	}
 	while (my $quota = $sth->fetchrow_hashref()) {
-		push(@res,$quota);
+		push(@res,hashifyLCtoMC($quota,qw(ID Period Track Verdict Data)));
 	}
 
 	return \@res;
@@ -684,10 +684,10 @@ sub getTrackingInfo
 		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_tracking: ".cbp::dblayer::Error());
 		return -1;
 	}
-	my $qtrack = $sth->fetchrow_hashref(); 
+	my $row = $sth->fetchrow_hashref(); 
 	DBFreeRes($sth);
 
-	return $qtrack;
+	return hashifyLCtoMC($row,qw(QuotasLimitsID TrackKey Counter LastUpdate));
 }
 
 
@@ -713,7 +713,7 @@ sub getLimits
 	}
 	my $list;
 	while (my $qtrack = $sth->fetchrow_hashref()) {
-		push(@{$list},$qtrack);
+		push(@{$list},hashifyLCtoMC($qtrack,qw(ID Type CounterLimit)));
 	}
 
 	return $list;

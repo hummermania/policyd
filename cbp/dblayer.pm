@@ -39,6 +39,8 @@ our (@ISA,@EXPORT);
 	DBFreeRes
 	
 	DBSelectNumResults
+
+	hashifyLCtoMC
 );
 
 
@@ -243,6 +245,27 @@ sub DBSelectNumResults
 
 	return $num_results;
 }
+
+
+# Convert a lower case array to mixed case
+sub hashifyLCtoMC
+{
+	my ($record,@entries) = @_;
+
+
+	# If we undefined, return
+	return undef if (!defined($record));
+
+	my $res;
+
+	# Loop with each item, assign from lowecase database record to our result
+	foreach my $entry (@entries) {
+		$res->{$entry} = $record->{lc($entry)};
+	}
+
+	return $res;
+}
+
 
 
 

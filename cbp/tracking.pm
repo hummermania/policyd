@@ -43,10 +43,12 @@ use Data::Dumper;
 # Database handle
 my $dbh = undef;
 
+
 # Get session data from mail_id
 sub getSessionDataFromQueueID
 {
 	my ($server,$queueID,$clientAddress,$sender) = @_;
+
 
 	$server->log(LOG_DEBUG,"[TRACKING] Retreiving session data for triplet: $queueID/$clientAddress/$sender");
 	
@@ -74,12 +76,16 @@ sub getSessionDataFromQueueID
 		$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
 		return -1;
 	}
-	my $sessionData = $sth->fetchrow_hashref();
-	
-	if (!$sessionData) {
+
+	# Fetch row
+	my $row = $sth->fetchrow_hashref();
+	if (!$row) {
 		$server->log(LOG_ERR,"[TRACKING] No session data");
 		return -1;
 	}
+
+	# Cleanup database record
+	my $sessionData = hashifyDBSessionData($row);
 
 	# Pull in decoded policy
 	$sessionData->{'_Recipient_To_Policy'} = decodePolicyData($sessionData->{'RecipientData'});
@@ -134,10 +140,11 @@ sub getSessionDataFromRequest
 				$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
 				return -1;
 			}
-			$sessionData = $sth->fetchrow_hashref();
+			
+			my $row = $sth->fetchrow_hashref();
 				
 			# If no state information, create everything we need
-			if (!$sessionData) {
+			if (!($sessionData = hashifyDBSessionData($row))) {
 
 				$server->log(LOG_DEBUG,"[TRACKING] No session tracking data exists for request: ".Dumper($request)) if ($log);
 
@@ -337,6 +344,28 @@ sub updateSessionData
 
 	return 0;
 }
+
+
+# Build a hash without all LC names
+sub hashifyDBSessionData
+{
+	my $record = shift;
+
+
+	return hashifyLCtoMC($record, qw(
+			Instance QueueID
+			Timestamp
+			ClientAddress ClientName ClientReverseName
+			Protocol
+			EncryptionProtocol EncryptionCipher EncryptionKeySize
+			SASLMethod SASLSender SASLUsername
+			Helo
+			Sender
+			Size
+			RecipientData
+	));
+}
+
 
 1;
 # vim: ts=4
