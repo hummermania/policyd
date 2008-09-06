@@ -480,6 +480,24 @@ sub check {
 }
 
 
+# Get key from spec and SASL username
+sub getSASLUsernameKey
+{
+	my ($spec,$username) = @_;
+
+	my $key;
+
+	# Very basic, for blank SASL username, just use '-'
+	if (!defined($username)) {
+		$key = "-";
+	} else {
+		$key = $username;
+	}
+
+	return $key;
+}
+
+
 # Get key from spec and email addy
 sub getEmailKey
 {
@@ -615,7 +633,14 @@ sub getKey
 
 	# Check TrackSASLUsername
 	} elsif ($method eq "saslusername") {
-		$res = "SASLUsername:".$sessionData->{'SASLUsername'};
+		my $key = getSASLUsernameKey($spec,$sessionData->{'SASLUsername'});
+	
+		# Check for no key
+		if (defined($key)) {
+			$res = "SASLUsername:$key";
+		} else {
+			$server->log(LOG_WARN,"[QUOTAS] Unknown key specification in TrackSASLUsername");
+		}
 
 	# Check TrackRecipient
 	} elsif ($method eq "recipient") {
