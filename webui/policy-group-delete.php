@@ -69,7 +69,7 @@ if ($_POST['frmaction'] == "delete") {
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Policy Group Delete Results</p>
-<?
+<?php
 	if (isset($_POST['policy_group_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	

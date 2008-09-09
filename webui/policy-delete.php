@@ -69,7 +69,7 @@ if ($_POST['frmaction'] == "delete") {
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Policy Delete Results</p>
-<?
+<?php
 	if (isset($_POST['policy_id'])) {
 		
 

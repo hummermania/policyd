@@ -115,7 +115,7 @@ if ($_POST['frmaction'] == "change") {
 } elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Policy Update Results</p>
-<?
+<?php
 	# Check a quota was selected
 	if (isset($_POST['quota_limit_id'])) {
 		

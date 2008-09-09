@@ -69,7 +69,7 @@ if ($_POST['frmaction'] == "delete") {
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Postfix Alias Delete Results</p>
-<?
+<?php
 	if (isset($_POST['postfix_alias_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	

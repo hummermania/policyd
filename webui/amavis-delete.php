@@ -69,7 +69,7 @@ if ($_POST['frmaction'] == "delete") {
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Amavis Rule Delete Results</p>
-<?
+<?php
 	if (isset($_POST['amavis_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	

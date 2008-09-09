@@ -124,7 +124,7 @@ if ($_POST['frmaction'] == "change") {
 } elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">HELO/EHLO Whitelisting Update Results</p>
-<?
+<?php
 	$updates = array();
 
 	if (!empty($_POST['whitelist_type'])) {

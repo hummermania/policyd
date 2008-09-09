@@ -102,7 +102,7 @@ if ($_POST['frmaction'] == "change") {
 } elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Distribution Group Member Update Results</p>
-<?
+<?php
 	$updates = array();
 
 	if (!empty($_POST['postfix_group_member_goto'])) {

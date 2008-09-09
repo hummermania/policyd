@@ -161,7 +161,7 @@ if ($_POST['frmaction'] == "change") {
 } elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Access Control Update Results</p>
-<?
+<?php
 	$updates = array();
 
 	if (!empty($_POST['accesscontrol_policyid'])) {

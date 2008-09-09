@@ -71,7 +71,7 @@ if ($_POST['frmaction'] == "delete") {
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Quota Limit Delete Results</p>
-<?
+<?php
 	if (isset($_POST['quota_limit_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	

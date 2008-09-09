@@ -116,7 +116,7 @@ if ($_POST['frmaction'] == "change") {
 } elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Policy Update Results</p>
-<?
+<?php
 	# Check a policy was selected
 	if (isset($_POST['policy_member_id'])) {
 		

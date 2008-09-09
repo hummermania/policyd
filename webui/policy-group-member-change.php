@@ -111,7 +111,7 @@ if ($_POST['frmaction'] == "change") {
 } elseif ($_POST['frmaction'] == "change2") {
 ?>
 	<p class="pageheader">Policy Group Member Update Results</p>
-<?
+<?php
 	$updates = array();
 
 	if (!empty($_POST['policy_group_member_member'])) {

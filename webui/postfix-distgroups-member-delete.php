@@ -70,7 +70,7 @@ if ($_POST['frmaction'] == "delete") {
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Distribution Group Member Delete Results</p>
-<?
+<?php
 	if (isset($_POST['postfix_group_member_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
