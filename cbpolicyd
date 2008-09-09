@@ -197,6 +197,8 @@ sub post_configure_hook {
 	my $self = shift;
 	my $log_mail = $self->{'config'}{'log_mail'};
 
+	
+	$self->log(LOG_NOTICE,"[CBPOLICYD] Policyd v2 / Cluebringer - v".VERSION);
 
 	$self->log(LOG_NOTICE,"[CBPOLICYD] Initializing system modules.");
 	# Init config
