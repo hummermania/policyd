@@ -195,6 +195,9 @@ sub getSessionDataFromRequest
 					$initSessionData = 1;
 				}
 			}
+		# If we have no interest in tracking sessions, we must initialize the session data
+		} else {
+			$initSessionData = 1;
 		}
 
 		# Check if we must initialize the session data from the request
