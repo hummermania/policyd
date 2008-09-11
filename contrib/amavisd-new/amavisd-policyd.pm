@@ -138,7 +138,7 @@ sub process_policy {
 	# Get message ID
 	my $lastReceived = $msginfo->orig_header_fields->{'received'};
 	if (!($lastReceived =~ /with E?SMTP id ([0-9A-Z]+)/)) {
-		do_log(-1,"policyd/process_policy: Failed to parse in queue id from received line");
+		do_log(-1,"policyd/process_policy: Failed to parse in queue id from received line '$lastReceived'");
 		return $pbn;
 	}
 	my $queueID = $1;
