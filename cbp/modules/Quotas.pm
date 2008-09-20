@@ -711,7 +711,7 @@ sub getLimits
 		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_limits: ".cbp::dblayer::Error());
 		return -1;
 	}
-	my $list;
+	my $list = [];
 	while (my $qtrack = $sth->fetchrow_hashref()) {
 		push(@{$list},hashifyLCtoMC($qtrack,qw(ID Type CounterLimit)));
 	}
