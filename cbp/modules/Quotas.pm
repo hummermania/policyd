@@ -80,10 +80,13 @@ sub check {
 	# We only valid in the RCPT and EOM state
 	return CBP_SKIP if (!defined($sessionData->{'ProtocolState'}));
 
-	return CBP_SKIP if ($sessionData->{'ProtocolState'} ne "RCPT" && $sessionData->{'ProtocolState'} ne "END-OF-MESSAGE");
-
-	# Check if we have any policies matched, if not just pass
-	return CBP_SKIP if (!defined($sessionData->{'Policy'}));
+	# Check valid state & that we have our policy data
+	return CBP_SKIP if (!
+				(
+					($sessionData->{'ProtocolState'} eq "RCPT" && defined($sessionData->{'Policy'})) ||
+					($sessionData->{'ProtocolState'} eq "END-OF-MESSAGE" && defined($sessionData->{'_Recipient_To_Policy'}))
+				)
+			);
 
 	# Our verdict and data
 	my ($verdict,$verdict_data);
@@ -273,7 +276,7 @@ sub check {
 							)
 					");
 					if (!$sth) {
-						$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
+						$server->log(LOG_ERR,"[QUOTAS] Failed to insert quota_tracking item: ".cbp::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 					
@@ -356,8 +359,6 @@ sub check {
 			return CBP_SKIP;
 		}
 
-		my @keys;
-
 		# Loop with email addies
 		foreach my $emailAddy (keys %{$sessionData->{'_Recipient_To_Policy'}}) {
 
@@ -406,7 +407,7 @@ sub check {
 							# Check if we're working with cumulative sizes
 							if (lc($limit->{'Type'}) eq "messagecumulativesize") {
 								# Bump up counter
-								$qtrack->{'Counter'} += $sessionData->{'size'};
+								$qtrack->{'Counter'} += $sessionData->{'Size'};
 								
 								# Update database
 								my $sth = DBDo("
