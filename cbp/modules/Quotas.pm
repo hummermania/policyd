@@ -344,7 +344,7 @@ sub check {
 					$exceededQtrack->{'CounterLimit'},
 					$pused);
 
-			$verdict = $exceededQtrack->{'Verdict'},
+			$verdict = $exceededQtrack->{'Verdict'};
 			$verdict_data = (defined($exceededQtrack->{'VerdictData'}) && $exceededQtrack->{'VerdictData'} ne "") 
 					? $exceededQtrack->{'VerdictData'} : $hasExceeded;
 		}
