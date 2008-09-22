@@ -87,6 +87,11 @@ function printHeader($params = NULL)
 		    					<li><a href="quotas-main.php">Configure</a></li>
 							</ul>
 					
+							<p>Accounting</p>
+							<ul>
+		    					<li><a href="accounting-main.php">Configure</a></li>
+							</ul>
+					
 							<p>Amavis Integration</p>
 							<ul>
 		    					<li><a href="amavis-main.php">Configure</a></li>

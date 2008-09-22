@@ -1,0 +1,56 @@
+
+/* Main accounting table, this defines the period the accounting items are over and how to track it */
+CREATE TABLE accounting (
+	ID			@SERIAL_TYPE@,
+
+	PolicyID		@SERIAL_REF_TYPE@,
+	
+	Name			VARCHAR(255) NOT NULL,
+
+	/* Tracking Options */
+	Track			VARCHAR(255) NOT NULL,  /* Format:   <type>:<spec>
+
+					      SenderIP - This takes a bitmask to mask the IP with. A good default is /24 
+
+					      Sender & Recipient - Either "user@domain" (default), "user@" or "@domain" for the entire 
+					      		email addy or email addy domain respectively. 
+					   */
+
+	/* Period over which to account traffic */
+	AccountingPeriod		SMALLINT NOT NULL,  /* 0 - Track by day, 1 - Track by week, 2 - Track by month */
+
+	/* Limits for this period */
+	MessageCountLimit		@BIG_INTEGER@,  /* Limit is in Kbyte, NULL means no limit */
+	MessageCumulativeSizeLimit	@BIG_INTEGER@,  /* LImit is in Kbyte, NULL means no limit */
+
+	/* Verdict if limits are exceeded */
+	Verdict			VARCHAR(255), /* Verdict when limit is exceeded */
+	Data			TEXT, /* Data sent along with verdict */
+		
+	Comment			VARCHAR(1024),
+	
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
+/* This table is used for tracking the accounting */
+CREATE TABLE accounting_tracking (
+
+	AccountingID		@SERIAL_REF_TYPE@,
+	TrackKey		VARCHAR(@TRACK_KEY_LEN@),
+	PeriodKey		VARCHAR(@TRACK_KEY_LEN@),
+
+	/* Last time this record was update */
+	LastUpdate		@BIG_INTEGER@,  /* NULL means not updated yet */	
+
+	MessageCount		@BIG_INTEGER@,
+	MessageCumulativeSize	@BIG_INTEGER@,  /* Counter is in Kbyte */
+	
+	UNIQUE (AccountingID,TrackKey,PeriodKey),
+	FOREIGN KEY (AccountingID) REFERENCES accounting(ID)
+) @CREATE_TABLE_SUFFIX@;
+CREATE INDEX accounting_tracking_idx1 ON accounting_tracking (LastUpdate);
+

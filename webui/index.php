@@ -116,6 +116,17 @@ printHeader();
 			</ul>
 		</li>
 
+		<li>Accounting
+			<a title="Help on accounting" href="http://www.policyd.org/v2/features-accounting.html" class="help">
+				<img src="images/help.gif" alt="Help" />
+			</a>
+			<ul>
+				<li>Message count and cumulative size accounting.</li>
+				<li>Message count and cumulative size limits per accounting period.</li>
+				<li>Daily, weekly and monthly accounting periods.</li>
+			</ul>
+		</li>
+
 		<li>Postfix Integration
 			<ul>
 				<li>Setup and create transports.</li>

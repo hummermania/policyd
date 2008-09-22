@@ -4,9 +4,6 @@ Use prefork, we cannot guarantee how long the plugins/modules will take to run a
 
 Immediate requirements:
 
-- Accounting module, similar to Quotas but no rolling window.  (2.1)
-* Limits & counters
-
 - Whitelist/Blacklist of email addy or sending server or regex on reverse dns name  (2.1)
 * This should allow an admin to whitelist a sender and bypass all future checks for a sending email addy
 
