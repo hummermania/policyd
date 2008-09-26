@@ -218,6 +218,14 @@ sub DBFreeRes
 #
 
 
+# Function to get table prefix
+sub DBTablePrefix
+{
+	return $dbh->table_prefix();
+}
+
+
+
 # Return how many results came up from the specific SELECT query
 # Args: <select statement>
 sub DBSelectNumResults

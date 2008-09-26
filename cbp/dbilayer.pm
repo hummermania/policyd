@@ -51,7 +51,7 @@ sub Init
 
 
 	# Check if we created
-	my $dbh = cbp::dbilayer->new($dbconfig->{'DSN'},$dbconfig->{'Username'},$dbconfig->{'Password'});
+	my $dbh = cbp::dbilayer->new($dbconfig->{'DSN'},$dbconfig->{'Username'},$dbconfig->{'Password'},$dbconfig->{'table_prefix'});
 	return undef if (!defined($dbh));
 
 	return $dbh;
@@ -61,7 +61,7 @@ sub Init
 # Constructor
 sub new
 {
-	my ($class,$dsn,$username,$password) = @_;
+	my ($class,$dsn,$username,$password,$table_prefix) = @_;
 
 	# Iternals
 	my $self = {
@@ -72,6 +72,8 @@ sub new
 		_username => undef,
 		_password => undef,
 
+		_table_prefix => "",
+
 		_in_transaction => undef,
 	};
 
@@ -80,6 +82,7 @@ sub new
 		$self->{_dsn} = $dsn;
 		$self->{_username} = $username;
 		$self->{_password} = $password;
+		$self->{_table_prefix} = $table_prefix if (defined($table_prefix) && $table_prefix ne "");
 	} else {
 		$internalError = "Invalid DSN given";
 		return undef;
@@ -317,6 +320,15 @@ sub free
 	if ($sth) {
 		$sth->finish();
 	}	
+}
+
+
+# Function to return the table prefix
+sub table_prefix
+{
+	my $self = shift;
+
+	return $self->{_table_prefix};
 }
 
 
