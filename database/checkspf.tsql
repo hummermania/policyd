@@ -4,7 +4,7 @@
 /*
     NULL means to inherit
 */
-CREATE TABLE checkspf (
+CREATE TABLE @PREFIX@checkspf (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
@@ -22,7 +22,7 @@ CREATE TABLE checkspf (
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+	FOREIGN KEY (PolicyID) REFERENCES @PREFIX@policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
 

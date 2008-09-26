@@ -1,7 +1,7 @@
 
 /* Plain and simple access control */
 
-CREATE TABLE access_control (
+CREATE TABLE @PREFIX@access_control (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
@@ -16,9 +16,9 @@ CREATE TABLE access_control (
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+	FOREIGN KEY (PolicyID) REFERENCES @PREFIX@policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
-/* INSERT INTO access_control (PolicyID,Verdict,Data) VALUES (5,'REJECT','POP,SNAPPLE,CRAK'); */
+/* INSERT INTO @PREFIX@access_control (PolicyID,Verdict,Data) VALUES (5,'REJECT','POP,SNAPPLE,CRAK'); */
 
 

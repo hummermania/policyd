@@ -1,6 +1,6 @@
 
 /* Main accounting table, this defines the period the accounting items are over and how to track it */
-CREATE TABLE accounting (
+CREATE TABLE @PREFIX@accounting (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
@@ -37,7 +37,7 @@ CREATE TABLE accounting (
 
 
 /* This table is used for tracking the accounting */
-CREATE TABLE accounting_tracking (
+CREATE TABLE @PREFIX@accounting_tracking (
 
 	AccountingID		@SERIAL_REF_TYPE@,
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@),
@@ -50,7 +50,7 @@ CREATE TABLE accounting_tracking (
 	MessageCumulativeSize	@BIG_INTEGER@,  /* Counter is in Kbyte */
 	
 	UNIQUE (AccountingID,TrackKey,PeriodKey),
-	FOREIGN KEY (AccountingID) REFERENCES accounting(ID)
+	FOREIGN KEY (AccountingID) REFERENCES @PREFIX@accounting(ID)
 ) @CREATE_TABLE_SUFFIX@;
-CREATE INDEX accounting_tracking_idx1 ON accounting_tracking (LastUpdate);
+CREATE INDEX @PREFIX@accounting_tracking_idx1 ON @PREFIX@accounting_tracking (LastUpdate);
 

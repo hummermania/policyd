@@ -3,7 +3,7 @@
 /*
     NULL means to inherit
 */
-CREATE TABLE checkhelo (
+CREATE TABLE @PREFIX@checkhelo (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
@@ -31,13 +31,13 @@ CREATE TABLE checkhelo (
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+	FOREIGN KEY (PolicyID) REFERENCES @PREFIX@policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
 
 
 /* Blacklisted HELO's */
-CREATE TABLE checkhelo_blacklist (
+CREATE TABLE @PREFIX@checkhelo_blacklist (
 	ID			@SERIAL_TYPE@,
 
 	Helo			VARCHAR(255) NOT NULL,
@@ -49,22 +49,22 @@ CREATE TABLE checkhelo_blacklist (
 	UNIQUE (Helo)
 ) @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
+INSERT INTO @PREFIX@checkhelo_blacklist (Helo,Comment) VALUES
 	('127.0.0.1','Blacklist hosts claiming to be 127.0.0.1');
 
-INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
+INSERT INTO @PREFIX@checkhelo_blacklist (Helo,Comment) VALUES
 	('[127.0.0.1]','Blacklist hosts claiming to be [127.0.0.1]');
 
-INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
+INSERT INTO @PREFIX@checkhelo_blacklist (Helo,Comment) VALUES
 	('localhost','Blacklist hosts claiming to be localhost');
 
-INSERT INTO checkhelo_blacklist (Helo,Comment) VALUES
+INSERT INTO @PREFIX@checkhelo_blacklist (Helo,Comment) VALUES
 	('localhost.localdomain','Blacklist hosts claiming to be localhost.localdomain');
 
 
 
 /* Whitelisted CIDR's */
-CREATE TABLE checkhelo_whitelist (
+CREATE TABLE @PREFIX@checkhelo_whitelist (
 	ID			@SERIAL_TYPE@,
 
 	Source			VARCHAR(@TRACK_KEY_LEN@) NOT NULL,  /* Valid format is:    SenderIP:a.b.c.d[/e]  */
@@ -79,12 +79,12 @@ CREATE TABLE checkhelo_whitelist (
 
 
 /* Helo tracking table */
-CREATE TABLE checkhelo_tracking (
+CREATE TABLE @PREFIX@checkhelo_tracking (
 	Address			VARCHAR(64) NOT NULL,
 	Helo			VARCHAR(255) NOT NULL,
 	LastUpdate		@BIG_INTEGER@ NOT NULL,
 
 	UNIQUE (Address,Helo)
 ) @CREATE_TABLE_SUFFIX@;
-CREATE INDEX checkhelo_tracking_idx1 ON checkhelo_tracking (LastUpdate);
+CREATE INDEX @PREFIX@checkhelo_tracking_idx1 ON @PREFIX@checkhelo_tracking (LastUpdate);
 

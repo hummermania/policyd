@@ -9,7 +9,7 @@ Priorities...
 */
 
 /* Policies */
-CREATE TABLE policies (
+CREATE TABLE @PREFIX@policies (
 	ID			@SERIAL_TYPE@,
 
 	Name			VARCHAR(255) NOT NULL,
@@ -22,15 +22,15 @@ CREATE TABLE policies (
 
 ) @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO policies (Name,Priority,Description) VALUES ('Default',0,'Default System Policy');
-INSERT INTO policies (Name,Priority,Description) VALUES ('Default Outbound',10,'Default Outbound System Policy');
-INSERT INTO policies (Name,Priority,Description) VALUES ('Default Inbound',10,'Default Inbound System Policy');
-INSERT INTO policies (Name,Priority,Description) VALUES ('Default Internal',20,'Default Internal System Policy');
-INSERT INTO policies (Name,Priority,Description) VALUES ('Test',50,'Test policy');
+INSERT INTO @PREFIX@policies (Name,Priority,Description) VALUES ('Default',0,'Default System Policy');
+INSERT INTO @PREFIX@policies (Name,Priority,Description) VALUES ('Default Outbound',10,'Default Outbound System Policy');
+INSERT INTO @PREFIX@policies (Name,Priority,Description) VALUES ('Default Inbound',10,'Default Inbound System Policy');
+INSERT INTO @PREFIX@policies (Name,Priority,Description) VALUES ('Default Internal',20,'Default Internal System Policy');
+INSERT INTO @PREFIX@policies (Name,Priority,Description) VALUES ('Test',50,'Test policy');
 
 
 /* Member list for policies */
-CREATE TABLE policy_members (
+CREATE TABLE @PREFIX@policy_members (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
@@ -52,30 +52,30 @@ CREATE TABLE policy_members (
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+	FOREIGN KEY (PolicyID) REFERENCES @PREFIX@policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
 
 /* Default System Policy */
-INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
 	(1,NULL,NULL);
 /* Default Outbound System Policy */
-INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
 	(2,'%internal_ips,%internal_domains','!%internal_domains');
 /* Default Inbound System Policy */
-INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
 	(3,'!%internal_ips,!%internal_domains','%internal_domains');
 /* Default Internal System Policy */
-INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
 	(4,'%internal_ips,%internal_domains','%internal_domains');
 /* Test Policy */
-INSERT INTO policy_members (PolicyID,Source,Destination) VALUES
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
 	(5,'@example.net',NULL);
 
 
 
 /* Groups usable in ACL */
-CREATE TABLE policy_groups (
+CREATE TABLE @PREFIX@policy_groups (
 	ID			@SERIAL_TYPE@,
 
 	Name			VARCHAR(255) NOT NULL,
@@ -89,13 +89,13 @@ CREATE TABLE policy_groups (
 	UNIQUE (Name)
 )  @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO policy_groups (Name) VALUES ('internal_ips');
-INSERT INTO policy_groups (Name) VALUES ('internal_domains');
+INSERT INTO @PREFIX@policy_groups (Name) VALUES ('internal_ips');
+INSERT INTO @PREFIX@policy_groups (Name) VALUES ('internal_domains');
 
 
 
 /* Group members */
-CREATE TABLE policy_group_members (
+CREATE TABLE @PREFIX@policy_group_members (
 	ID			@SERIAL_TYPE@,
 
 	PolicyGroupID		@SERIAL_REF_TYPE@,
@@ -108,17 +108,17 @@ CREATE TABLE policy_group_members (
 	Comment			VARCHAR(1024),
 
 
-	FOREIGN KEY (PolicyGroupID) REFERENCES policy_groups(ID)
+	FOREIGN KEY (PolicyGroupID) REFERENCES @PREFIX@policy_groups(ID)
 )  @CREATE_TABLE_SUFFIX@;
 
-INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (1,'10.0.0.0/8');
-INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,'@example.org');
-INSERT INTO policy_group_members (PolicyGroupID,Member) VALUES (2,'@example.com');
+INSERT INTO @PREFIX@policy_group_members (PolicyGroupID,Member) VALUES (1,'10.0.0.0/8');
+INSERT INTO @PREFIX@policy_group_members (PolicyGroupID,Member) VALUES (2,'@example.org');
+INSERT INTO @PREFIX@policy_group_members (PolicyGroupID,Member) VALUES (2,'@example.com');
 
 
 
 /* Message session tracking */
-CREATE TABLE session_tracking (
+CREATE TABLE @PREFIX@session_tracking (
 	Instance		VARCHAR(255),
 	QueueID			VARCHAR(255),
 
@@ -148,8 +148,8 @@ CREATE TABLE session_tracking (
 
 	UNIQUE (Instance)
 )  @CREATE_TABLE_SUFFIX@;
-CREATE INDEX session_tracking_idx1 ON session_tracking (QueueID,ClientAddress,Sender);
-CREATE INDEX session_tracking_idx2 ON session_tracking (Timestamp);
+CREATE INDEX @PREFIX@session_tracking_idx1 ON @PREFIX@session_tracking (QueueID,ClientAddress,Sender);
+CREATE INDEX @PREFIX@session_tracking_idx2 ON @PREFIX@session_tracking (Timestamp);
 
 
 

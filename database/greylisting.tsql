@@ -3,7 +3,7 @@
 /*
     NULL means to inherit
 */
-CREATE TABLE greylisting (
+CREATE TABLE @PREFIX@greylisting (
 	ID			@SERIAL_TYPE@,
 
 	PolicyID		@SERIAL_REF_TYPE@,
@@ -45,12 +45,12 @@ CREATE TABLE greylisting (
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (PolicyID) REFERENCES policies(ID)
+	FOREIGN KEY (PolicyID) REFERENCES @PREFIX@policies(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
 
 /* Whitelisted */
-CREATE TABLE greylisting_whitelist (
+CREATE TABLE @PREFIX@greylisting_whitelist (
 	ID			@SERIAL_TYPE@,
 
 	Source			VARCHAR(255) NOT NULL,  /* Either CIDR  a.b.c.d, a.b.c.d/x, or reversed   host*-*.whatever.com */
@@ -65,7 +65,7 @@ CREATE TABLE greylisting_whitelist (
 
 
 /* Auto-whitelistings */
-CREATE TABLE greylisting_autowhitelist (
+CREATE TABLE @PREFIX@greylisting_autowhitelist (
 	ID			@SERIAL_TYPE@,
 
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE greylisting_autowhitelist (
 
 
 /* Auto-blacklistings */
-CREATE TABLE greylisting_autoblacklist (
+CREATE TABLE @PREFIX@greylisting_autoblacklist (
 	ID			@SERIAL_TYPE@,
 
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE greylisting_autoblacklist (
 
 
 /* Greylist triplet tracking table */
-CREATE TABLE greylisting_tracking (
+CREATE TABLE @PREFIX@greylisting_tracking (
 
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL, /* The address really, masked with whatever */
 	Sender			VARCHAR(255) NOT NULL,
@@ -110,5 +110,5 @@ CREATE TABLE greylisting_tracking (
 
 	UNIQUE(TrackKey,Sender,Recipient)
 ) @CREATE_TABLE_SUFFIX@;
-CREATE INDEX greylisting_tracking_idx1 ON greylisting_tracking (LastUpdate,Count);
+CREATE INDEX @PREFIX@greylisting_tracking_idx1 ON @PREFIX@greylisting_tracking (LastUpdate,Count);
 

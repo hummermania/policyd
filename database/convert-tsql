@@ -18,11 +18,12 @@
 
 database="$1"
 file="$2"
+prefix="$3"
 
 
 # Display usage info
 display_usage() {
-    echo "Usage: $0 <database type> <file>"
+    echo "Usage: $0 <database type> <file> [prefix]"
     echo
     echo "Valid database types:"
     echo "      mysql4  - For MySQL v4"
@@ -53,6 +54,7 @@ fi
 case "$database" in
     	"mysql4")
 		sed \
+			-e "s/@PREFIX@/$prefix/" \
 			-e 's/@PRELOAD@/SET FOREIGN_KEY_CHECKS=0;/' \
 			-e 's/@POSTLOAD@/SET FOREIGN_KEY_CHECKS=1;/' \
 			-e 's/@CREATE_TABLE_SUFFIX@/TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin/' \
@@ -64,6 +66,7 @@ case "$database" in
 
     	"mysql")
 		sed \
+			-e "s/@PREFIX@/$prefix/" \
 			-e 's/@PRELOAD@/SET FOREIGN_KEY_CHECKS=0;/' \
 			-e 's/@POSTLOAD@/SET FOREIGN_KEY_CHECKS=1;/' \
 			-e 's/@CREATE_TABLE_SUFFIX@/TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin/' \
@@ -75,6 +78,7 @@ case "$database" in
 
 	"pgsql")
 		sed \
+			-e "s/@PREFIX@/$prefix/" \
 			-e 's/@PRELOAD@/SET CONSTRAINTS ALL DEFERRED;/' \
 			-e 's/@POSTLOAD@//' \
 			-e 's/@CREATE_TABLE_SUFFIX@//' \
@@ -86,6 +90,7 @@ case "$database" in
 
 	"sqlite")
 		sed \
+			-e "s/@PREFIX@/$prefix/" \
 			-e 's/@PRELOAD@//' \
 			-e 's/@POSTLOAD@//' \
 			-e 's/@CREATE_TABLE_SUFFIX@//' \
