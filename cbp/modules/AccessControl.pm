@@ -86,15 +86,17 @@ sub check {
 		# Loop with policies
 		foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
-			my $sth = DBSelect("
+			my $sth = DBSelect('
 				SELECT
 					Verdict, Data
 				FROM
-					access_control
+					@TP@access_control
 				WHERE
-					PolicyID = ".DBQuote($policyID)."
+					PolicyID = ?
 					AND Disabled = 0
-			");
+				',
+				$policyID
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);

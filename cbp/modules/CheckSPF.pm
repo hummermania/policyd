@@ -94,17 +94,19 @@ sub check {
 		# Loop with policies
 		foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
-			my $sth = DBSelect("
+			my $sth = DBSelect('
 				SELECT
 					UseSPF, RejectFailedSPF, AddSPFHeader
 
 				FROM
-					checkspf
+					@TP@checkspf
 
 				WHERE
-					PolicyID = ".DBQuote($policyID)."
+					PolicyID = ?
 					AND Disabled = 0
-			");
+				',
+				$policyID
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[CHECKSPF] Database query failed: ".cbp::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);

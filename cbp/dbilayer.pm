@@ -51,7 +51,7 @@ sub Init
 
 
 	# Check if we created
-	my $dbh = cbp::dbilayer->new($dbconfig->{'DSN'},$dbconfig->{'Username'},$dbconfig->{'Password'},$dbconfig->{'table_prefix'});
+	my $dbh = cbp::dbilayer->new($dbconfig->{'DSN'},$dbconfig->{'Username'},$dbconfig->{'Password'},$dbconfig->{'TablePrefix'});
 	return undef if (!defined($dbh));
 
 	return $dbh;
@@ -160,11 +160,20 @@ sub _check
 # Args: <select statement>
 sub select
 {
-	my ($self,$query) = @_;
+	my ($self,$query,@params) = @_;
 
 
 	$self->_check();
 
+#	# Build single query instead of using binding of params
+#	# not all databases support binding, and not all support all
+#	# the places we use ?
+#	$query =~ s/\?/%s/g;
+#	# Map each element in params to the quoted value
+#	$query = sprintf($query,
+#		map { $self->quote($_) } @params
+#	);
+#use Data::Dumper; print STDERR Dumper($query);
 	# Prepare query
 	my $sth;
 	if (!($sth = $self->{_dbh}->prepare($query))) {
@@ -173,7 +182,8 @@ sub select
 	}
 
 	# Check for execution error
-	if (!$sth->execute()) {
+#	if (!$sth->execute()) {
+	if (!$sth->execute(@params)) {
 		$self->{_error} = $self->{_dbh}->errstr;
 		return undef;	
 	}
@@ -186,14 +196,25 @@ sub select
 # Args: <command statement>
 sub do
 {
-	my ($self,$command) = @_;
+	my ($self,$command,@params) = @_;
 
 
 	$self->_check();
 
+#	# Build single command instead of using binding of params
+#	# not all databases support binding, and not all support all
+#	# the places we use ?
+#	$command =~ s/\?/%s/g;
+#	# Map each element in params to the quoted value
+#	$command = sprintf($command,
+#		map { $self->quote($_) } @params
+#	);
+#use Data::Dumper; print STDERR Dumper($command);
+
 	# Prepare query
 	my $sth;
-	if (!($sth = $self->{_dbh}->do($command))) {
+#	if (!($sth = $self->{_dbh}->do($command))) {
+	if (!($sth = $self->{_dbh}->do($command,undef,@params))) {
 		$self->{_error} = $self->{_dbh}->errstr;
 		return undef;	
 	}

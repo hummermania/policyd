@@ -53,7 +53,7 @@ sub getSessionDataFromQueueID
 	$server->log(LOG_DEBUG,"[TRACKING] Retreiving session data for triplet: $queueID/$clientAddress/$sender");
 	
 	# Pull in session data
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT
 			Instance, QueueID,
 			Timestamp,
@@ -66,12 +66,14 @@ sub getSessionDataFromQueueID
 			Size,
 			RecipientData
 		FROM
-			session_tracking
+			@TP@session_tracking
 		WHERE
-			QueueID = ".DBQuote($queueID)."
-			AND ClientAddress = ".DBQuote($clientAddress)."
-			AND Sender = ".DBQuote($sender)."
-	");
+			QueueID = ?
+			AND ClientAddress = ?
+			AND Sender = ?
+		',
+		$queueID,$clientAddress,$sender
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
 		return -1;
@@ -119,7 +121,7 @@ sub getSessionDataFromRequest
 		if ($server->{'config'}->{'track_sessions'}) {
 
 			# Pull in session data
-			my $sth = DBSelect("
+			my $sth = DBSelect('
 				SELECT
 					Instance, QueueID,
 					Timestamp,
@@ -132,10 +134,12 @@ sub getSessionDataFromRequest
 					Size,
 					RecipientData
 				FROM
-					session_tracking
+					@TP@session_tracking
 				WHERE
-					Instance = ".DBQuote($request->{'instance'})."
-			");
+					Instance = ?
+				',
+				$request->{'instance'}
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
 				return -1;
@@ -153,8 +157,8 @@ sub getSessionDataFromRequest
 					DBBegin();
 	
 					# Record tracking info
-					$sth = DBDo("
-						INSERT INTO session_tracking 
+					$sth = DBDo('
+						INSERT INTO @TP@session_tracking 
 							(
 								Instance,QueueID,
 								Timestamp,
@@ -167,21 +171,14 @@ sub getSessionDataFromRequest
 								Size
 							)
 						VALUES
-							(
-								".DBQuote($request->{'instance'}).", ".DBQuote($request->{'queue_id'}).",
-								".DBQuote($request->{'_timestamp'}).",
-								".DBQuote($request->{'client_address'}).", ".DBQuote($request->{'client_name'}).", 
-								".DBQuote($request->{'reverse_client_name'}).",
-								".DBQuote($request->{'protocol_name'}).",
-								".DBQuote($request->{'encryption_protocol'}).", ".DBQuote($request->{'encryption_cipher'}).", 
-								".DBQuote($request->{'encryption_keysize'}).",
-								".DBQuote($request->{'sasl_method'}).", ".DBQuote($request->{'sasl_sender'}).",
-										".DBQuote($request->{'sasl_username'}).",
-								".DBQuote($request->{'helo_name'}).",
-								".DBQuote($request->{'sender'}).",
-								".DBQuote($request->{'size'})."
-							)
-					");
+							(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+						',
+						$request->{'instance'},$request->{'queue_id'},$request->{'_timestamp'},$request->{'client_address'},
+						$request->{'client_name'},$request->{'reverse_client_name'},$request->{'protocol_name'},
+						$request->{'encryption_protocol'},$request->{'encryption_cipher'},$request->{'encryption_keysize'},
+						$request->{'sasl_method'},$request->{'sasl_sender'},$request->{'sasl_username'},$request->{'helo_name'},
+						$request->{'sender'},$request->{'size'}
+					);
 					if (!$sth) {
 						$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".cbp::dblayer::Error());
 						DBRollback();
@@ -313,14 +310,16 @@ sub updateSessionData
 			$recipientData .= "/$policyData";
 	
 			# Record tracking info
-			my $sth = DBDo("
+			my $sth = DBDo('
 				UPDATE 
-					session_tracking 
+					@TP@session_tracking 
 				SET
-					RecipientData = ".DBQuote($recipientData)." 
+					RecipientData = ?
 				WHERE
-					Instance = ".DBQuote($sessionData->{'Instance'})."
-			");
+					Instance = ?
+				',
+				$recipientData,$sessionData->{'Instance'}
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[TRACKING] Failed to update recipient data in session tracking info: ".cbp::dblayer::Error());
 				return -1;
@@ -329,15 +328,17 @@ sub updateSessionData
 		# If we at END-OF-MESSAGE, update size
 		} elsif ($sessionData->{'ProtocolState'} eq 'END-OF-MESSAGE') {
 			# Record tracking info
-			my $sth = DBDo("
+			my $sth = DBDo('
 				UPDATE 
-					session_tracking 
+					@TP@session_tracking 
 				SET
-					QueueID = ".DBQuote($sessionData->{'QueueID'})." ,
-					Size = ".DBQuote($sessionData->{'Size'})." 
+					QueueID = ?,
+					Size = ?
 				WHERE
-					Instance = ".DBQuote($sessionData->{'Instance'})."
-			");
+					Instance = ?
+				',
+				$sessionData->{'QueueID'},$sessionData->{'Size'},$sessionData->{'Instance'}
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[TRACKING] Failed to update size in session tracking info: ".cbp::dblayer::Error());
 				return -1;

@@ -89,7 +89,7 @@ sub check {
 		foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
 			# Grab greylisting info
-			my $sth = DBSelect("
+			my $sth = DBSelect('
 				SELECT
 					UseGreylisting, GreylistPeriod,
 					Track,
@@ -99,12 +99,14 @@ sub check {
 					UseAutoBlacklist, AutoBlacklistPeriod, AutoBlacklistCount, AutoBlacklistPercentage
 
 				FROM
-					greylisting
+					@TP@greylisting
 
 				WHERE
-					PolicyID = ".DBQuote($policyID)."
+					PolicyID = ?
 					AND Disabled = 0
-			");
+				',
+				$policyID
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
@@ -173,14 +175,14 @@ sub check {
 	#
 	# Check if we're whitelisted
 	#
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT
 			Source
 		FROM
-			greylisting_whitelist
+			@TP@greylisting_whitelist
 		WHERE
 			Disabled = 0
-	");
+	');
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
@@ -238,14 +240,16 @@ sub check {
 
 		# Sanity check, no use doing the query to find out we don't have a period
 		if (defined($policy{'AutoWhitelistPeriod'}) && $policy{'AutoWhitelistPeriod'} > 0) {
-			my $sth = DBSelect("
+			my $sth = DBSelect('
 				SELECT
 					ID, LastSeen
 				FROM
-					greylisting_autowhitelist
+					@TP@greylisting_autowhitelist
 				WHERE
-					TrackKey = ".DBQuote($key)."
-			");
+					TrackKey = ?
+				',
+				$key
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
@@ -258,14 +262,16 @@ sub check {
 				# Check if we're within the auto-whitelisting period
 				if ($sessionData->{'Timestamp'} - $row->{'lastseen'} <= $policy{'AutoWhitelistPeriod'}) {
 
-					my $sth = DBDo("
+					my $sth = DBDo('
 						UPDATE
-							greylisting_autowhitelist
+							@TP@greylisting_autowhitelist
 						SET
-							LastSeen = ".DBQuote($sessionData->{'Timestamp'})."
+							LastSeen = ?
 						WHERE
-							TrackKey = ".DBQuote($key)."
-					");
+							TrackKey = ?
+						',
+						$sessionData->{'Timestamp'},$key
+					);
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
@@ -295,14 +301,16 @@ sub check {
 
 		# Sanity check, no use doing the query to find out we don't have a period
 		if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0) {
-			my $sth = DBSelect("
+			my $sth = DBSelect('
 				SELECT
 					ID, Added
 				FROM
-					greylisting_autoblacklist
+					@TP@greylisting_autoblacklist
 				WHERE
-					TrackKey = ".DBQuote($key)."
-			");
+					TrackKey = ?
+				',
+				$key
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
@@ -336,16 +344,18 @@ sub check {
 	#
 
 	# Insert/update triplet in database
-	$sth = DBDo("
+	$sth = DBDo('
 		UPDATE 
-			greylisting_tracking
+			@TP@greylisting_tracking
 		SET
-			LastUpdate = ".DBQuote($sessionData->{'Timestamp'})."
+			LastUpdate = ?
 		WHERE
-			TrackKey = ".DBQuote($key)."
-			AND Sender = ".DBQuote($sessionData->{'Sender'})."
-			AND Recipient = ".DBQuote($sessionData->{'Recipient'})."
-	");
+			TrackKey = ?
+			AND Sender = ?
+			AND Recipient = ?
+		',
+		$sessionData->{'Timestamp'},$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
@@ -365,15 +375,18 @@ sub check {
 					# Work out time to check from...
 					my $addedTime = $sessionData->{'Timestamp'} - $policy{'AutoBlacklistPeriod'};
 
-					my $sth = DBSelect("
+					my $sth = DBSelect('
 						SELECT
 							Count(*) AS TotalCount
 						FROM
-							greylisting_tracking
+							@TP@greylisting_tracking
 						WHERE
-							TrackKey = ".DBQuote($key)."
-							AND FirstSeen >= ".DBQuote($addedTime)."
-					");
+							TrackKey = ?
+							AND FirstSeen >= ?
+						',
+						$key,
+						$addedTime
+					);
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
@@ -387,16 +400,18 @@ sub check {
 						# Start off as undef
 						my $blacklist;
 
-						$sth = DBSelect("
+						$sth = DBSelect('
 							SELECT
 								Count(*) AS FailCount
 							FROM
-								greylisting_tracking
+								@TP@greylisting_tracking
 							WHERE
-								TrackKey = ".DBQuote($key)."
-								AND FirstSeen >= ".DBQuote($addedTime)."
+								TrackKey = ?
+								AND FirstSeen >= ?
 								AND Count = 0
-						");
+							',
+							$key,$addedTime
+						);
 						if (!$sth) {
 							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
@@ -426,16 +441,14 @@ sub check {
 						# If we are to be listed, this is our reason
 						if ($blacklist) {
 							# Record blacklisting
-							$sth = DBDo("
-								INSERT INTO greylisting_autoblacklist
+							$sth = DBDo('
+								INSERT INTO @TP@greylisting_autoblacklist
 									(TrackKey,Added,Comment)
 								VALUES
-									(
-										".DBQuote($key).",
-										".DBQuote($sessionData->{'Timestamp'}).",
-										".DBQuote($blacklist)."
-									)
-							");
+									(?,?,?)
+								',
+								$key,$sessionData->{'Timestamp'},$blacklist
+							);
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
 								return $server->protocol_response(PROTO_DB_ERROR);
@@ -459,20 +472,14 @@ sub check {
 		}
 
 		# Record triplet
-		$sth = DBDo("
-			INSERT INTO greylisting_tracking
+		$sth = DBDo('
+			INSERT INTO @TP@greylisting_tracking
 				(TrackKey,Sender,Recipient,FirstSeen,LastUpdate,Tries,Count)
 			VALUES
-				(
-					".DBQuote($key).",
-					".DBQuote($sessionData->{'Sender'}).",
-					".DBQuote($sessionData->{'Recipient'}).",
-					".DBQuote($sessionData->{'Timestamp'}).",
-					".DBQuote($sessionData->{'Timestamp'}).",
-					1,
-					0
-				)
-		");
+				(?,?,?,?,?,1,0)
+			',
+			$key,$sessionData->{'Sender'},$sessionData->{'Recipient'},$sessionData->{'Timestamp'},$sessionData->{'Timestamp'}
+		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
 			return $server->protocol_response(PROTO_DB_ERROR);
@@ -499,7 +506,7 @@ sub check {
 	#
 
 	# Pull triplet and check
-	$sth = DBSelect("
+	$sth = DBSelect('
 		SELECT
 			FirstSeen,
 			LastUpdate,
@@ -507,13 +514,15 @@ sub check {
 			Count
 
 		FROM
-			greylisting_tracking
+			@TP@greylisting_tracking
 
 		WHERE
-			TrackKey = ".DBQuote($key)."
-			AND Sender = ".DBQuote($sessionData->{'Sender'})."
-			AND Recipient = ".DBQuote($sessionData->{'Recipient'})."
-	");
+			TrackKey = ?
+			AND Sender = ?
+			AND Recipient = ?
+		',
+		$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
@@ -537,16 +546,18 @@ sub check {
 				$row->{'tries'} + 1);
 
 		# Update stats
-		my $sth = DBDo("
+		my $sth = DBDo('
 			UPDATE 
-				greylisting_tracking
+				@TP@greylisting_tracking
 			SET
 				Tries = Tries + 1
 			WHERE
-				TrackKey = ".DBQuote($key)."
-				AND Sender = ".DBQuote($sessionData->{'Sender'})."
-				AND Recipient = ".DBQuote($sessionData->{'Recipient'})."
-		");
+				TrackKey = ?
+				AND Sender = ?
+				AND Recipient = ?
+			',
+			$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
+		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
 			return $server->protocol_response(PROTO_DB_ERROR);
@@ -556,16 +567,18 @@ sub check {
 
 	} else {
 		# Insert/update triplet in database
-		my $sth = DBDo("
+		my $sth = DBDo('
 			UPDATE 
-				greylisting_tracking
+				@TP@greylisting_tracking
 			SET
 				Count = Count + 1
 			WHERE
-				TrackKey = ".DBQuote($key)."
-				AND Sender = ".DBQuote($sessionData->{'Sender'})."
-				AND Recipient = ".DBQuote($sessionData->{'Recipient'})."
-		");
+				TrackKey = ?
+				AND Sender = ?
+				AND Recipient = ?
+			',
+			$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
+		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
 			return $server->protocol_response(PROTO_DB_ERROR);
@@ -583,15 +596,17 @@ sub check {
 				if (defined($policy{'AutoWhitelistCount'}) && $policy{'AutoWhitelistCount'} > 0) {
 					my $addedTime = $sessionData->{'Timestamp'} - $policy{'AutoWhitelistPeriod'};
 
-					my $sth = DBSelect("
+					my $sth = DBSelect('
 						SELECT
 							Count(*) AS TotalCount
 						FROM
-							greylisting_tracking
+							@TP@greylisting_tracking
 						WHERE
-							TrackKey = ".DBQuote($key)."
-							AND FirstSeen >= ".DBQuote($addedTime)."
-					");
+							TrackKey = ?
+							AND FirstSeen >= ?
+						',
+						$key,$addedTime
+					);
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
@@ -603,16 +618,18 @@ sub check {
 					if ($totalCount >= $policy{'AutoWhitelistCount'}) {
 						my $whitelist;
 
-						$sth = DBSelect("
+						$sth = DBSelect('
 							SELECT
 								Count(*) AS PassCount
 							FROM
-								greylisting_tracking
+								@TP@greylisting_tracking
 							WHERE
-								TrackKey = ".DBQuote($key)."
-								AND FirstSeen >= ".DBQuote($addedTime)."
+								TrackKey = ?
+								AND FirstSeen >= ?
 								AND Count != 0
-						");
+							',
+							$key,$addedTime
+						);
 						if (!$sth) {
 							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
@@ -641,17 +658,14 @@ sub check {
 						# If we are to be listed, this is our reason
 						if ($whitelist) {
 							# Record whitelisting
-							$sth = DBDo("
-								INSERT INTO greylisting_autowhitelist
+							$sth = DBDo('
+								INSERT INTO @TP@greylisting_autowhitelist
 									(TrackKey,Added,LastSeen,Comment)
 								VALUES
-									(
-										".DBQuote($key).",
-										".DBQuote($sessionData->{'Timestamp'}).",
-										".DBQuote($sessionData->{'Timestamp'}).",
-										".DBQuote($whitelist)."
-									)
-							");
+									(?,?,?,?)
+								',
+								$key,$sessionData->{'Timestamp'},$sessionData->{'Timestamp'},$whitelist
+							);
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
 								return $server->protocol_response(PROTO_DB_ERROR);
@@ -769,12 +783,12 @@ sub cleanup
 	#
 	
 	# Get maximum AutoWhitelistPeriod
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT 
 			MAX(AutoWhitelistPeriod) AS Period
 		FROM 
-			greylisting
-	");
+			@TP@greylisting
+	');
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoWhitelistPeriod: ".cbp::dblayer::Error());
 		return -1;
@@ -788,12 +802,14 @@ sub cleanup
 		$AWLPeriod = $now - $AWLPeriod;
 
 		# Remove old whitelistings from database
-		$sth = DBDo("
+		$sth = DBDo('
 			DELETE FROM 
-				greylisting_autowhitelist
+				@TP@greylisting_autowhitelist
 			WHERE
-				LastSeen < ".DBQuote($AWLPeriod)."
-		");
+				LastSeen < ?
+			',
+			$AWLPeriod
+		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autowhitelist records: ".cbp::dblayer::Error());
 			return -1;
@@ -807,12 +823,12 @@ sub cleanup
 	#
 	
 	# Get maximum AutoBlacklistPeriod
-	$sth = DBSelect("
+	$sth = DBSelect('
 		SELECT 
 			MAX(AutoBlacklistPeriod) AS Period
 		FROM 
-			greylisting
-	");
+			@TP@greylisting
+	');
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoBlacklistPeriod: ".cbp::dblayer::Error());
 		return -1;
@@ -826,12 +842,14 @@ sub cleanup
 		$ABLPeriod = $now - $ABLPeriod;
 	
 		# Remove blacklistings from database
-		$sth = DBDo("
+		$sth = DBDo('
 			DELETE FROM 
-				greylisting_autoblacklist
+				@TP@greylisting_autoblacklist
 			WHERE
-				Added < ".DBQuote($ABLPeriod)."
-		");
+				Added < ?
+			',
+			$ABLPeriod
+		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autoblacklist records: ".cbp::dblayer::Error());
 			return -1;
@@ -844,12 +862,12 @@ sub cleanup
 	#
 	
 	# Get maximum GreylistAuthValidity
-	$sth = DBSelect("
+	$sth = DBSelect('
 		SELECT 
 			MAX(GreylistAuthValidity) AS Period
 		FROM 
-			greylisting
-	");
+			@TP@greylisting
+	');
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistAuthValidity: ".cbp::dblayer::Error());
 		return -1;
@@ -863,13 +881,15 @@ sub cleanup
 		$AuthPeriod = $now - $AuthPeriod;
 	
 		# Remove old authenticated records from database
-		$sth = DBDo("
+		$sth = DBDo('
 			DELETE FROM 
-				greylisting_tracking
+				@TP@greylisting_tracking
 			WHERE
-				LastUpdate < ".DBQuote($AuthPeriod)."
+				LastUpdate < ?
 				AND Count != 0
-		");
+			',
+			$AuthPeriod
+		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old authenticated records: ".cbp::dblayer::Error());
 			return -1;
@@ -882,12 +902,12 @@ sub cleanup
 	#
 	
 	# Get maximum GreylistUnAuthValidity
-	$sth = DBSelect("
+	$sth = DBSelect('
 		SELECT 
 			MAX(GreylistUnAuthValidity) AS Period
 		FROM 
-			greylisting
-	");
+			@TP@greylisting
+	');
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistUnAuthValidity: ".cbp::dblayer::Error());
 		return -1;
@@ -901,13 +921,15 @@ sub cleanup
 		$UnAuthPeriod = $now - $UnAuthPeriod;
 	
 		# Remove old un-authenticated records info from database
-		$sth = DBDo("
+		$sth = DBDo('
 			DELETE FROM 
-				greylisting_tracking
+				@TP@greylisting_tracking
 			WHERE
-				LastUpdate < ".DBQuote($UnAuthPeriod)."
+				LastUpdate < ?
 				AND Count = 0
-		");
+			',
+			$UnAuthPeriod
+		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old un-authenticated records: ".cbp::dblayer::Error());
 			return -1;

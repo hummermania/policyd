@@ -48,6 +48,7 @@ sub Init
 	$db->{'DSN'} = $config->{'database'}{'dsn'};
 	$db->{'Username'} = $config->{'database'}{'username'};
 	$db->{'Password'} = $config->{'database'}{'password'};
+	$db->{'TablePrefix'} = $config->{'database'}{'table_prefix'};
 
 	# Check we have all the config we need
 	if (!defined($db->{'DSN'})) {

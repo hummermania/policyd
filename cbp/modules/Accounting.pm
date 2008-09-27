@@ -235,26 +235,44 @@ sub check {
 
 			# Loop with tracking ID's and update
 			foreach my $atrack (@trackingList) {
-					
 				# Percent used
-				my $pCountUsage =  defined($atrack->{'MessageCountLimit'}) ? sprintf('%.1f', ( $newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} / 
-						$atrack->{'MessageCountLimit'} ) * 100) : '-';
-				my $pCumulativeSizeUsage =  defined($atrack->{'MessageCumulativeSizeLimit'}) ? sprintf('%.1f', 
-						( $newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'} / $atrack->{'MessageCumulativeSizeLimit'} ) * 100) : '-';
+				my $pCountUsage = $newCounters{$atrack->{'AccountingID'}}->{'MessageCount'};
+				my $pCumulativeSizeUsage =  $newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'};
+				# If we have additional limits, add to the usage string
+				if (defined($atrack->{'MessageCountLimit'}) && $atrack->{'MessageCountLimit'} > 0) {
+					$pCountUsage .= sprintf('/%s (%.1f%%)',
+							$atrack->{'MessageCountLimit'},
+							( $newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} / $atrack->{'MessageCountLimit'} ) * 100
+					);
+				} else {
+					$pCountUsage .= "/-";
+				}
+				if (defined($atrack->{'MessageCumulativeSizeLimit'}) && $atrack->{'MessageCumulativeSizeLimit'} > 0) {
+					$pCumulativeSizeUsage .= sprintf('/%s (%.1f%%)',
+							$atrack->{'MessageCumulativeSizeLimit'},
+							( $newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'} / 
+								$atrack->{'MessageCumulativeSizeLimit'} ) * 100
+					);
+				} else {
+					$pCumulativeSizeUsage .= "/-";
+				}
 
 				# Update database
-				my $sth = DBDo("
+				my $sth = DBDo('
 					UPDATE 
-						accounting_tracking
+						@TP@accounting_tracking
 					SET
-						MessageCount = ".DBQuote($newCounters{$atrack->{'AccountingID'}}->{'MessageCount'}).",
-						MessageCumulativeSize = ".DBQuote($newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'}).",
-						LastUpdate = ".DBQuote($now)."
+						MessageCount = ?,
+						MessageCumulativeSize = ?,
+						LastUpdate = ?
 					WHERE
-						AccountingID = ".DBQuote($atrack->{'AccountingID'})."
-						AND TrackKey = ".DBQuote($atrack->{'TrackKey'})."
-						AND PeriodKey = ".DBQuote($atrack->{'PeriodKey'})."
-				");
+						AccountingID = ?
+						AND TrackKey = ?
+						AND PeriodKey = ?
+					',
+					$newCounters{$atrack->{'AccountingID'}}->{'MessageCount'},$newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'},
+					$now,$atrack->{'AccountingID'},$atrack->{'TrackKey'},$atrack->{'PeriodKey'}
+				);
 				if (!$sth) {
 					$server->log(LOG_ERR,"[ACCOUNTING] Failed to update accounting_tracking item: ".cbp::dblayer::Error());
 					return $server->protocol_response(PROTO_DB_ERROR);
@@ -263,19 +281,17 @@ sub check {
 				# If nothing updated, then insert our record
 				if ($sth eq "0E0") {
 					# Insert into database
-					my $sth = DBDo("
-						INSERT INTO accounting_tracking
+					my $sth = DBDo('
+						INSERT INTO @TP@accounting_tracking
 							(AccountingID,TrackKey,PeriodKey,MessageCount,MessageCumulativeSize,LastUpdate)
 						VALUES
-							(
-								".DBQuote($atrack->{'AccountingID'}).",
-								".DBQuote($atrack->{'TrackKey'}).",
-								".DBQuote($atrack->{'PeriodKey'}).",
-								".DBQuote($newCounters{$atrack->{'AccountingID'}}->{'MessageCount'}).",
-								".DBQuote($newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'}).",
-								".DBQuote($atrack->{'LastUpdate'})."
-							)
-					");
+							(?,?,?,?,?,?)
+						',
+						$atrack->{'AccountingID'},$atrack->{'TrackKey'},$atrack->{'PeriodKey'},
+						$newCounters{$atrack->{'AccountingID'}}->{'MessageCount'},
+						$newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'},
+						$atrack->{'LastUpdate'}
+					);
 					if (!$sth) {
 						$server->log(LOG_ERR,"[ACCOUNTING] Failed to insert accounting_tracking item: ".cbp::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
@@ -283,7 +299,7 @@ sub check {
 					
 					# Log create to mail log
 					$server->maillog("module=Accounting, mode=create, host=%s, helo=%s, from=%s, to=%s, reason=accounting_create, policy=%s, accounting=%s, "
-								."track=%s, period=%s, count=%s/%s (%s%%), size=%s/%s (%s%%)",
+								."track=%s, period=%s, count=%s, size=%s",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
 							$sessionData->{'Sender'},
@@ -292,11 +308,7 @@ sub check {
 							$atrack->{'AccountingID'},
 							$atrack->{'DBTrackKey'},
 							$atrack->{'DBPeriodKey'},
-							$atrack->{'MessageCount'},
-							$atrack->{'MessageCountLimit'},
 							$pCountUsage,
-							$atrack->{'MessageCumulativeSize'},
-							$atrack->{'MessageCumulativeSizeLimit'},
 							$pCumulativeSizeUsage);
 
 
@@ -304,7 +316,7 @@ sub check {
 				} else {
 					# Log update to mail log
 					$server->maillog("module=Accounting, mode=create, host=%s, helo=%s, from=%s, to=%s, reason=accounting_update, policy=%s, accounting=%s, "
-								."track=%s, period=%s, count=%s/%s (%s%%), size=%s/%s (%s%%)",
+								."track=%s, period=%s, count=%s, size=%s",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
 							$sessionData->{'Sender'},
@@ -313,11 +325,7 @@ sub check {
 							$atrack->{'AccountingID'},
 							$atrack->{'DBTrackKey'},
 							$atrack->{'DBPeriodKey'},
-							$atrack->{'MessageCount'},
-							$atrack->{'MessageCountLimit'},
 							$pCountUsage,
-							$atrack->{'MessageCumulativeSize'},
-							$atrack->{'MessageCumulativeSizeLimit'},
 							$pCumulativeSizeUsage);
 				}
 					
@@ -329,14 +337,30 @@ sub check {
 		# If we have exceeded, set verdict
 		} else {
 			# Percent used
-			my $pCountUsage =  defined($exceededAtrack->{'MessageCountLimit'}) ? sprintf('%.1f', ( $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCount'} / 
-					$exceededAtrack->{'MessageCountLimit'} ) * 100) : '-';
-			my $pCumulativeSizeUsage =  defined($exceededAtrack->{'MessageCumulativeSizeLimit'}) ? sprintf('%.1f', 
-					( $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCumulativeSize'} / $exceededAtrack->{'MessageCumulativeSizeLimit'} ) * 100) : '-';
+			my $pCountUsage = $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCount'};
+			my $pCumulativeSizeUsage =  $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCumulativeSize'};
+			# If we have additional limits, add to the usage string
+			if (defined($exceededAtrack->{'MessageCountLimit'}) && $exceededAtrack->{'MessageCountLimit'} > 0) {
+				$pCountUsage .= sprintf('/%s (%.1f%%)',
+						$exceededAtrack->{'MessageCountLimit'},
+						( $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCount'} / $exceededAtrack->{'MessageCountLimit'} ) * 100
+				);
+			} else {
+				$pCountUsage .= "/-";
+			}
+			if (defined($exceededAtrack->{'MessageCumulativeSizeLimit'}) && $exceededAtrack->{'MessageCumulativeSizeLimit'} > 0) {
+				$pCumulativeSizeUsage .= sprintf('/%s (%.1f%%)',
+						$exceededAtrack->{'MessageCumulativeSizeLimit'},
+						( $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCumulativeSize'} / 
+							$exceededAtrack->{'MessageCumulativeSizeLimit'} ) * 100
+				);
+			} else {
+				$pCumulativeSizeUsage .= "/-";
+			}
 
 			# Log rejection to mail log
 			$server->maillog("module=Accounting, action=%s, host=%s, helo=%s, from=%s, to=%s, reason=accounting_match, policy=%s, accounting=%s, "
-						."track=%s, period=%s, count=%s/%s (%s%%), size=%s/%s (%s%%)",
+						."track=%s, period=%s, count=%s, size=%s",
 					lc($exceededAtrack->{'Verdict'}),
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
@@ -346,11 +370,7 @@ sub check {
 					$exceededAtrack->{'AccountingID'},
 					$exceededAtrack->{'DBTrackKey'},
 					$exceededAtrack->{'DBPeriodKey'},
-					$exceededAtrack->{'MessageCount'},
-					$exceededAtrack->{'MessageCountLimit'},
 					$pCountUsage,
-					$exceededAtrack->{'MessageCumulativeSize'},
-					$exceededAtrack->{'MessageCumulativeLimit'},
 					$pCumulativeSizeUsage);
 
 			$verdict = $exceededAtrack->{'Verdict'};
@@ -416,31 +436,50 @@ sub check {
 						$atrack->{'MessageCumulativeSize'} += ceil($sessionData->{'Size'} / 1024);
 								
 						# Update database
-						my $sth = DBDo("
+						my $sth = DBDo('
 							UPDATE 
-								accounting_tracking
+								@TP@accounting_tracking
 							SET
-								MessageCumulativeSize = ".DBQuote($atrack->{'MessageCumulativeSize'}).",
-								LastUpdate = ".DBQuote($now)."
+								MessageCumulativeSize = ?,
+								LastUpdate = ?
 							WHERE
-								AccountingID = ".DBQuote($atrack->{'AccountingID'})."
-								AND TrackKey = ".DBQuote($atrack->{'TrackKey'})."
-								AND PeriodKey = ".DBQuote($atrack->{'PeriodKey'})."
-						");
+								AccountingID = ?
+								AND TrackKey = ?
+								AND PeriodKey = ?
+							',
+							$atrack->{'MessageCumulativeSize'},$now,$atrack->{'AccountingID'},$atrack->{'TrackKey'},
+							$atrack->{'PeriodKey'}
+						);
 						if (!$sth) {
 							$server->log(LOG_ERR,"[ACCOUNTING] Failed to update accounting_tracking item: ".cbp::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
 						}
 
 						# Percent used
-						my $pCountUsage =  defined($accounting->{'MessageCountLimit'}) ? sprintf('%.1f', ( $atrack->{'MessageCount'} / 
-								$accounting->{'MessageCountLimit'} ) * 100) : '-'; 
-						my $pCumulativeSizeUsage =  defined($accounting->{'MessageCumulativeSizeLimit'}) ? sprintf('%.1f', ( $atrack->{'MessageCumulativeSize'} / 
-								$accounting->{'MessageCumulativeSizeLimit'} ) * 100) : '-';
+						my $pCountUsage = $atrack->{'MessageCount'};
+						my $pCumulativeSizeUsage =  $atrack->{'MessageCumulativeSize'};
+						# If we have additional limits, add to the usage string
+						if (defined($accounting->{'MessageCountLimit'}) && $accounting->{'MessageCountLimit'} > 0) {
+							$pCountUsage .= sprintf('/%s (%.1f%%)',
+									$accounting->{'MessageCountLimit'},
+									( $atrack->{'MessageCount'} / $accounting->{'MessageCountLimit'} ) * 100
+							);
+						} else {
+							$pCountUsage .= "/-";
+						}
+						if (defined($accounting->{'MessageCumulativeSizeLimit'}) && $accounting->{'MessageCumulativeSizeLimit'} > 0) {
+							$pCumulativeSizeUsage .= sprintf('/%s (%.1f%%)',
+									$accounting->{'MessageCumulativeSizeLimit'},
+									( $atrack->{'MessageCumulativeSize'} / 
+										$accounting->{'MessageCumulativeSizeLimit'} ) * 100
+							);
+						} else {
+							$pCumulativeSizeUsage .= "/-";
+						}
 
 						# Log update to mail log
 						$server->maillog("module=Accounting, mode=update, host=%s, helo=%s, from=%s, to=%s, reason=accounting_update, policy=%s, accounting=%s, "
-									."track=%s, period=%s, count=%s/%s (%s%%), size=%s/%s (%s%%)",
+									."track=%s, period=%s, count=%s, size=%s",
 								$sessionData->{'ClientAddress'},
 								$sessionData->{'Helo'},
 								$sessionData->{'Sender'},
@@ -449,11 +488,7 @@ sub check {
 								$accounting->{'ID'},
 								$trackKey,
 								$periodKey,
-								$atrack->{'MessageCount'},
-								$accounting->{'MessageCountLimit'},
 								$pCountUsage,
-								$atrack->{'MessageCumulativeSize'},
-								$accounting->{'MessageCumulativeSizeLimit'},
 								$pCumulativeSizeUsage);
 					} # foreach my $accounting (@{$accountings})
 				} # foreach my $policyID (@{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}{$priority}})
@@ -464,8 +499,8 @@ sub check {
 	}
 	
 	# Setup result
-	if (!defined($verdict)) {
-		$server->maillog("module=Accounting, action=none, host=%s, helo=%s, from=%s, to=%s, reason=no_accounting",
+	if (!defined($verdict) || $verdict eq "") {
+		$server->maillog("module=Accounting, action=none, host=%s, helo=%s, from=%s, to=%s, reason=no_verdict",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
@@ -575,7 +610,7 @@ sub getAccountings
 	my @res;
 
 	# Grab quota data
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT
 			ID,
 			Track,
@@ -584,14 +619,14 @@ sub getAccountings
 			MessageCumulativeSizeLimit,
 			Verdict,
 			Data
-
 		FROM
-			accounting
-
+			@TP@accounting
 		WHERE
-			PolicyID = ".DBQuote($policyID)."
+			PolicyID = ?
 			AND Disabled = 0
-	");
+		',
+		$policyID
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get accounting data: ".cbp::dblayer::Error());
 		return -1;
@@ -717,18 +752,20 @@ sub getTrackingInfo
 	
 	
 	# Query accounting info
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT 
 			AccountingID,
 			TrackKey, PeriodKey,
 			MessageCount, MessageCumulativeSize
 		FROM
-			accounting_tracking
+			@TP@accounting_tracking
 		WHERE
-			AccountingID = ".DBQuote($accountID)."
-			AND TrackKey = ".DBQuote($trackKey)."
-			AND PeriodKey = ".DBQuote($periodKey)."
-	");
+			AccountingID = ?
+			AND TrackKey = ?
+			AND PeriodKey = ?
+		',
+		$accountID,$trackKey,$periodKey
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[ACCOUNTING] Failed to query accounting_tracking: ".cbp::dblayer::Error());
 		return -1;
@@ -750,12 +787,14 @@ sub getTrackingInfo
 #	my $lastMonth = time() - 2592000;
 #
 #	# Remove old tracking info from database
-#	my $sth = DBDo("
+#	my $sth = DBDo('
 #		DELETE FROM 
-#			accounting_tracking
+#			@TP@accounting_tracking
 #		WHERE
-#			LastUpdate < ".DBQuote($lastMonth)."
-#	");
+#			LastUpdate < ?
+#		',
+#		$lastMonth
+#	);
 #	if (!$sth) {
 #		$server->log(LOG_ERR,"[ACCOUNTING] Failed to remove old accounting tracking records: ".cbp::dblayer::Error());
 #	}

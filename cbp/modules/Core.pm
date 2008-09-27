@@ -44,12 +44,14 @@ sub cleanup
 	my $yesterday = time() - 86400;
 
 	# Remove old tracking info from database
-	my $sth = DBDo("
+	my $sth = DBDo('
 		DELETE FROM 
-			session_tracking
+			@TP@session_tracking
 		WHERE
-			Timestamp < ".DBQuote($yesterday)."	
-	");
+			Timestamp < ?
+		',
+		$yesterday
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CORE] Failed to remove old session tracking records: ".cbp::dblayer::Error());
 	}

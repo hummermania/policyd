@@ -246,16 +246,18 @@ sub check {
 				my $pused =  sprintf('%.1f', ( $newCounters{$qtrack->{'QuotasLimitsID'}} / $qtrack->{'CounterLimit'} ) * 100);
 
 				# Update database
-				my $sth = DBDo("
+				my $sth = DBDo('
 					UPDATE 
-						quotas_tracking
+						@TP@quotas_tracking
 					SET
-						Counter = ".DBQuote($newCounters{$qtrack->{'QuotasLimitsID'}}).",
-						LastUpdate = ".DBQuote($now)."
+						Counter = ?,
+						LastUpdate = ?
 					WHERE
-						QuotasLimitsID = ".DBQuote($qtrack->{'QuotasLimitsID'})."
-						AND TrackKey = ".DBQuote($qtrack->{'TrackKey'})."
-				");
+						QuotasLimitsID = ?
+						AND TrackKey = ?
+					',
+					$newCounters{$qtrack->{'QuotasLimitsID'}},$now,$qtrack->{'QuotasLimitsID'},$qtrack->{'TrackKey'}
+				);
 				if (!$sth) {
 					$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
 					return $server->protocol_response(PROTO_DB_ERROR);
@@ -264,17 +266,14 @@ sub check {
 				# If nothing updated, then insert our record
 				if ($sth eq "0E0") {
 					# Insert into database
-					my $sth = DBDo("
-						INSERT INTO quotas_tracking
+					my $sth = DBDo('
+						INSERT INTO @TP@quotas_tracking
 							(QuotasLimitsID,TrackKey,LastUpdate,Counter)
 						VALUES
-							(
-								".DBQuote($qtrack->{'QuotasLimitsID'}).",
-								".DBQuote($qtrack->{'TrackKey'}).",
-								".DBQuote($qtrack->{'LastUpdate'}).",
-								".DBQuote($newCounters{$qtrack->{'QuotasLimitsID'}})."
-							)
-					");
+							(?,?,?,?)
+						',
+						$qtrack->{'QuotasLimitsID'},$qtrack->{'TrackKey'},$qtrack->{'LastUpdate'},$newCounters{$qtrack->{'QuotasLimitsID'}}
+					);
 					if (!$sth) {
 						$server->log(LOG_ERR,"[QUOTAS] Failed to insert quota_tracking item: ".cbp::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
@@ -410,16 +409,18 @@ sub check {
 								$qtrack->{'Counter'} += $sessionData->{'Size'};
 								
 								# Update database
-								my $sth = DBDo("
+								my $sth = DBDo('
 									UPDATE 
-										quotas_tracking
+										@TP@quotas_tracking
 									SET
-										Counter = ".DBQuote($qtrack->{'Counter'}).",
-										LastUpdate = ".DBQuote($now)."
+										Counter = ?,
+										LastUpdate = ?
 									WHERE
-										QuotasLimitsID = ".DBQuote($qtrack->{'QuotasLimitsID'})."
-										AND TrackKey = ".DBQuote($qtrack->{'TrackKey'})."
-								");
+										QuotasLimitsID = ?
+										AND TrackKey = ?
+									',
+									$qtrack->{'Counter'},$now,$qtrack->{'QuotasLimitsID'},$qtrack->{'TrackKey'}
+								);
 								if (!$sth) {
 									$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
 									return $server->protocol_response(PROTO_DB_ERROR);
@@ -455,7 +456,7 @@ sub check {
 	
 	# Setup result
 	if (!defined($verdict)) {
-		$server->maillog("module=Quotas, action=none, host=%s, helo=%s, from=%s, to=%s, reason=no_quota",
+		$server->maillog("module=Quotas, action=none, host=%s, helo=%s, from=%s, to=%s, reason=no_verdict",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
@@ -561,21 +562,18 @@ sub getQuotas
 	my @res;
 
 	# Grab quota data
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT
 			ID,
-			Period, 
-			Track,
-			Verdict,
-			Data
-
+			Period, Track, Verdict,	Data
 		FROM
-			quotas
-
+			@TP@quotas
 		WHERE
-			PolicyID = ".DBQuote($policyID)."
+			PolicyID = ?
 			AND Disabled = 0
-	");
+		',
+		$policyID
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get quota data: ".cbp::dblayer::Error());
 		return -1;
@@ -671,16 +669,18 @@ sub getTrackingInfo
 	
 	
 	# Query quota info
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT 
 			QuotasLimitsID,
 			TrackKey, Counter, LastUpdate
 		FROM
-			quotas_tracking
+			@TP@quotas_tracking
 		WHERE
-			QuotasLimitsID = ".DBQuote($quotaID)."
-			AND TrackKey = ".DBQuote($key)."
-	");
+			QuotasLimitsID = ?
+			AND TrackKey = ?
+		',
+		$quotaID,$key
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_tracking: ".cbp::dblayer::Error());
 		return -1;
@@ -698,16 +698,18 @@ sub getLimits
 	my ($server,$quotasID) = @_;
 
 	# Query quota info
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT 
 			ID,
 			Type, CounterLimit
 		FROM
-			quotas_limits
+			@TP@quotas_limits
 		WHERE
-			QuotasID = ".DBQuote($quotasID)."
+			QuotasID = ?
 			AND Disabled = 0
-	");
+		',
+		$quotasID
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_limits: ".cbp::dblayer::Error());
 		return -1;
@@ -730,12 +732,14 @@ sub cleanup
 	my $lastMonth = time() - 2592000;
 
 	# Remove old tracking info from database
-	my $sth = DBDo("
+	my $sth = DBDo('
 		DELETE FROM 
-			quotas_tracking
+			@TP@quotas_tracking
 		WHERE
-			LastUpdate < ".DBQuote($lastMonth)."
-	");
+			LastUpdate < ?
+		',
+		$lastMonth
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[QUOTAS] Failed to remove old quota tracking records: ".cbp::dblayer::Error());
 	}

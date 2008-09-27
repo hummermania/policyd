@@ -92,21 +92,19 @@ sub check {
 		# Loop with policies
 		foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}}) {
 
-			my $sth = DBSelect("
+			my $sth = DBSelect('
 				SELECT
 					UseBlacklist, BlacklistPeriod,
-
 					UseHRP, HRPPeriod, HRPLimit,
-
 					RejectInvalid, RejectIP, RejectUnresolvable
-
 				FROM
-					checkhelo
-
+					@TP@checkhelo
 				WHERE
-					PolicyID = ".DBQuote($policyID)."
+					PolicyID = ?
 					AND Disabled = 0
-			");
+				',
+				$policyID
+			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
@@ -149,31 +147,31 @@ sub check {
 	}
 
 	# Insert/update HELO in database
-	my $sth = DBDo("
+	my $sth = DBDo('
 		UPDATE
-			checkhelo_tracking
+			@TP@checkhelo_tracking
 		SET
-			LastUpdate = ".DBQuote($sessionData->{'Timestamp'})."
+			LastUpdate = ?
 		WHERE
-			Address = ".DBQuote($sessionData->{'ClientAddress'})."
-			AND Helo = ".DBQuote($sessionData->{'Helo'})."
-	");
+			Address = ?
+			AND Helo = ?
+		',
+		$sessionData->{'Timestamp'},$sessionData->{'ClientAddress'},$sessionData->{'Helo'}
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Database update failed: ".cbp::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# If we didn't update anything, insert
 	if ($sth eq "0E0") {
-		$sth = DBDo("
-			INSERT INTO checkhelo_tracking
+		$sth = DBDo('
+			INSERT INTO @TP@checkhelo_tracking
 				(Address,Helo,LastUpdate)
-			Values
-				(
-					".DBQuote($sessionData->{'ClientAddress'}).",
-					".DBQuote($sessionData->{'Helo'}).",
-					".DBQuote($sessionData->{'Timestamp'})."
-				)
-		");
+			VALUES
+				(?,?,?)
+			',
+			$sessionData->{'ClientAddress'},$sessionData->{'Helo'},$sessionData->{'Timestamp'}
+		);
 		if (!$sth) {
 			use Data::Dumper;
 			$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error().", data: ".Dumper($sessionData));
@@ -187,16 +185,16 @@ sub check {
 	}
 
 	# Check if we whitelisted or not...
-	$sth = DBSelect("
+	$sth = DBSelect('
 		SELECT
 			Source
 
 		FROM
-			checkhelo_whitelist
+			@TP@checkhelo_whitelist
 
 		WHERE
 			Disabled = 0
-	");
+	');
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
@@ -348,19 +346,21 @@ sub check {
 			}
 		}
 		# Select and compare the number of tracking HELO's in the past time with the blacklisted ones
-		$sth = DBSelect("
+		$sth = DBSelect('
 			SELECT
 				Count(*) AS Count
 
 			FROM
-				checkhelo_tracking, checkhelo_blacklist
+				@TP@checkhelo_tracking, @TP@checkhelo_blacklist
 
 			WHERE
-				checkhelo_tracking.LastUpdate >= ".DBQuote($start)."
-				AND checkhelo_tracking.Address = ".DBQuote($sessionData->{'ClientAddress'})."
-				AND checkhelo_tracking.Helo = checkhelo_blacklist.Helo
-				AND checkhelo_blacklist.Disabled = 0
-		");
+				@TPcheckhelo_tracking.LastUpdate >= ?
+				AND @TP@checkhelo_tracking.Address = ?
+				AND @TP@checkhelo_tracking.Helo = @TP@checkhelo_blacklist.Helo
+				AND @TP@checkhelo_blacklist.Disabled = 0
+			',
+			$start,$sessionData->{'ClientAddress'}
+		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
 			return $server->protocol_response(PROTO_DB_ERROR);
@@ -402,17 +402,19 @@ sub check {
 							}
 						}
 
-						my $sth = DBSelect("
+						my $sth = DBSelect('
 							SELECT
 								Count(*) AS Count
 
 							FROM
-								checkhelo_tracking
+								@TP@checkhelo_tracking
 
 							WHERE
-								Address = ".DBQuote($sessionData->{'ClientAddress'})."
-								AND LastUpdate >= ".DBQuote($start)."
-						");
+								Address = ?
+								AND LastUpdate >= ?
+							',
+							$sessionData->{'ClientAddress'},$start
+						);
 						if (!$sth) {
 							$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
@@ -473,12 +475,12 @@ sub cleanup
 	#
 	
 	# Get maximum periods
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT 
 			MAX(BlacklistPeriod) AS BlacklistPeriod, MAX(HRPPeriod) AS HRPPeriod
 		FROM 
-			checkhelo
-	");
+			@TP@checkhelo
+	');
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Failed to query maximum periods: ".cbp::dblayer::Error());
 		return -1;
@@ -498,12 +500,14 @@ sub cleanup
 	$period = $now - $period;
 
 	# Remove old tracking entries from database
-	$sth = DBDo("
+	$sth = DBDo('
 		DELETE FROM 
-			checkhelo_tracking
+			@TP@checkhelo_tracking
 		WHERE
-			LastUpdate < ".DBQuote($period)."
-	");
+			LastUpdate < ?
+		',
+		$period
+	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Failed to remove old helo records: ".cbp::dblayer::Error());
 		return -1;

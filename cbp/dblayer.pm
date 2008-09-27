@@ -97,13 +97,18 @@ sub setHandle
 # Args: <select statement>
 sub DBSelect
 {
-	my $query = shift;
+	my ($query,@params) = @_;
 
+
+	my $table_prefix = $dbh->table_prefix();
+
+	# Replace table prefix macro
+	$query =~ s/\@TP\@/$table_prefix/g;
 
 	# Prepare query
 	my $sth;
-	if (!($sth = $dbh->select($query))) {
-		setError("Error executing select: ".$dbh->Error());
+	if (!($sth = $dbh->select($query,@params))) {
+		setError("Error executing select '$query': ".$dbh->Error());
 		return undef;	
 	}
 
@@ -115,13 +120,18 @@ sub DBSelect
 # Args: <command statement>
 sub DBDo
 {
-	my $command = shift;
+	my ($command,@params) = @_;
 
+
+	my $table_prefix = $dbh->table_prefix();
+
+	# Replace table prefix macro
+	$command =~ s/\@TP\@/$table_prefix/g;
 
 	# Prepare query
 	my $sth;
-	if (!($sth = $dbh->do($command))) {
-		setError("Error executing command: ".$dbh->Error());
+	if (!($sth = $dbh->do($command,@params))) {
+		setError("Error executing command '$command': ".$dbh->Error());
 		return undef;	
 	}
 

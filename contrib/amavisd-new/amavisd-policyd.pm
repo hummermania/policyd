@@ -25,6 +25,7 @@ use lib('/usr/local/lib/policyd-2.0','/usr/lib/policyd-2.0');
 my $DB_dsn = "DBI:SQLite:dbname=/tmp/cluebringer.sqlite";
 my $DB_user = "";
 my $DB_pass = "";
+my $DB_prefix = "";
 
 
 # This is the amavis rule options we can use
@@ -109,6 +110,7 @@ sub new {
 	$self->{'inifile'}{'database'}{'dsn'} = $DB_dsn;
 	$self->{'inifile'}{'database'}{'username'} = $DB_user;
 	$self->{'inifile'}{'database'}{'password'} = $DB_pass;
+	$self->{'inifile'}{'database'}{'table_prefix'} = $DB_prefix;
 	cbp::config::Init($self);
 	
 	# Init system stuff
@@ -670,7 +672,7 @@ sub getAmavisRule
 
 	
 	# Query amavis rules table
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT 
 			ID,
 
@@ -703,12 +705,14 @@ sub getAmavisRule
 			bcc_to_m
 
 		FROM
-			amavis_rules
+			@TP@amavis_rules
 
 		WHERE
-			PolicyID = ".DBQuote($policyID)."
+			PolicyID = ?
 			AND Disabled = 0
-	");
+		',
+		$policyID
+	);
 	if (!$sth) {
 		do_log(-2,"policyd/process_policyd: Failed to query amavis: ".cbp::dblayer::Error());
 		return;

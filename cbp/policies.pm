@@ -90,15 +90,15 @@ sub getPolicy
 	# Grab all the policy members
 	my $sth = DBSelect('
 		SELECT 
-			policies.Name, policies.Priority, policies.Disabled AS PolicyDisabled,
-			policy_members.ID, policy_members.PolicyID, policy_members.Source, 
-			policy_members.Destination, policy_members.Disabled AS MemberDisabled
+			@TP@policies.Name, @TP@policies.Priority, @TP@policies.Disabled AS PolicyDisabled,
+			@TP@policy_members.ID, @TP@policy_members.PolicyID, @TP@policy_members.Source, 
+			@TP@policy_members.Destination, @TP@policy_members.Disabled AS MemberDisabled
 		FROM
-			policies, policy_members
+			@TP@policies, @TP@policy_members
 		WHERE
-			policies.Disabled = 0
-			AND policy_members.Disabled = 0
-			AND policy_members.PolicyID = policies.ID
+			@TP@policies.Disabled = 0
+			AND @TP@policy_members.Disabled = 0
+			AND @TP@policy_members.PolicyID = @TP@policies.ID
 	');
 	if (!$sth) {
 		$server->log(LOG_DEBUG,"[POLICIES] Error while selecing policy members from database: ".cbp::dblayer::Error());
@@ -226,17 +226,19 @@ sub getGroupMembers
 
 
 	# Grab group members
-	my $sth = DBSelect("
+	my $sth = DBSelect('
 		SELECT 
-			policy_group_members.Member
+			@TP@policy_group_members.Member
 		FROM
-			policy_groups, policy_group_members
+			@TP@policy_groups, @TP@policy_group_members
 		WHERE
-			policy_groups.Name = ".DBQuote($group)."
-			AND policy_groups.ID = policy_group_members.PolicyGroupID
-			AND policy_groups.Disabled = 0
-			AND policy_group_members.Disabled = 0
-	");
+			@TP@policy_groups.Name = ?
+			AND @TP@policy_groups.ID = @TP@policy_group_members.PolicyGroupID
+			AND @TP@policy_groups.Disabled = 0
+			AND @TP@policy_group_members.Disabled = 0
+		',
+		$group
+	);
 	if (!$sth) {
 		return cbp::dblayer::Error();
 	}
