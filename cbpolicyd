@@ -321,7 +321,7 @@ sub child_finish_hook {
 sub process_request {
 	my $self = shift;
 	my $server = $self->{'server'};
-	my $log = defined($server->{'config'}{'logging'}{'modules'});
+	my $log = defined($self->{'config'}{'logging'}{'modules'});
 
 
 	# Found module
