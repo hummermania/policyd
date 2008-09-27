@@ -508,19 +508,54 @@ sub check {
 
 		return CBP_CONTINUE;
 	} if ($verdict =~ /^defer$/i) {
+		$server->maillog("module=Accounting, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
+				$sessionData->{'ClientAddress'},
+				$sessionData->{'Helo'},
+				$sessionData->{'Sender'},
+				$sessionData->{'Recipient'});
 		return $server->protocol_response(PROTO_DEFER,$verdict_data);
 	} if ($verdict =~ /^hold$/i) {
+		$server->maillog("module=Accounting, action=hold, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
+				$sessionData->{'ClientAddress'},
+				$sessionData->{'Helo'},
+				$sessionData->{'Sender'},
+				$sessionData->{'Recipient'});
 		return $server->protocol_response(PROTO_HOLD,$verdict_data);
 	} elsif ($verdict =~ /^reject$/i) {
+		$server->maillog("module=Accounting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
+				$sessionData->{'ClientAddress'},
+				$sessionData->{'Helo'},
+				$sessionData->{'Sender'},
+				$sessionData->{'Recipient'});
 		return $server->protocol_response(PROTO_REJECT,$verdict_data);
 	} elsif ($verdict =~ /^discard$/i) {
+		$server->maillog("module=Accounting, action=discard, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
+				$sessionData->{'ClientAddress'},
+				$sessionData->{'Helo'},
+				$sessionData->{'Sender'},
+				$sessionData->{'Recipient'});
 		return $server->protocol_response(PROTO_DISCARD,$verdict_data);
 	} elsif ($verdict =~ /^filter$/i) {
+		$server->maillog("module=Accounting, action=filter, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
+				$sessionData->{'ClientAddress'},
+				$sessionData->{'Helo'},
+				$sessionData->{'Sender'},
+				$sessionData->{'Recipient'});
 		return $server->protocol_response(PROTO_FILTER,$verdict_data);
 	} elsif ($verdict =~ /^redirect$/i) {
+		$server->maillog("module=Accounting, action=redirect, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
+				$sessionData->{'ClientAddress'},
+				$sessionData->{'Helo'},
+				$sessionData->{'Sender'},
+				$sessionData->{'Recipient'});
 		return $server->protocol_response(PROTO_REDIRECT,$verdict_data);
 	} else {
 		$server->log(LOG_ERR,"[ACCOUNTING] Unknown Verdict specification in access control '$verdict'");
+		$server->maillog("module=Accounting, action=none, host=%s, helo=%s, from=%s, to=%s, reason=invalid_verdict",
+				$sessionData->{'ClientAddress'},
+				$sessionData->{'Helo'},
+				$sessionData->{'Sender'},
+				$sessionData->{'Recipient'});
 		return $server->protocol_response(PROTO_DATA_ERROR);
 	}
 }
