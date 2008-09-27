@@ -23,6 +23,7 @@ use lib('/usr/local/lib/policyd-2.0','/usr/lib/policyd-2.0');
 
 
 my $DB_dsn = "DBI:SQLite:dbname=/tmp/cluebringer.sqlite";
+#my $DB_dsn = "DBI:mysql:database=cluebringer;host=localhost";
 my $DB_user = "";
 my $DB_pass = "";
 my $DB_prefix = "";
