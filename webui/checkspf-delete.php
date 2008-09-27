@@ -73,7 +73,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['checkspf_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM checkspf WHERE ID = ".$db->quote($_POST['checkspf_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}checkspf WHERE ID = ".$db->quote($_POST['checkspf_id']));
 			if ($res) {
 ?>
 				<div class="notice">SPF check deleted</div>

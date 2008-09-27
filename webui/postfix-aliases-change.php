@@ -43,7 +43,7 @@ if ($_POST['frmaction'] == "change") {
 	# Check a alias was selected
 	if (isset($_POST['postfix_alias_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('SELECT ID, MailAddress, Goto, Disabled FROM aliases WHERE ID = ?');
+		$stmt = $db->prepare("SELECT ID, MailAddress, Goto, Disabled FROM ${DB_TABLE_PREFIX}aliases WHERE ID = ?");
 ?>
 		<p class="pageheader">Update Postfix Alias</p>
 
@@ -124,7 +124,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE aliases SET $updateStr WHERE ID = ".$db->quote($_POST['postfix_alias_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}aliases SET $updateStr WHERE ID = ".$db->quote($_POST['postfix_alias_id']));
 		if ($res) {
 ?>
 			<div class="notice">Postfix alias updated</div>

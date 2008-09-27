@@ -79,7 +79,7 @@ if ($_POST['frmaction'] == "delete") {
 					SELECT 
 						ID
 					FROM 
-						quotas_limits
+						${DB_TABLE_PREFIX}quotas_limits
 					WHERE
 						QuotasID = ".$db->quote($_POST['quota_id'])."
 			");
@@ -107,7 +107,7 @@ if ($_POST['frmaction'] == "delete") {
 
 				$stmt = $db->prepare("
 					DELETE FROM 
-						quotas_tracking 
+						${DB_TABLE_PREFIX}quotas_tracking 
 					WHERE 
 						QuotasLimitsID = ?
 				");
@@ -136,7 +136,7 @@ if ($_POST['frmaction'] == "delete") {
 			if ($res !== FALSE) {
 				$stmt = $db->prepare("
 						DELETE FROM 
-							quotas_limits 
+							${DB_TABLE_PREFIX}quotas_limits 
 						WHERE 
 							QuotasID = ?"
 				);
@@ -157,7 +157,7 @@ if ($_POST['frmaction'] == "delete") {
 
 			# Check last query succeeded, if so continue
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM quotas WHERE ID = ".$db->quote($_POST['quota_id']));
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}quotas WHERE ID = ".$db->quote($_POST['quota_id']));
 				if ($res) {
 ?>
 					<div class="notice">Quota deleted</div>

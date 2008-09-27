@@ -43,7 +43,7 @@ if ($_POST['frmaction'] == "change") {
 	# Check a policy was selected
 	if (isset($_POST['policy_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('SELECT ID, Name, Priority, Description, Disabled FROM policies WHERE ID = ?');
+		$stmt = $db->prepare("SELECT ID, Name, Priority, Description, Disabled FROM ${DB_TABLE_PREFIX}policies WHERE ID = ?");
 ?>
 		<p class="pageheader">Update Policies</p>
 
@@ -134,7 +134,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE policies SET $updateStr WHERE ID = ".$db->quote($_POST['policy_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}policies SET $updateStr WHERE ID = ".$db->quote($_POST['policy_id']));
 		if ($res) {
 ?>
 			<div class="notice">Policy updated</div>

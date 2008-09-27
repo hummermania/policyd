@@ -73,7 +73,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['postfix_transport_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM transports WHERE ID = ".$db->quote($_POST['postfix_transport_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}transports WHERE ID = ".$db->quote($_POST['postfix_transport_id']));
 			if ($res) {
 ?>
 				<div class="notice">Postfix transport deleted</div>

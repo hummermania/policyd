@@ -36,8 +36,8 @@ printHeader(array(
 # Check a policy was selected
 if (isset($_REQUEST['quota_id'])) {
 
-	$stmt = $db->prepare('SELECT Type, CounterLimit, Disabled FROM quota_limits WHERE QuotaID = ?');
-	$quota_stmt = $db->prepare('SELECT Name FROM quotas WHERE ID = ?');
+	$stmt = $db->prepare("SELECT Type, CounterLimit, Disabled FROM ${DB_TABLE_PREFIX}quota_limits WHERE QuotaID = ?");
+	$quota_stmt = $db->prepare("SELECT Name FROM ${DB_TABLE_PREFIX}quotas WHERE ID = ?");
 	$quota_stmt->execute(array($_REQUEST['quota_id']));
 	$row = $quota_stmt->fetchObject();
 	$quota_stmt->closeCursor();
@@ -90,7 +90,7 @@ if (isset($_REQUEST['quota_id'])) {
 			</tr>
 <?php
 
-			$stmt = $db->prepare('SELECT ID, Type, CounterLimit, Disabled FROM quotas_limits WHERE QuotasID = ?');
+			$stmt = $db->prepare("SELECT ID, Type, CounterLimit, Disabled FROM ${DB_TABLE_PREFIX}quotas_limits WHERE QuotasID = ?");
 			$res = $stmt->execute(array($_REQUEST['quota_id']));
 
 			$i = 0;

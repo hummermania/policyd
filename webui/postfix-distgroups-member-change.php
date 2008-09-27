@@ -43,7 +43,7 @@ if ($_POST['frmaction'] == "change") {
 	# Check a postfix was selected
 	if (isset($_POST['postfix_group_member_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('SELECT ID, Goto, Disabled FROM distribution_group_members WHERE ID = ?');
+		$stmt = $db->prepare("SELECT ID, Goto, Disabled FROM ${DB_TABLE_PREFIX}distribution_group_members WHERE ID = ?");
 ?>
 		<p class="pageheader">Update Distribution Group Member</p>
 
@@ -116,7 +116,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE distribution_group_members SET $updateStr WHERE ID = ".$db->quote($_POST['postfix_group_member_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}distribution_group_members SET $updateStr WHERE ID = ".$db->quote($_POST['postfix_group_member_id']));
 		if ($res) {
 ?>
 			<div class="notice">Distribution group member updated</div>

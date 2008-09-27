@@ -43,24 +43,24 @@ if ($_POST['frmaction'] == "change") {
 	# Check a accounting was selected
 	if (isset($_POST['accounting_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				accounting.ID, accounting.PolicyID, accounting.Name, 
-				accounting.Track, accounting.AccountingPeriod, 
-				accounting.MessageCountLimit, accounting.MessageCumulativeSizeLimit,
-				accounting.Verdict, accounting.Data, 
-				accounting.Comment, 
-				accounting.Disabled,
+				${DB_TABLE_PREFIX}accounting.ID, ${DB_TABLE_PREFIX}accounting.PolicyID, ${DB_TABLE_PREFIX}accounting.Name, 
+				${DB_TABLE_PREFIX}accounting.Track, ${DB_TABLE_PREFIX}accounting.AccountingPeriod, 
+				${DB_TABLE_PREFIX}accounting.MessageCountLimit, ${DB_TABLE_PREFIX}accounting.MessageCumulativeSizeLimit,
+				${DB_TABLE_PREFIX}accounting.Verdict, ${DB_TABLE_PREFIX}accounting.Data, 
+				${DB_TABLE_PREFIX}accounting.Comment, 
+				${DB_TABLE_PREFIX}accounting.Disabled,
 				
-				policies.Name AS PolicyName
+				${DB_TABLE_PREFIX}policies.Name AS PolicyName
 				
 			FROM 
-				accounting, policies 
+				${DB_TABLE_PREFIX}accounting, ${DB_TABLE_PREFIX}policies 
 
 			WHERE 
-				accounting.ID = ?
-				AND policies.ID = accounting.PolicyID
-			');
+				${DB_TABLE_PREFIX}accounting.ID = ?
+				AND ${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}accounting.PolicyID
+			");
 ?>
 		<p class="pageheader">Update Accounting</p>
 
@@ -94,7 +94,7 @@ if ($_POST['frmaction'] == "change") {
 						<select name="accounting_policyid">
 							<option value="">--</option>
 <?php
-							$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+							$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 							while ($row2 = $res->fetchObject()) {
 ?>
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
@@ -264,7 +264,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE accounting SET $updateStr WHERE ID = ".$db->quote($_POST['accounting_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}accounting SET $updateStr WHERE ID = ".$db->quote($_POST['accounting_id']));
 		if ($res) {
 ?>
 			<div class="notice">Accounting updated</div>

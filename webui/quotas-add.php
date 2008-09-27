@@ -85,7 +85,7 @@ if ($_POST['frmaction'] == "add") {
 				<td>
 					<select name="quota_policyid">
 <?php
-						$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+						$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 						while ($row = $res->fetchObject()) {
 ?>
 							<option value="<?php echo $row->id ?>"><?php echo $row->name ?></option>
@@ -160,7 +160,7 @@ if ($_POST['frmaction'] == "add") {
 		}
 
 
-		$stmt = $db->prepare("INSERT INTO quotas (PolicyID,Name,Track,Period,Verdict,Data,Comment,Disabled) VALUES (?,?,?,?,?,?,?,1)");
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}quotas (PolicyID,Name,Track,Period,Verdict,Data,Comment,Disabled) VALUES (?,?,?,?,?,?,?,1)");
 		
 		$res = $stmt->execute(array(
 			$_POST['quota_policyid'],

@@ -75,20 +75,20 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = '
+			$sql = "
 					SELECT 
-						greylisting.ID, greylisting.Name, greylisting.Disabled,
-						policies.Name AS PolicyName
+						${DB_TABLE_PREFIX}greylisting.ID, ${DB_TABLE_PREFIX}greylisting.Name, ${DB_TABLE_PREFIX}greylisting.Disabled,
+						${DB_TABLE_PREFIX}policies.Name AS PolicyName
 
 					FROM 
-						greylisting, policies
+						${DB_TABLE_PREFIX}greylisting, ${DB_TABLE_PREFIX}policies
 
 					WHERE
-						policies.ID = greylisting.PolicyID
+						${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}greylisting.PolicyID
 
 					ORDER BY 
-						policies.Name
-			';
+						${DB_TABLE_PREFIX}policies.Name
+			";
 			$res = $db->query($sql);
 
 			# Check if we got a result

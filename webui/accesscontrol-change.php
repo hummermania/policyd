@@ -43,20 +43,21 @@ if ($_POST['frmaction'] == "change") {
 	# Check a access control was selected
 	if (isset($_POST['accesscontrol_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				access_control.ID, access_control.PolicyID, access_control.Name, access_control.Verdict, access_control.Data, access_control.Comment, 
-				access_control.Disabled,
+				${DB_TABLE_PREFIX}access_control.ID, ${DB_TABLE_PREFIX}access_control.PolicyID, ${DB_TABLE_PREFIX}access_control.Name, 
+				${DB_TABLE_PREFIX}access_control.Verdict, ${DB_TABLE_PREFIX}access_control.Data, 
+				${DB_TABLE_PREFIX}access_control.Comment, ${DB_TABLE_PREFIX}access_control.Disabled,
 				
-				policies.Name AS PolicyName
+				${DB_TABLE_PREFIX}policies.Name AS PolicyName
 				
 			FROM 
-				access_control, policies 
+				${DB_TABLE_PREFIX}access_control, ${DB_TABLE_PREFIX}policies 
 
 			WHERE 
-				access_control.ID = ?
-				AND policies.ID = access_control.PolicyID
-			');
+				${DB_TABLE_PREFIX}access_control.ID = ?
+				AND ${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}access_control.PolicyID
+			");
 ?>
 		<p class="pageheader">Update Access Control</p>
 
@@ -90,7 +91,7 @@ if ($_POST['frmaction'] == "change") {
 						<select name="accesscontrol_policyid">
 							<option value="">--</option>
 <?php
-							$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+							$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 							while ($row2 = $res->fetchObject()) {
 ?>
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
@@ -187,7 +188,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE access_control SET $updateStr WHERE ID = ".$db->quote($_POST['accesscontrol_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}access_control SET $updateStr WHERE ID = ".$db->quote($_POST['accesscontrol_id']));
 		if ($res) {
 ?>
 			<div class="notice">Access control updated</div>

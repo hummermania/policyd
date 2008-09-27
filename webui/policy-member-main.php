@@ -41,7 +41,7 @@ if (isset($_REQUEST['policy_id'])) {
 	
 <?php		
 
-	$policy_stmt = $db->prepare('SELECT Name FROM policies WHERE ID = ?');
+	$policy_stmt = $db->prepare("SELECT Name FROM ${DB_TABLE_PREFIX}policies WHERE ID = ?");
 	$policy_stmt->execute(array($_REQUEST['policy_id']));
 	$row = $policy_stmt->fetchObject();
 	$policy_stmt->closeCursor();
@@ -91,7 +91,7 @@ if (isset($_REQUEST['policy_id'])) {
 			</tr>
 <?php
 
-			$stmt = $db->prepare('SELECT ID, Source, Destination, Disabled FROM policy_members WHERE PolicyID = ?');
+			$stmt = $db->prepare("SELECT ID, Source, Destination, Disabled FROM ${DB_TABLE_PREFIX}policy_members WHERE PolicyID = ?");
 			$res = $stmt->execute(array($_REQUEST['policy_id']));
 
 			$i = 0;

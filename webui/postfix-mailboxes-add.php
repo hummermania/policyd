@@ -51,7 +51,7 @@ if ($_POST['frmaction'] == "add")  {
 						<input type="text" size="8" name="postfix_mailbox_address" /> @
 						<select name="postfix_transport_id">
 <?php
-							$sql = 'SELECT ID, DomainName FROM transports WHERE Disabled = 0 ORDER BY DomainName';
+							$sql = "SELECT ID, DomainName FROM ${DB_TABLE_PREFIX}transports WHERE Disabled = 0 ORDER BY DomainName";
 							$res = $db->query($sql);
 
 							while ($row = $res->fetchObject()) {
@@ -110,13 +110,18 @@ if ($_POST['frmaction'] == "add")  {
 
 <?php
 	# Prepare statement
-	$stmt = $db->prepare('SELECT ID, DomainName, Type, Transport, Disabled FROM transports WHERE ID = ?');
+	$stmt = $db->prepare("SELECT ID, DomainName, Type, Transport, Disabled FROM ${DB_TABLE_PREFIX}transports WHERE ID = ?");
 	$res = $stmt->execute(array($_POST['postfix_transport_id']));
 	$row = $stmt->fetchObject();
 
 	$mailbox = $_POST['postfix_mailbox_address'] . '@' . $row->domainname;
 
-	$stmt = $db->prepare("INSERT INTO mailboxes (TransportID,Address,Mailbox,Password,Quota,Name,BCC,Comment,Disabled) VALUES (?,?,?,?,?,?,?,?,0)");
+	$stmt = $db->prepare("
+		INSERT INTO ${DB_TABLE_PREFIX}mailboxes 
+			(TransportID,Address,Mailbox,Password,Quota,Name,BCC,Comment,Disabled) 
+		VALUES 
+			(?,?,?,?,?,?,?,?,0)
+	");
 
 	# Encrypt password
 	$password = "{MD5}".base64_encode(pack("H*", md5($_POST['postfix_mailbox_password'])));

@@ -73,7 +73,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['postfix_alias_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM aliases WHERE ID = ".$db->quote($_POST['postfix_alias_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}aliases WHERE ID = ".$db->quote($_POST['postfix_alias_id']));
 			if ($res) {
 ?>
 				<div class="notice">Postfix alias deleted</div>

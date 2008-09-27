@@ -79,7 +79,7 @@ if ($_POST['frmaction'] == "delete") {
 
 			$stmt = $db->prepare("
 				DELETE FROM 
-					accounting_tracking 
+					${DB_TABLE_PREFIX}accounting_tracking 
 				WHERE 
 					AccountingID = ?
 			");
@@ -99,7 +99,7 @@ if ($_POST['frmaction'] == "delete") {
 
 
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM accounting WHERE ID = ".$db->quote($_POST['accounting_id']));
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}accounting WHERE ID = ".$db->quote($_POST['accounting_id']));
 				if ($res) {
 ?>
 					<div class="notice">Accounting deleted</div>

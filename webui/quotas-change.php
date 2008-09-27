@@ -42,20 +42,22 @@ if ($_POST['frmaction'] == "change") {
 	# Check a quota was selected
 	if (isset($_POST['quota_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				quotas.ID, quotas.PolicyID, quotas.Name, quotas.Track, quotas.Period, quotas.Verdict, quotas.Data, 
-				quotas.Comment, quotas.Disabled,
+				${DB_TABLE_PREFIX}quotas.ID, ${DB_TABLE_PREFIX}quotas.PolicyID, ${DB_TABLE_PREFIX}quotas.Name, 
+				${DB_TABLE_PREFIX}quotas.Track, ${DB_TABLE_PREFIX}quotas.Period, 
+				${DB_TABLE_PREFIX}quotas.Verdict, ${DB_TABLE_PREFIX}quotas.Data, 
+				${DB_TABLE_PREFIX}quotas.Comment, ${DB_TABLE_PREFIX}quotas.Disabled,
 				
-				policies.Name AS PolicyName
+				${DB_TABLE_PREFIX}policies.Name AS PolicyName
 				
 			FROM 
-				quotas, policies 
+				${DB_TABLE_PREFIX}quotas, ${DB_TABLE_PREFIX}policies 
 
 			WHERE 
-				quotas.ID = ?
-				AND policies.ID = quotas.PolicyID
-			');
+				${DB_TABLE_PREFIX}quotas.ID = ?
+				AND ${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}quotas.PolicyID
+			");
 ?>
 		<p class="pageheader">Update Quota</p>
 
@@ -89,7 +91,7 @@ if ($_POST['frmaction'] == "change") {
 						<select name="quota_policyid">
 							<option value="">--</option>
 <?php
-							$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+							$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 							while ($row2 = $res->fetchObject()) {
 ?>
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
@@ -230,7 +232,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE quotas SET $updateStr WHERE ID = ".$db->quote($_POST['quota_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}quotas SET $updateStr WHERE ID = ".$db->quote($_POST['quota_id']));
 		if ($res) {
 ?>
 			<div class="notice">Quota updated</div>

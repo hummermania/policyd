@@ -75,7 +75,7 @@ printHeader(array(
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, MailAddress, Disabled FROM distribution_groups ORDER BY MailAddress';
+			$sql = "SELECT ID, MailAddress, Disabled FROM ${DB_TABLE_PREFIX}distribution_groups ORDER BY MailAddress";
 			$res = $db->query($sql);
 			
 			while ($row = $res->fetchObject()) {

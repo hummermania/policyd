@@ -44,7 +44,7 @@ if ($_POST['frmaction'] == "change") {
 	# Check a policy member was selected
 	if (isset($_POST['policy_member_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('SELECT ID, Source, Destination, Comment, Disabled FROM policy_members WHERE ID = ?');
+		$stmt = $db->prepare("SELECT ID, Source, Destination, Comment, Disabled FROM ${DB_TABLE_PREFIX}policy_members WHERE ID = ?");
 		$res = $stmt->execute(array($_POST['policy_member_id']));
 		$row = $stmt->fetchObject();
 		$stmt->closeCursor();
@@ -139,7 +139,7 @@ if ($_POST['frmaction'] == "change") {
 		if (sizeof($updates) > 0) {
 			$updateStr = implode(', ',$updates);
 	
-			$res = $db->exec("UPDATE policy_members SET $updateStr WHERE ID = ".$db->quote($_POST['policy_member_id']));
+			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}policy_members SET $updateStr WHERE ID = ".$db->quote($_POST['policy_member_id']));
 			if ($res) {
 ?>
 				<div class="notice">Policy member updated</div>

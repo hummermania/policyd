@@ -74,7 +74,12 @@ if ($_POST['frmaction'] == "delete") {
 
 		if ($_POST['confirm'] == "yes") {	
 			
-			$res = $db->exec("DELETE FROM distribution_group_members WHERE DistributionGroupID = ".$db->quote($_POST['postfix_group_id']));
+			$res = $db->exec("
+				DELETE FROM 
+					${DB_TABLE_PREFIX}distribution_group_members 
+				WHERE 
+					DistributionGroupID = ".$db->quote($_POST['postfix_group_id'])
+			);
 			if ($res !== FALSE) {
 ?>
 				<div class="notice">Distribution group members deleted</div>
@@ -88,7 +93,7 @@ if ($_POST['frmaction'] == "delete") {
 			}
 
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM distribution_groups WHERE ID = ".$db->quote($_POST['postfix_group_id']));
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}distribution_groups WHERE ID = ".$db->quote($_POST['postfix_group_id']));
 				if ($res) {
 ?>
 					<div class="notice">Distribution group deleted</div>

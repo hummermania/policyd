@@ -115,7 +115,7 @@ if ($_POST['frmaction'] == "add") {
 				<td>
 					<select name="amavis_policyid">
 <?php
-						$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+						$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 						while ($row = $res->fetchObject()) {
 ?>
 							<option value="<?php echo $row->id ?>"><?php echo $row->name ?></option>
@@ -937,7 +937,7 @@ if ($_POST['frmaction'] == "add") {
 		array_push($dbinfo,$_POST['amavis_comment']);
 
 		$stmt = $db->prepare("
-			INSERT INTO amavis_rules
+			INSERT INTO ${DB_TABLE_PREFIX}amavis_rules
 				(
 					PolicyID,Name,
 					

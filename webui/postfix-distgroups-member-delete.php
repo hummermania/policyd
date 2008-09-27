@@ -74,7 +74,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['postfix_group_member_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM distribution_group_members WHERE ID = ".$db->quote($_POST['postfix_group_member_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}distribution_group_members WHERE ID = ".$db->quote($_POST['postfix_group_member_id']));
 			
 			if ($res) {
 ?>

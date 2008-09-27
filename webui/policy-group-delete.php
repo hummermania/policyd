@@ -75,7 +75,7 @@ if ($_POST['frmaction'] == "delete") {
 		if ($_POST['confirm'] == "yes") {	
 			$db->beginTransaction();
 
-			$res = $db->exec("DELETE FROM policy_group_members WHERE PolicyGroupID = ".$db->quote($_POST['policy_group_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}policy_group_members WHERE PolicyGroupID = ".$db->quote($_POST['policy_group_id']));
 			if ($res !== FALSE) {
 ?>
 				<div class="notice">Policy group members deleted</div>
@@ -89,7 +89,7 @@ if ($_POST['frmaction'] == "delete") {
 			}
 
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM policy_groups WHERE ID = ".$db->quote($_POST['policy_group_id']));
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}policy_groups WHERE ID = ".$db->quote($_POST['policy_group_id']));
 				if ($res) {
 ?>
 					<div class="notice">Policy group deleted</div>

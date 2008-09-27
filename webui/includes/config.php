@@ -10,6 +10,7 @@
 $DB_DSN="mysql:host=localhost;dbname=policyd";
 $DB_USER="root";
 #$DB_PASS="";
+$DB_TABLE_PREFIX="";
 
 $DB_POSTFIX_DSN="mysql:host=localhost;dbname=postfix";
 $DB_POSTFIX_USER="root";

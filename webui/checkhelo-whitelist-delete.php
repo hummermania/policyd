@@ -73,7 +73,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['whitelist_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM checkhelo_whitelist WHERE ID = ".$db->quote($_POST['whitelist_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}checkhelo_whitelist WHERE ID = ".$db->quote($_POST['whitelist_id']));
 			if ($res) {
 ?>
 				<div class="notice">HELO/EHLO whitelist deleted</div>

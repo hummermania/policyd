@@ -75,7 +75,7 @@ printHeader(array(
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, Name, Disabled FROM policy_groups ORDER BY Name';
+			$sql = "SELECT ID, Name, Disabled FROM ${DB_TABLE_PREFIX}policy_groups ORDER BY Name";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {

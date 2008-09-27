@@ -43,20 +43,22 @@ if ($_POST['frmaction'] == "change") {
 	# Check a SPF check was selected
 	if (isset($_POST['checkspf_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				checkspf.ID, checkspf.PolicyID, checkspf.Name, checkspf.UseSPF, checkspf.RejectFailedSPF, checkspf.AddSPFHeader,
-				checkspf.Comment, checkspf.Disabled,
+				${DB_TABLE_PREFIX}checkspf.ID, ${DB_TABLE_PREFIX}checkspf.PolicyID, ${DB_TABLE_PREFIX}checkspf.Name, 
+				${DB_TABLE_PREFIX}checkspf.UseSPF, ${DB_TABLE_PREFIX}checkspf.RejectFailedSPF, 
+				${DB_TABLE_PREFIX}checkspf.AddSPFHeader,
+				${DB_TABLE_PREFIX}checkspf.Comment, ${DB_TABLE_PREFIX}checkspf.Disabled,
 				
-				policies.Name AS PolicyName
+				${DB_TABLE_PREFIX}policies.Name AS PolicyName
 				
 			FROM 
-				checkspf, policies 
+				${DB_TABLE_PREFIX}checkspf, ${DB_TABLE_PREFIX}policies 
 
 			WHERE 
-				checkspf.ID = ?
-				AND policies.ID = checkspf.PolicyID
-			');
+				${DB_TABLE_PREFIX}checkspf.ID = ?
+				AND ${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}checkspf.PolicyID
+			");
 ?>
 		<p class="pageheader">Update SPF Check</p>
 
@@ -89,7 +91,7 @@ if ($_POST['frmaction'] == "change") {
 						<select name="checkspf_policyid">
 							<option value="">--</option>
 <?php
-							$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+							$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 							while ($row2 = $res->fetchObject()) {
 ?>
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
@@ -272,7 +274,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE checkspf SET $updateStr WHERE ID = ".$db->quote($_POST['checkspf_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}checkspf SET $updateStr WHERE ID = ".$db->quote($_POST['checkspf_id']));
 		if ($res) {
 ?>
 			<div class="notice">SPF check updated</div>

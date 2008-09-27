@@ -78,7 +78,7 @@ if ($_POST['frmaction'] == "delete") {
 					SELECT 
 						Mailbox
 					FROM 
-						mailboxes
+						${DB_TABLE_PREFIX}mailboxes
 					WHERE
 						ID = ".$db->quote($_POST['postfix_mailbox_id'])."
 			");
@@ -97,7 +97,7 @@ if ($_POST['frmaction'] == "delete") {
 
 			$db->beginTransaction();
 
-			$res = $db->exec("DELETE FROM distribution_group_members WHERE Goto = ".$db->quote($mailbox));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}distribution_group_members WHERE Goto = ".$db->quote($mailbox));
 			if ($res !== FALSE) {
 ?>
 				<div class="notice">Mailbox removed from distribution groups</div>
@@ -111,7 +111,7 @@ if ($_POST['frmaction'] == "delete") {
 			}
 
 			if ($res !== FALSE) {	
-				$res = $db->exec("DELETE FROM mailboxes WHERE ID = ".$db->quote($_POST['postfix_mailbox_id']));
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}mailboxes WHERE ID = ".$db->quote($_POST['postfix_mailbox_id']));
 				if ($res !== FALSE) {
 ?>
 					<div class="notice">Mailbox deleted</div>

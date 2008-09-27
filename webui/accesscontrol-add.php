@@ -53,7 +53,7 @@ if ($_POST['frmaction'] == "add") {
 				<td>
 					<select name="accesscontrol_policyid">
 <?php
-						$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+						$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 						while ($row = $res->fetchObject()) {
 ?>
 							<option value="<?php echo $row->id ?>"><?php echo $row->name ?></option>
@@ -125,7 +125,7 @@ if ($_POST['frmaction'] == "add") {
 <?php
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO access_control (PolicyID,Name,Verdict,Data,Comment,Disabled) VALUES (?,?,?,?,?,1)");
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}access_control (PolicyID,Name,Verdict,Data,Comment,Disabled) VALUES (?,?,?,?,?,1)");
 		
 		$res = $stmt->execute(array(
 			$_POST['accesscontrol_policyid'],

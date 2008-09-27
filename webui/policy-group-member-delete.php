@@ -74,7 +74,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['policy_group_member_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM policy_group_members WHERE ID = ".$db->quote($_POST['policy_group_member_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}policy_group_members WHERE ID = ".$db->quote($_POST['policy_group_member_id']));
 			if ($res) {
 ?>
 				<div class="notice">Policy group member deleted</div>

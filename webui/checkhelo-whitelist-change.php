@@ -43,17 +43,17 @@ if ($_POST['frmaction'] == "change") {
 	# Check a whitelist was selected
 	if (isset($_POST['whitelist_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				checkhelo_whitelist.ID, checkhelo_whitelist.Source, checkhelo_whitelist.Comment, 
-				checkhelo_whitelist.Disabled
+				ID, Source, Comment, 
+				Disabled
 				
 			FROM 
-				checkhelo_whitelist
+				${DB_TABLE_PREFIX}checkhelo_whitelist
 
 			WHERE 
-				checkhelo_whitelist.ID = ?
-			');
+				ID = ?
+			");
 ?>
 		<p class="pageheader">Update HELO/EHLO Whitelist</p>
 
@@ -141,7 +141,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE checkhelo_whitelist SET $updateStr WHERE ID = ".$db->quote($_POST['whitelist_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}checkhelo_whitelist SET $updateStr WHERE ID = ".$db->quote($_POST['whitelist_id']));
 		if ($res) {
 ?>
 			<div class="notice">HELO/EHLO whitelisting updated</div>

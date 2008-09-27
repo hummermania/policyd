@@ -81,27 +81,29 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = '
+			$sql = "
 					SELECT 
-						accounting.ID, accounting.Name, 
-						accounting.Track, accounting.AccountingPeriod, accounting.MessageCountLimit, accounting.MessageCumulativeSizeLimit,
-						accounting.Verdict, accounting.Data, accounting.Disabled,
-						policies.Name AS PolicyName
+						${DB_TABLE_PREFIX}accounting.ID, ${DB_TABLE_PREFIX}accounting.Name, 
+						${DB_TABLE_PREFIX}accounting.Track, ${DB_TABLE_PREFIX}accounting.AccountingPeriod, 
+						${DB_TABLE_PREFIX}accounting.MessageCountLimit, 
+						${DB_TABLE_PREFIX}accounting.MessageCumulativeSizeLimit,
+						${DB_TABLE_PREFIX}accounting.Verdict, ${DB_TABLE_PREFIX}accounting.Data, ${DB_TABLE_PREFIX}accounting.Disabled,
+						${DB_TABLE_PREFIX}policies.Name AS PolicyName
 
 					FROM 
-						accounting, policies
+						${DB_TABLE_PREFIX}accounting, ${DB_TABLE_PREFIX}policies
 
 					WHERE
-						policies.ID = accounting.PolicyID
+						${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}accounting.PolicyID
 
 					ORDER BY 
-						policies.Name
-			';
+						${DB_TABLE_PREFIX}policies.Name
+			";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {
 
-				# Get human readable accounting period
+				# Get human readable ${DB_TABLE_PREFIX}accounting period
 				if ($row->accountingperiod == "0") {
 					$accountingperiod = "Daily";
 				} elseif ($row->accountingperiod == "1") {

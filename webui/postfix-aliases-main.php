@@ -73,7 +73,7 @@ printHeader(array(
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, MailAddress, Goto, Disabled FROM aliases ORDER BY MailAddress';
+			$sql = "SELECT ID, MailAddress, Goto, Disabled FROM ${DB_TABLE_PREFIX}aliases ORDER BY MailAddress";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {

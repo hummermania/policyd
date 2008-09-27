@@ -43,17 +43,17 @@ if ($_POST['frmaction'] == "change") {
 	# Check a checkhelo blacklist was selected
 	if (isset($_POST['blacklist_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				checkhelo_blacklist.ID, checkhelo_blacklist.Helo, checkhelo_blacklist.Comment, 
-				checkhelo_blacklist.Disabled
+				ID, Helo, Comment, 
+				Disabled
 				
 			FROM 
-				checkhelo_blacklist
+				${DB_TABLE_PREFIX}checkhelo_blacklist
 
 			WHERE 
-				checkhelo_blacklist.ID = ?
-			');
+				ID = ?
+			");
 ?>
 		<p class="pageheader">Update HELO/EHLO Blacklist</p>
 
@@ -136,7 +136,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE checkhelo_blacklist SET $updateStr WHERE ID = ".$db->quote($_POST['blacklist_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}checkhelo_blacklist SET $updateStr WHERE ID = ".$db->quote($_POST['blacklist_id']));
 		if ($res) {
 ?>
 			<div class="notice">HELO/EHLO blacklisting updated</div>

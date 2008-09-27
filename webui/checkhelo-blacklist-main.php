@@ -74,16 +74,16 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = '
+			$sql = "
 					SELECT 
-						checkhelo_blacklist.ID, checkhelo_blacklist.Helo, checkhelo_blacklist.Disabled
+						ID, Helo, Disabled
 
 					FROM 
-						checkhelo_blacklist
+						${DB_TABLE_PREFIX}checkhelo_blacklist
 
 					ORDER BY 
-						checkhelo_blacklist.Helo
-			';
+						Helo
+			";
 			$res = $db->query($sql);
 			while ($row = $res->fetchObject()) {
 ?>

@@ -41,7 +41,7 @@ if (isset($_REQUEST['postfix_group_id'])) {
 	
 <?php		
 
-	$postfix_group_stmt = $db->prepare('SELECT MailAddress FROM distribution_groups WHERE ID = ?');
+	$postfix_group_stmt = $db->prepare("SELECT MailAddress FROM ${DB_TABLE_PREFIX}distribution_groups WHERE ID = ?");
 	$postfix_group_stmt->execute(array($_REQUEST['postfix_group_id']));
 	$row = $postfix_group_stmt->fetchObject();
 	$postfix_group_stmt->closeCursor();
@@ -90,7 +90,14 @@ if (isset($_REQUEST['postfix_group_id'])) {
 			</tr>
 <?php
 
-			$stmt = $db->prepare('SELECT ID, Goto, Disabled FROM distribution_group_members WHERE DistributionGroupID = ? ORDER BY Goto');
+			$stmt = $db->prepare("
+				SELECT 
+					ID, Goto, Disabled 
+				FROM 
+					${DB_TABLE_PREFIX}distribution_group_members
+				WHERE 
+					DistributionGroupID = ? ORDER BY Goto
+			");
 			$res = $stmt->execute(array($_REQUEST['postfix_group_id']));
 
 			$i = 0;

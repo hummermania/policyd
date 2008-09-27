@@ -68,7 +68,7 @@ if ($_POST['frmaction'] == "add")  {
 
 <?php
 
-	$stmt = $db->prepare("INSERT INTO distribution_group_members (DistributionGroupID,Goto,Disabled) VALUES (?,?,0)");
+	$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}distribution_group_members (DistributionGroupID,Goto,Disabled) VALUES (?,?,0)");
 	
 	$res = $stmt->execute(array(
 		$_POST['postfix_group_id'],

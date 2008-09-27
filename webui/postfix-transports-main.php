@@ -73,7 +73,7 @@ printHeader(array(
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, DomainName, PTransport, Disabled FROM transports ORDER BY DomainName';
+			$sql = "SELECT ID, DomainName, PTransport, Disabled FROM ${DB_TABLE_PREFIX}transports ORDER BY DomainName";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {

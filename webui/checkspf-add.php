@@ -53,7 +53,7 @@ if ($_POST['frmaction'] == "add") {
 				<td>
 					<select name="checkspf_policyid">
 <?php
-						$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+						$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 						while ($row = $res->fetchObject()) {
 ?>
 							<option value="<?php echo $row->id ?>"><?php echo $row->name ?></option>
@@ -171,7 +171,12 @@ if ($_POST['frmaction'] == "add") {
 				break;
 		}
 
-		$stmt = $db->prepare("INSERT INTO checkspf (PolicyID,Name,UseSPF,RejectFailedSPF,AddSPFHeader,Comment,Disabled) VALUES (?,?,?,?,?,?,1)");
+		$stmt = $db->prepare("
+			INSERT INTO ${DB_TABLE_PREFIX}checkspf 
+				(PolicyID,Name,UseSPF,RejectFailedSPF,AddSPFHeader,Comment,Disabled) 
+			VALUES 
+				(?,?,?,?,?,?,1)
+		");
 		
 		$res = $stmt->execute(array(
 			$_POST['checkspf_policyid'],

@@ -73,7 +73,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['blacklist_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM checkhelo_blacklist WHERE ID = ".$db->quote($_POST['blacklist_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}checkhelo_blacklist WHERE ID = ".$db->quote($_POST['blacklist_id']));
 			if ($res) {
 ?>
 				<div class="notice">HELO/EHLO blacklist deleted</div>

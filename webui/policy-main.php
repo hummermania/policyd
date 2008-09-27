@@ -79,7 +79,7 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, Name, Priority, Description, Disabled FROM policies ORDER BY Priority ASC';
+			$sql = "SELECT ID, Name, Priority, Description, Disabled FROM ${DB_TABLE_PREFIX}policies ORDER BY Priority ASC";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {

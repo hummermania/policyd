@@ -73,7 +73,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['checkhelo_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM checkhelo WHERE ID = ".$db->quote($_POST['checkhelo_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}checkhelo WHERE ID = ".$db->quote($_POST['checkhelo_id']));
 			if ($res) {
 ?>
 				<div class="notice">HELO/EHLO check deleted</div>

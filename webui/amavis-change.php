@@ -157,58 +157,58 @@ if ($_POST['frmaction'] == "change") {
 	# Check a amavis rule was selected
 	if (isset($_POST['amavis_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				amavis_rules.ID, amavis_rules.PolicyID, amavis_rules.Name, 
+				${DB_TABLE_PREFIX}amavis_rules.ID, ${DB_TABLE_PREFIX}amavis_rules.PolicyID, ${DB_TABLE_PREFIX}amavis_rules.Name, 
 			
-				amavis_rules.bypass_virus_checks, amavis_rules.bypass_virus_checks_m,
-				amavis_rules.bypass_banned_checks, amavis_rules.bypass_banned_checks_m,
-				amavis_rules.bypass_spam_checks, amavis_rules.bypass_spam_checks_m,
-				amavis_rules.bypass_header_checks, amavis_rules.bypass_header_checks_m,
+				${DB_TABLE_PREFIX}amavis_rules.bypass_virus_checks, ${DB_TABLE_PREFIX}amavis_rules.bypass_virus_checks_m,
+				${DB_TABLE_PREFIX}amavis_rules.bypass_banned_checks, ${DB_TABLE_PREFIX}amavis_rules.bypass_banned_checks_m,
+				${DB_TABLE_PREFIX}amavis_rules.bypass_spam_checks, ${DB_TABLE_PREFIX}amavis_rules.bypass_spam_checks_m,
+				${DB_TABLE_PREFIX}amavis_rules.bypass_header_checks, ${DB_TABLE_PREFIX}amavis_rules.bypass_header_checks_m,
 
-				amavis_rules.spam_tag_level, amavis_rules.spam_tag_level_m,
-				amavis_rules.spam_tag2_level, amavis_rules.spam_tag2_level_m,
-				amavis_rules.spam_tag3_level, amavis_rules.spam_tag3_level_m,
-				amavis_rules.spam_kill_level, amavis_rules.spam_kill_level_m,
-				amavis_rules.spam_dsn_cutoff_level, amavis_rules.spam_dsn_cutoff_level_m,
-				amavis_rules.spam_quarantine_cutoff_level, amavis_rules.spam_quarantine_cutoff_level_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_tag_level, ${DB_TABLE_PREFIX}amavis_rules.spam_tag_level_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_tag2_level, ${DB_TABLE_PREFIX}amavis_rules.spam_tag2_level_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_tag3_level, ${DB_TABLE_PREFIX}amavis_rules.spam_tag3_level_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_kill_level, ${DB_TABLE_PREFIX}amavis_rules.spam_kill_level_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_dsn_cutoff_level, ${DB_TABLE_PREFIX}amavis_rules.spam_dsn_cutoff_level_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_quarantine_cutoff_level, ${DB_TABLE_PREFIX}amavis_rules.spam_quarantine_cutoff_level_m,
 
-				amavis_rules.spam_modifies_subject, amavis_rules.spam_modifies_subject_m,
-				amavis_rules.spam_tag_subject, amavis_rules.spam_tag_subject_m,
-				amavis_rules.spam_tag2_subject, amavis_rules.spam_tag2_subject_m,
-				amavis_rules.spam_tag3_subject, amavis_rules.spam_tag3_subject_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_modifies_subject, ${DB_TABLE_PREFIX}amavis_rules.spam_modifies_subject_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_tag_subject, ${DB_TABLE_PREFIX}amavis_rules.spam_tag_subject_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_tag2_subject, ${DB_TABLE_PREFIX}amavis_rules.spam_tag2_subject_m,
+				${DB_TABLE_PREFIX}amavis_rules.spam_tag3_subject, ${DB_TABLE_PREFIX}amavis_rules.spam_tag3_subject_m,
 
-				amavis_rules.max_message_size, amavis_rules.max_message_size_m,
-				amavis_rules.banned_files, amavis_rules.banned_files_m,
+				${DB_TABLE_PREFIX}amavis_rules.max_message_size, ${DB_TABLE_PREFIX}amavis_rules.max_message_size_m,
+				${DB_TABLE_PREFIX}amavis_rules.banned_files, ${DB_TABLE_PREFIX}amavis_rules.banned_files_m,
 
-				amavis_rules.sender_whitelist, amavis_rules.sender_whitelist_m,
-				amavis_rules.sender_blacklist, amavis_rules.sender_blacklist_m,
+				${DB_TABLE_PREFIX}amavis_rules.sender_whitelist, ${DB_TABLE_PREFIX}amavis_rules.sender_whitelist_m,
+				${DB_TABLE_PREFIX}amavis_rules.sender_blacklist, ${DB_TABLE_PREFIX}amavis_rules.sender_blacklist_m,
 
-				amavis_rules.notify_admin_newvirus, amavis_rules.notify_admin_newvirus_m,
-				amavis_rules.notify_admin_virus, amavis_rules.notify_admin_virus_m,
-				amavis_rules.notify_admin_spam, amavis_rules.notify_admin_spam_m,
-				amavis_rules.notify_admin_banned_file, amavis_rules.notify_admin_banned_file_m,
-				amavis_rules.notify_admin_bad_header, amavis_rules.notify_admin_bad_header_m,
+				${DB_TABLE_PREFIX}amavis_rules.notify_admin_newvirus, ${DB_TABLE_PREFIX}amavis_rules.notify_admin_newvirus_m,
+				${DB_TABLE_PREFIX}amavis_rules.notify_admin_virus, ${DB_TABLE_PREFIX}amavis_rules.notify_admin_virus_m,
+				${DB_TABLE_PREFIX}amavis_rules.notify_admin_spam, ${DB_TABLE_PREFIX}amavis_rules.notify_admin_spam_m,
+				${DB_TABLE_PREFIX}amavis_rules.notify_admin_banned_file, ${DB_TABLE_PREFIX}amavis_rules.notify_admin_banned_file_m,
+				${DB_TABLE_PREFIX}amavis_rules.notify_admin_bad_header, ${DB_TABLE_PREFIX}amavis_rules.notify_admin_bad_header_m,
 
-				amavis_rules.quarantine_virus, amavis_rules.quarantine_virus_m,
-				amavis_rules.quarantine_spam, amavis_rules.quarantine_spam_m,
-				amavis_rules.quarantine_banned_file, amavis_rules.quarantine_banned_file_m,
-				amavis_rules.quarantine_bad_header, amavis_rules.quarantine_bad_header_m,
+				${DB_TABLE_PREFIX}amavis_rules.quarantine_virus, ${DB_TABLE_PREFIX}amavis_rules.quarantine_virus_m,
+				${DB_TABLE_PREFIX}amavis_rules.quarantine_spam, ${DB_TABLE_PREFIX}amavis_rules.quarantine_spam_m,
+				${DB_TABLE_PREFIX}amavis_rules.quarantine_banned_file, ${DB_TABLE_PREFIX}amavis_rules.quarantine_banned_file_m,
+				${DB_TABLE_PREFIX}amavis_rules.quarantine_bad_header, ${DB_TABLE_PREFIX}amavis_rules.quarantine_bad_header_m,
 				
-				amavis_rules.bcc_to, amavis_rules.bcc_to_m,
+				${DB_TABLE_PREFIX}amavis_rules.bcc_to, ${DB_TABLE_PREFIX}amavis_rules.bcc_to_m,
 
-				amavis_rules.Comment, 
-				amavis_rules.Disabled,
+				${DB_TABLE_PREFIX}amavis_rules.Comment, 
+				${DB_TABLE_PREFIX}amavis_rules.Disabled,
 				
-				policies.Name AS PolicyName
+				${DB_TABLE_PREFIX}policies.Name AS PolicyName
 				
 			FROM 
-				amavis_rules, policies 
+				${DB_TABLE_PREFIX}amavis_rules, ${DB_TABLE_PREFIX}policies 
 
 			WHERE 
-				amavis_rules.ID = ?
-				AND policies.ID = amavis_rules.PolicyID
-			');
+				${DB_TABLE_PREFIX}amavis_rules.ID = ?
+				AND ${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}amavis_rules.PolicyID
+			");
 ?>
 		<p class="pageheader">Update Amavis Rule</p>
 
@@ -241,7 +241,7 @@ if ($_POST['frmaction'] == "change") {
 						<select name="amavis_policyid">
 							<option value="">--</option>
 <?php
-							$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+							$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 							while ($row2 = $res->fetchObject()) {
 ?>
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
@@ -1214,7 +1214,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE amavis_rules SET $updateStr WHERE ID = ".$db->quote($_POST['amavis_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}amavis_rules SET $updateStr WHERE ID = ".$db->quote($_POST['amavis_id']));
 		if ($res) {
 ?>
 			<div class="notice">Amavis rule updated</div>

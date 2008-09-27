@@ -83,7 +83,7 @@ if ($_POST['frmaction'] == "add") {
 <?php
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO checkhelo_whitelist (Source,Comment,Disabled) VALUES (?,?,1)");
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}checkhelo_whitelist (Source,Comment,Disabled) VALUES (?,?,1)");
 		
 		$res = $stmt->execute(array(
 			$_POST['whitelist_type'] . ":" . $_POST['whitelist_source'],

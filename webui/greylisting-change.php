@@ -40,35 +40,36 @@ printHeader(array(
 # Display change screen
 if ($_POST['frmaction'] == "change") {
 
-	# Check a greylisting was selected
+	# Check a ${DB_TABLE_PREFIX}greylisting was selected
 	if (isset($_POST['greylisting_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				greylisting.ID, greylisting.PolicyID, greylisting.Name, 
+				${DB_TABLE_PREFIX}greylisting.ID, ${DB_TABLE_PREFIX}greylisting.PolicyID, ${DB_TABLE_PREFIX}greylisting.Name, 
 			
-				greylisting.UseGreylisting, greylisting.GreylistPeriod, 
+				${DB_TABLE_PREFIX}greylisting.UseGreylisting, ${DB_TABLE_PREFIX}greylisting.GreylistPeriod, 
 
-				greylisting.Track, greylisting.GreylistAuthValidity, greylisting.GreylistUnAuthValidity,
+				${DB_TABLE_PREFIX}greylisting.Track, ${DB_TABLE_PREFIX}greylisting.GreylistAuthValidity, 
+				${DB_TABLE_PREFIX}greylisting.GreylistUnAuthValidity,
 
-				greylisting.useAutoWhitelist, greylisting.AutoWhitelistPeriod, greylisting.AutoWhitelistCount, 
-				greylisting.AutoWhitelistPercentage,
+				${DB_TABLE_PREFIX}greylisting.useAutoWhitelist, ${DB_TABLE_PREFIX}greylisting.AutoWhitelistPeriod, 
+				${DB_TABLE_PREFIX}greylisting.AutoWhitelistCount, ${DB_TABLE_PREFIX}greylisting.AutoWhitelistPercentage,
 
-				greylisting.useAutoBlacklist, greylisting.AutoBlacklistPeriod, greylisting.AutoBlacklistCount, 
-				greylisting.AutoBlacklistPercentage,
+				${DB_TABLE_PREFIX}greylisting.useAutoBlacklist, ${DB_TABLE_PREFIX}greylisting.AutoBlacklistPeriod, 
+				${DB_TABLE_PREFIX}greylisting.AutoBlacklistCount, ${DB_TABLE_PREFIX}greylisting.AutoBlacklistPercentage,
 
-				greylisting.Comment, 
-				greylisting.Disabled,
+				${DB_TABLE_PREFIX}greylisting.Comment, 
+				${DB_TABLE_PREFIX}greylisting.Disabled,
 				
-				policies.Name AS PolicyName
+				${DB_TABLE_PREFIX}policies.Name AS PolicyName
 				
 			FROM 
-				greylisting, policies 
+				${DB_TABLE_PREFIX}greylisting, ${DB_TABLE_PREFIX}policies 
 
 			WHERE 
-				greylisting.ID = ?
-				AND policies.ID = greylisting.PolicyID
-			');
+				${DB_TABLE_PREFIX}greylisting.ID = ?
+				AND ${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}greylisting.PolicyID
+			");
 ?>
 		<p class="pageheader">Update Greylisting</p>
 
@@ -102,7 +103,7 @@ if ($_POST['frmaction'] == "change") {
 						<select name="greylisting_policyid">
 							<option value="">--</option>
 <?php
-							$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+							$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 							while ($row2 = $res->fetchObject()) {
 ?>
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
@@ -563,7 +564,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE greylisting SET $updateStr WHERE ID = ".$db->quote($_POST['greylisting_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}greylisting SET $updateStr WHERE ID = ".$db->quote($_POST['greylisting_id']));
 		if ($res) {
 ?>
 			<div class="notice">Greylisting updated</div>

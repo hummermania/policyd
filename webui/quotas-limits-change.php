@@ -43,7 +43,7 @@ if ($_POST['frmaction'] == "change") {
 	# Check a limit was selected
 	if (isset($_POST['quota_limit_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('SELECT ID, Type, CounterLimit, Comment, Disabled FROM quotas_limits WHERE ID = ?');
+		$stmt = $db->prepare("SELECT ID, Type, CounterLimit, Comment, Disabled FROM ${DB_TABLE_PREFIX}quotas_limits WHERE ID = ?");
 		$res = $stmt->execute(array($_POST['quota_limit_id']));
 		$row = $stmt->fetchObject();
 		$stmt->closeCursor();
@@ -138,7 +138,7 @@ if ($_POST['frmaction'] == "change") {
 		if (sizeof($updates) > 0) {
 			$updateStr = implode(', ',$updates);
 	
-			$res = $db->exec("UPDATE quotas_limits SET $updateStr WHERE ID = ".$db->quote($_POST['quota_limit_id']));
+			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}quotas_limits SET $updateStr WHERE ID = ".$db->quote($_POST['quota_limit_id']));
 			if ($res) {
 ?>
 				<div class="notice">Quota limit updated</div>

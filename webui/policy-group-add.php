@@ -71,7 +71,7 @@ if ($_POST['frmaction'] == "add")  {
 
 <?php
 
-	$stmt = $db->prepare("INSERT INTO policy_groups (Name,Comment,Disabled) VALUES (?,?,1)");
+	$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}policy_groups (Name,Comment,Disabled) VALUES (?,?,1)");
 	
 	$res = $stmt->execute(array(
 		$_POST['policy_group_name'],

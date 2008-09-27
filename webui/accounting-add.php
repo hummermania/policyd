@@ -53,7 +53,7 @@ if ($_POST['frmaction'] == "add") {
 				<td>
 					<select name="accounting_policyid">
 <?php
-						$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+						$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 						while ($row = $res->fetchObject()) {
 ?>
 							<option value="<?php echo $row->id ?>"><?php echo $row->name ?></option>
@@ -172,7 +172,7 @@ if ($_POST['frmaction'] == "add") {
 
 	} else {
 		$stmt = $db->prepare("
-			INSERT INTO accounting 
+			INSERT INTO ${DB_TABLE_PREFIX}accounting 
 				(
 					PolicyID, Name, Track, AccountingPeriod,
 					MessageCountLimit, MessageCumulativeSizeLimit,

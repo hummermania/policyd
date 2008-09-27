@@ -75,7 +75,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['quota_limit_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM quotas_limits WHERE ID = ".$db->quote($_POST['quota_limit_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}quotas_limits WHERE ID = ".$db->quote($_POST['quota_limit_id']));
 			if ($res) {
 ?>
 				<div class="notice">Quota limit deleted</div>

@@ -43,28 +43,28 @@ if ($_POST['frmaction'] == "change") {
 	# Check a helo check was selected
 	if (isset($_POST['checkhelo_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				checkhelo.ID, checkhelo.PolicyID, checkhelo.Name, 
+				${DB_TABLE_PREFIX}checkhelo.ID, ${DB_TABLE_PREFIX}checkhelo.PolicyID, ${DB_TABLE_PREFIX}checkhelo.Name, 
 			
-				checkhelo.UseBlacklist, checkhelo.BlacklistPeriod, 
+				${DB_TABLE_PREFIX}checkhelo.UseBlacklist, ${DB_TABLE_PREFIX}checkhelo.BlacklistPeriod, 
 
-				checkhelo.UseHRP, checkhelo.HRPPeriod, checkhelo.HRPLimit,
+				${DB_TABLE_PREFIX}checkhelo.UseHRP, ${DB_TABLE_PREFIX}checkhelo.HRPPeriod, ${DB_TABLE_PREFIX}checkhelo.HRPLimit,
 				
-				checkhelo.RejectInvalid, checkhelo.RejectIP, checkhelo.RejectUnresolvable,
+				${DB_TABLE_PREFIX}checkhelo.RejectInvalid, ${DB_TABLE_PREFIX}checkhelo.RejectIP, ${DB_TABLE_PREFIX}checkhelo.RejectUnresolvable,
 
-				checkhelo.Comment, 
-				checkhelo.Disabled,
+				${DB_TABLE_PREFIX}checkhelo.Comment, 
+				${DB_TABLE_PREFIX}checkhelo.Disabled,
 				
-				policies.Name AS PolicyName
+				${DB_TABLE_PREFIX}policies.Name AS PolicyName
 				
 			FROM 
-				checkhelo, policies 
+				${DB_TABLE_PREFIX}checkhelo, ${DB_TABLE_PREFIX}policies 
 
 			WHERE 
-				checkhelo.ID = ?
-				AND policies.ID = checkhelo.PolicyID
-			');
+				${DB_TABLE_PREFIX}checkhelo.ID = ?
+				AND ${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}checkhelo.PolicyID
+			");
 ?>
 		<p class="pageheader">Update HELO/EHLO Check</p>
 
@@ -97,7 +97,7 @@ if ($_POST['frmaction'] == "change") {
 						<select name="checkhelo_policyid">
 							<option value="">--</option>
 <?php
-							$res = $db->query("SELECT ID, Name FROM policies ORDER BY Name");
+							$res = $db->query("SELECT ID, Name FROM ${DB_TABLE_PREFIX}policies ORDER BY Name");
 							while ($row2 = $res->fetchObject()) {
 ?>
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
@@ -449,7 +449,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE checkhelo SET $updateStr WHERE ID = ".$db->quote($_POST['checkhelo_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}checkhelo SET $updateStr WHERE ID = ".$db->quote($_POST['checkhelo_id']));
 		if ($res) {
 ?>
 			<div class="notice">HELO/EHLO check updated</div>

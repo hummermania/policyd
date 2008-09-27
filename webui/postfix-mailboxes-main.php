@@ -74,7 +74,7 @@ printHeader(array(
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = 'SELECT ID, Mailbox, Quota, Name, Disabled FROM mailboxes ORDER BY Mailbox';
+			$sql = "SELECT ID, Mailbox, Quota, Name, Disabled FROM ${DB_TABLE_PREFIX}mailboxes ORDER BY Mailbox";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {

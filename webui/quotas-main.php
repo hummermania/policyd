@@ -83,20 +83,23 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = '
+			$sql = "
 					SELECT 
-						quotas.ID, quotas.Name, quotas.Track, quotas.Period, quotas.Verdict, quotas.Data, quotas.Disabled, quotas.Comment,
-						policies.Name AS PolicyName
+						${DB_TABLE_PREFIX}quotas.ID, ${DB_TABLE_PREFIX}quotas.Name, ${DB_TABLE_PREFIX}quotas.Track, 
+						${DB_TABLE_PREFIX}quotas.Period, 
+						${DB_TABLE_PREFIX}quotas.Verdict, ${DB_TABLE_PREFIX}quotas.Data, 
+						${DB_TABLE_PREFIX}quotas.Disabled, ${DB_TABLE_PREFIX}quotas.Comment,
+						${DB_TABLE_PREFIX}policies.Name AS PolicyName
 
 					FROM 
-						quotas, policies
+						${DB_TABLE_PREFIX}quotas, ${DB_TABLE_PREFIX}policies
 
 					WHERE
-						policies.ID = quotas.PolicyID
+						${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}quotas.PolicyID
 
 					ORDER BY 
-						policies.Name
-			';
+						${DB_TABLE_PREFIX}policies.Name
+			";
 			$res = $db->query($sql);
 			
 			while ($row = $res->fetchObject()) {

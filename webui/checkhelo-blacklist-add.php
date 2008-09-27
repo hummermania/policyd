@@ -78,7 +78,7 @@ if ($_POST['frmaction'] == "add") {
 <?php
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO checkhelo_blacklist (Helo,Comment,Disabled) VALUES (?,?,1)");
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}checkhelo_blacklist (Helo,Comment,Disabled) VALUES (?,?,1)");
 		
 		$res = $stmt->execute(array(
 			$_POST['blacklist_helo'],

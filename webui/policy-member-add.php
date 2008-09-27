@@ -96,7 +96,7 @@ if ($_POST['frmaction'] == "add")  {
 
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO policy_members (PolicyID,Source,Destination,Comment,Disabled) VALUES (?,?,?,?,1)");
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}policy_members (PolicyID,Source,Destination,Comment,Disabled) VALUES (?,?,?,?,1)");
 		
 		$res = $stmt->execute(array(
 			$_POST['policy_id'],

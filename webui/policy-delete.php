@@ -76,7 +76,7 @@ if ($_POST['frmaction'] == "delete") {
 		if ($_POST['confirm'] == "yes") {	
 			$db->beginTransaction();
 
-			$res = $db->exec("DELETE FROM policy_members WHERE PolicyID = ".$db->quote($_POST['policy_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}policy_members WHERE PolicyID = ".$db->quote($_POST['policy_id']));
 			if ($res) {
 ?>
 				<div class="notice">Policy members deleted</div>
@@ -90,7 +90,7 @@ if ($_POST['frmaction'] == "delete") {
 			}
 
 			if ($res) {
-				$res = $db->exec("DELETE FROM policies WHERE ID = ".$db->quote($_POST['policy_id']));
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}policies WHERE ID = ".$db->quote($_POST['policy_id']));
 				if ($res) {
 ?>
 					<div class="notice">Policy deleted</div>

@@ -73,7 +73,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['amavis_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM amavis_rules WHERE ID = ".$db->quote($_POST['amavis_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}amavis_rules WHERE ID = ".$db->quote($_POST['amavis_id']));
 			if ($res) {
 ?>
 				<div class="notice">Amavis rule deleted</div>

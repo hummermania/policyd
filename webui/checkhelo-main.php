@@ -75,20 +75,20 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = '
+			$sql = "
 					SELECT 
-						checkhelo.ID, checkhelo.Name, checkhelo.Disabled,
-						policies.Name AS PolicyName
+						${DB_TABLE_PREFIX}checkhelo.ID, ${DB_TABLE_PREFIX}checkhelo.Name, ${DB_TABLE_PREFIX}checkhelo.Disabled,
+						${DB_TABLE_PREFIX}policies.Name AS PolicyName
 
 					FROM 
-						checkhelo, policies
+						${DB_TABLE_PREFIX}checkhelo, ${DB_TABLE_PREFIX}policies
 
 					WHERE
-						policies.ID = checkhelo.PolicyID
+						${DB_TABLE_PREFIX}policies.ID = ${DB_TABLE_PREFIX}checkhelo.PolicyID
 
 					ORDER BY 
-						policies.Name
-			';
+						${DB_TABLE_PREFIX}policies.Name
+			";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {

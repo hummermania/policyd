@@ -43,17 +43,17 @@ if ($_POST['frmaction'] == "change") {
 	# Check a whitelist was selected
 	if (isset($_POST['whitelist_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare('
+		$stmt = $db->prepare("
 			SELECT 
-				greylisting_whitelist.ID, greylisting_whitelist.Source, greylisting_whitelist.Comment, 
-				greylisting_whitelist.Disabled
+				ID, Source, Comment, 
+				Disabled
 				
 			FROM 
-				greylisting_whitelist
+				${DB_TABLE_PREFIX}greylisting_whitelist
 
 			WHERE 
-				greylisting_whitelist.ID = ?
-			');
+				ID = ?
+			");
 ?>
 		<p class="pageheader">Update Greylisting Whitelist</p>
 
@@ -142,7 +142,7 @@ if ($_POST['frmaction'] == "change") {
 	if (sizeof($updates) > 0) {
 		$updateStr = implode(', ',$updates);
 
-		$res = $db->exec("UPDATE greylisting_whitelist SET $updateStr WHERE ID = ".$db->quote($_POST['whitelist_id']));
+		$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}greylisting_whitelist SET $updateStr WHERE ID = ".$db->quote($_POST['whitelist_id']));
 		if ($res) {
 ?>
 			<div class="notice">Greylisting whitelisting updated</div>

@@ -94,7 +94,7 @@ if ($_POST['frmaction'] == "add")  {
 
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO quotas_limits (QuotasID,Type,CounterLimit,Comment,Disabled) VALUES (?,?,?,?,1)");
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}quotas_limits (QuotasID,Type,CounterLimit,Comment,Disabled) VALUES (?,?,?,?,1)");
 		
 		$res = $stmt->execute(array(
 			$_POST['quota_id'],

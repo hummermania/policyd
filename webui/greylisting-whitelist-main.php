@@ -74,16 +74,14 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = '
+			$sql = "
 					SELECT 
-						greylisting_whitelist.ID, greylisting_whitelist.Source, greylisting_whitelist.Disabled
-
+						ID, Source, Disabled
 					FROM 
-						greylisting_whitelist
-
+						${DB_TABLE_PREFIX}greylisting_whitelist
 					ORDER BY 
-						greylisting_whitelist.Source
-			';
+						Source
+			";
 			$res = $db->query($sql);
 			while ($row = $res->fetchObject()) {
 ?>

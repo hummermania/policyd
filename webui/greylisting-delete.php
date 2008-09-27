@@ -73,7 +73,7 @@ if ($_POST['frmaction'] == "delete") {
 	if (isset($_POST['greylisting_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM greylisting WHERE ID = ".$db->quote($_POST['greylisting_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}greylisting WHERE ID = ".$db->quote($_POST['greylisting_id']));
 			if ($res) {
 ?>
 				<div class="notice">Greylisting deleted</div>
