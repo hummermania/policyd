@@ -142,13 +142,17 @@ sub configure {
 	}
 	foreach my $module (@{$config{'server'}{'modules'}}) {
 		$module =~ s/\s+//g;
+		# Skip comments
+		next if ($module =~ /^#/);
 		$module = "modules/$module";
-		push(@{$cfg->{'module_list'}},$module);
+		push(@{$cfg->{'module_list'}},$module) if ($module ne "");
 	}
 	foreach my $module (@{$config{'server'}{'protocols'}}) {
 		$module =~ s/\s+//g;
+		# Skip comments
+		next if ($module =~ /^#/);
 		$module = "protocols/$module";
-		push(@{$cfg->{'module_list'}},$module);
+		push(@{$cfg->{'module_list'}},$module) if ($module ne "");
 	}
 	
 	# Override
