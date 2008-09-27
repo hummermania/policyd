@@ -499,22 +499,23 @@ sub check {
 	}
 	
 	# Setup result
-	if (!defined($verdict) || $verdict eq "") {
+	if (!defined($verdict)) {
+		return CBP_CONTINUE;
+ 	} elsif ($verdict eq "") {
 		$server->maillog("module=Accounting, action=none, host=%s, helo=%s, from=%s, to=%s, reason=no_verdict",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
 				$sessionData->{'Recipient'});
-
 		return CBP_CONTINUE;
-	} if ($verdict =~ /^defer$/i) {
+	} elsif ($verdict =~ /^defer$/i) {
 		$server->maillog("module=Accounting, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
 				$sessionData->{'Recipient'});
 		return $server->protocol_response(PROTO_DEFER,$verdict_data);
-	} if ($verdict =~ /^hold$/i) {
+	} elsif ($verdict =~ /^hold$/i) {
 		$server->maillog("module=Accounting, action=hold, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
