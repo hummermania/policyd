@@ -83,7 +83,7 @@ if ($_POST['frmaction'] == "delete") {
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting policy!</div>
+				<div class="warning">Error deleting policy members!</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 				$db->rollback();
