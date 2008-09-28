@@ -85,6 +85,12 @@ sub protocol_check {
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
 
+	# Ignore leading blank lines
+	$buffer =~ s/^(?:\015?\012)+//;
+
+	# Check we have at least one line
+	return undef if (!($buffer =~ /\012/));
+
 	# Check for HTTP header
 	if ($buffer =~ /^GET [^\s]+ HTTP\/(\d+)\.(\d+)\015?\012/) {
 		my ($a,$b) = ($1,$2);

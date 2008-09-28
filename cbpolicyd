@@ -338,28 +338,21 @@ sub process_request {
 	my $fdset = "";
 	vec($fdset, fileno(STDIN), 1) = 1;
 	while (1) {
-		# Ignore leading blank lines (HTTP)
-		$buf =~ s/^(?:\015?\012)+//;
+		# Loop with modules
+		foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
 
-		# Has at least one line
-		if ($buf =~ /\012/) {
+			# Skip over if we don't have a check...
+			next if (!defined($module->{'protocol_check'}));
 
-			# Loop with modules
-			foreach my $module ( sort { $b->{'priority'} <=> $a->{'priority'} }  @{$self->{'modules'}} ) {
-
-				# Skip over if we don't have a check...
-				next if (!defined($module->{'protocol_check'}));
-
-				# Check protocol
-				my $res = $module->{'protocol_check'}($self,$buf);
-				if (defined($res) && $res == 1) {
-					$found = $module;
-				}
+			# Check protocol
+			my $res = $module->{'protocol_check'}($self,$buf);
+			if (defined($res) && $res == 1) {
+				$found = $module;
 			}
-
-			# Last if found
-			last if ($found);
 		}
+
+		# Last if found
+		last if ($found);
 
 		# Again ... too large
 		if (length($buf) > 16*1024) {

@@ -81,6 +81,9 @@ sub protocol_check {
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
 
+	# Check we have at least one line
+	return undef if (!($buffer =~ /\012/));
+
 	# Check for policy protocol
 	if ($buffer =~ /^\w+=[^\012]+\015?\012/) {
 
