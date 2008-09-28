@@ -127,7 +127,7 @@ sub plugin_register {
 
 	# If we should, init the module
 	if (defined($info->{'init'})) {
-			$info->{'init'}($self);
+		$info->{'init'}($self);
 	}
 
 
@@ -139,9 +139,14 @@ sub plugin_register {
 sub loadModules
 {
 	# Pull in module list
-	my $modulelist = $config{'server'}{'modules'};
-	foreach my $module (@{$modulelist}) {
+	my $modules = $config{'server'}{'modules'};
+	my @modulelist;
+	foreach my $module (@{$modules}) {
 		$module =~ s/\s+//g;
+		# Skip comments
+		next if ($module =~ /^#/);
+		$module = "modules/$module";
+		push(@modulelist,$module);
 	}
 	
 	# Emulate server
@@ -151,11 +156,15 @@ sub loadModules
 	$server->init();
 	
 	# Load modules
-	foreach my $module (@{$modulelist}) {
+	foreach my $module (@modulelist) {
+		# Split off dir and mod name
+		$module =~ /^(\w+)\/(\w+)$/;
+		my ($mod_dir,$mod_name) = ($1,$2);
+
 		# Load module
 		my $res = eval("
-			use cbp::modules::$module;
-			plugin_register(\$server,\"$module\",\$cbp::modules::${module}::pluginInfo);
+			use cbp::${mod_dir}::${mod_name};
+			plugin_register(\$server,\"${mod_name}\",\$cbp::${mod_dir}::${mod_name}::pluginInfo);
 		");
 		if ($@ || (defined($res) && $res != 0)) {
 			$server->log(LOG_ERR,"WARNING: Error loading plugin $module ($@)");
