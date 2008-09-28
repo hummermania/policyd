@@ -354,7 +354,7 @@ sub check {
 				@TP@checkhelo_tracking, @TP@checkhelo_blacklist
 
 			WHERE
-				@TPcheckhelo_tracking.LastUpdate >= ?
+				@TP@checkhelo_tracking.LastUpdate >= ?
 				AND @TP@checkhelo_tracking.Address = ?
 				AND @TP@checkhelo_tracking.Helo = @TP@checkhelo_blacklist.Helo
 				AND @TP@checkhelo_blacklist.Disabled = 0
