@@ -13,6 +13,7 @@ $DB_USER="root";
 $DB_TABLE_PREFIX="";
 
 $DB_POSTFIX_DSN="mysql:host=localhost;dbname=postfix";
+#$DB_POSTFIX_DSN="DBI:mysql:database=cluebringer;host=localhost";
 $DB_POSTFIX_USER="root";
 #$DB_POSTFIX_PASS="";
 

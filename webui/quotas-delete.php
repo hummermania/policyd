@@ -142,7 +142,7 @@ if ($_POST['frmaction'] == "delete") {
 				);
 				$res = $stmt->execute(array($_POST['quota_id']));
 
-				if ($res) {
+				if ($res !== FALSE) {
 ?>
 					<div class="notice">Quota limits deleted</div>
 <?php
