@@ -187,10 +187,9 @@ sub getSessionDataFromRequest
 					$server->log(LOG_DEBUG,"[TRACKING] Added session tracking information for: ".Dumper($request)) if ($log);
 	
 					DBCommit();
-
-					# Initialize session data later on, we didn't get anything from the DB
-					$initSessionData = 1;
 				}
+				# Initialize session data later on, we didn't get anything from the DB
+				$initSessionData = 1;
 			}
 		# If we have no interest in tracking sessions, we must initialize the session data
 		} else {
