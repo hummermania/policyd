@@ -718,8 +718,7 @@ sub getTrackingInfo
 	my $sth = DBSelect('
 		SELECT 
 			QuotasLimitsID,
-			TrackKey, Counter, LastUpdate,
-			LastQuota
+			TrackKey, Counter, LastUpdate
 		FROM
 			@TP@quotas_tracking
 		WHERE
