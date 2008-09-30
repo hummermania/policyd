@@ -234,7 +234,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 					}  # foreach my $limit (@{$limits})
 
 					# Check if this is the last quota
-					if (defined($quotas->{'LastQuota'}) && $quotas->{'LastQuota'} eq "1") {
+					if (defined($quota->{'LastQuota'}) && $quota->{'LastQuota'} eq "1") {
 						last POLICY;
 					}
 				} # foreach my $quota (@{$quotas})
@@ -453,7 +453,7 @@ POLICY:			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipie
 						} # foreach my $limit (@{$limits})
 
 						# Check if this is the last quota
-						if (defined($quotas->{'LastQuota'}) && $quotas->{'LastQuota'} eq "1") {
+						if (defined($quota->{'LastQuota'}) && $quota->{'LastQuota'} eq "1") {
 							last POLICY;
 						}
 					} # foreach my $quota (@{$quotas})
