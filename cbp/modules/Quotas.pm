@@ -110,7 +110,7 @@ sub check {
 		my $exceededQtrack;
 
 		# Loop with priorities, low to high
-		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
+POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
 
 			# Last if we've exceeded
 			last if ($hasExceeded);
@@ -232,8 +232,13 @@ sub check {
 						push(@trackingList,$qtrack);
 	
 					}  # foreach my $limit (@{$limits})
-				} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
-			} # foreach my $quota (@{$quotas})
+
+					# Check if this is the last quota
+					if (defined($quotas->{'LastQuota'}) && $quotas->{'LastQuota'} eq "1") {
+						last POLICY;
+					}
+				} # foreach my $quota (@{$quotas})
+			} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
 		} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}})
 
 		# If we have not exceeded, update
@@ -362,7 +367,7 @@ sub check {
 		foreach my $emailAddy (keys %{$sessionData->{'_Recipient_To_Policy'}}) {
 
 			# Loop with priorities, low to high
-			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}}) {
+POLICY:			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}}) {
 
 				# Loop with each policyID
 				foreach my $policyID (@{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}{$priority}}) {
@@ -446,6 +451,11 @@ sub check {
 										$pused);
 							} # if (lc($limit->{'Type'}) eq "messagecumulativesize")
 						} # foreach my $limit (@{$limits})
+
+						# Check if this is the last quota
+						if (defined($quotas->{'LastQuota'}) && $quotas->{'LastQuota'} eq "1") {
+							last POLICY;
+						}
 					} # foreach my $quota (@{$quotas})
 				} # foreach my $policyID (@{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}{$priority}})
 			} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}})
@@ -708,7 +718,8 @@ sub getTrackingInfo
 	my $sth = DBSelect('
 		SELECT 
 			QuotasLimitsID,
-			TrackKey, Counter, LastUpdate
+			TrackKey, Counter, LastUpdate,
+			LastQuota
 		FROM
 			@TP@quotas_tracking
 		WHERE

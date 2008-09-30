@@ -112,7 +112,7 @@ sub check {
 		my $exceededAtrack;
 
 		# Loop with priorities, low to high
-		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
+POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
 
 			# Last if we've exceeded
 			last if ($hasExceeded);
@@ -226,8 +226,13 @@ sub check {
 
 					# Save accounting tracking info
 					push(@trackingList,$atrack);
-				} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
-			} # foreach my $quota (@{$quotas})
+
+					# Check if this is the last accounting
+					if (defined($accounting->{'LastAccounting'}) && $accounting->{'LastAccounting'} eq "1") {
+						last POLICY;
+					}
+				} # foreach my $accounting (@{$accountings})
+			} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
 		} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}})
 
 		# If we have not exceeded, update
@@ -393,7 +398,7 @@ sub check {
 		foreach my $emailAddy (keys %{$sessionData->{'_Recipient_To_Policy'}}) {
 
 			# Loop with priorities, low to high
-			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}}) {
+POLICY:			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}}) {
 
 				# Loop with each policyID
 				foreach my $policyID (@{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}{$priority}}) {
@@ -490,6 +495,10 @@ sub check {
 								$periodKey,
 								$pCountUsage,
 								$pCumulativeSizeUsage);
+						# Check if this is the last accounting
+						if (defined($accounting->{'LastAccounting'}) && $accounting->{'LastAccounting'} eq "1") {
+							last POLICY;
+						}
 					} # foreach my $accounting (@{$accountings})
 				} # foreach my $policyID (@{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}{$priority}})
 			} # foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipient_To_Policy'}{$emailAddy}})
@@ -654,7 +663,8 @@ sub getAccountings
 			MessageCountLimit,
 			MessageCumulativeSizeLimit,
 			Verdict,
-			Data
+			Data,
+			LastAccounting
 		FROM
 			@TP@accounting
 		WHERE

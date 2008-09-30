@@ -31,8 +31,6 @@ Immediate requirements:
 
 - Allow configuration if postmaster@ bypasses tests (2.1) (#4)
 
-- Stop processing when hitting "this" policy flag in policy table. (2.1)
-
 - Web interface
 * BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
 

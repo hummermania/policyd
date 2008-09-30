@@ -114,6 +114,15 @@ if ($_POST['frmaction'] == "add") {
 				<td><input type="text" name="quota_data" /></td>
 			</tr>
 			<tr>
+				<td class="entrytitle">Stop processing here</td>
+				<td>
+					<select name="quota_lastquota">
+						<option value="0">No</option>
+						<option value="1">Yes</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
 				<td class="entrytitle">Comment</td>
 				<td><textarea name="quota_comment" cols="40" rows="5"></textarea></td>
 			</tr>
@@ -151,6 +160,12 @@ if ($_POST['frmaction'] == "add") {
 		<div class="warning">Verdict cannot be empty</div>
 <?php
 
+	# Check last quota
+	} elseif (empty($_POST['quota_lastquota'])) {
+?>
+		<div class="warning">Stop procesing here field cannot be empty</div>
+<?php
+
 	} else {
 
 		if ($_POST['quota_track'] == "SenderIP") {
@@ -160,7 +175,12 @@ if ($_POST['frmaction'] == "add") {
 		}
 
 
-		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}quotas (PolicyID,Name,Track,Period,Verdict,Data,Comment,Disabled) VALUES (?,?,?,?,?,?,?,1)");
+		$stmt = $db->prepare("
+			INSERT INTO ${DB_TABLE_PREFIX}quotas 
+				(PolicyID,Name,Track,Period,Verdict,Data,LastQuota,Comment,Disabled)
+			VALUES 
+				(?,?,?,?,?,?,?,?,1)
+		");
 		
 		$res = $stmt->execute(array(
 			$_POST['quota_policyid'],
@@ -168,6 +188,7 @@ if ($_POST['frmaction'] == "add") {
 			$quotaTrack,
 			$_POST['quota_period'],
 			$_POST['quota_verdict'],
+			$_POST['quota_lastquota'],
 			$_POST['quota_data'],
 			$_POST['quota_comment']
 		));

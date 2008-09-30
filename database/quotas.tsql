@@ -21,6 +21,8 @@ CREATE TABLE @PREFIX@quotas (
 
 	Verdict			VARCHAR(255),
 	Data			TEXT,
+	
+	LastQuota		SMALLINT NOT NULL DEFAULT '0',
 		
 	Comment			VARCHAR(1024),
 	

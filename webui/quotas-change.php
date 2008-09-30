@@ -47,6 +47,7 @@ if ($_POST['frmaction'] == "change") {
 				${DB_TABLE_PREFIX}quotas.ID, ${DB_TABLE_PREFIX}quotas.PolicyID, ${DB_TABLE_PREFIX}quotas.Name, 
 				${DB_TABLE_PREFIX}quotas.Track, ${DB_TABLE_PREFIX}quotas.Period, 
 				${DB_TABLE_PREFIX}quotas.Verdict, ${DB_TABLE_PREFIX}quotas.Data, 
+				${DB_TABLE_PREFIX}quotas.LastQuota,
 				${DB_TABLE_PREFIX}quotas.Comment, ${DB_TABLE_PREFIX}quotas.Disabled,
 				
 				${DB_TABLE_PREFIX}policies.Name AS PolicyName
@@ -159,6 +160,17 @@ if ($_POST['frmaction'] == "change") {
 					<td><input type="text" name="quota_data" /></td>
 				</tr>
 				<tr>
+					<td class="entrytitle">Stop processing here</td>
+					<td class="oldval"><?php echo $row->lastquota ? 'yes' : 'no' ?></td>
+					<td>
+						<select name="quota_lastquota">
+							<option value="">--</option>
+							<option value="0">No</option>
+							<option value="1">Yes</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
 					<td class="entrytitle texttop">Comment</td>
 					<td class="oldval texttop"><?php echo $row->comment ?></td>
 					<td><textarea name="quota_comment" cols="40" rows="5"></textarea></td>
@@ -220,6 +232,9 @@ if ($_POST['frmaction'] == "change") {
 	}
 	if (!empty($_POST['quota_data'])) {
 		array_push($updates,"Data = ".$db->quote($_POST['quota_data']));
+	}
+	if (!empty($_POST['quota_lastquota'])) {
+		array_push($updates,"LastQuota = ".$db->quote($_POST['quota_lastquota']));
 	}
 	if (!empty($_POST['quota_comment'])) {
 		array_push($updates,"Comment = ".$db->quote($_POST['quota_comment']));

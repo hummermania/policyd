@@ -26,6 +26,8 @@ CREATE TABLE @PREFIX@accounting (
 	/* Verdict if limits are exceeded */
 	Verdict			VARCHAR(255), /* Verdict when limit is exceeded */
 	Data			TEXT, /* Data sent along with verdict */
+	
+	LastAccounting		SMALLINT NOT NULL DEFAULT '0',
 		
 	Comment			VARCHAR(1024),
 	

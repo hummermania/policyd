@@ -49,6 +49,7 @@ if ($_POST['frmaction'] == "change") {
 				${DB_TABLE_PREFIX}accounting.Track, ${DB_TABLE_PREFIX}accounting.AccountingPeriod, 
 				${DB_TABLE_PREFIX}accounting.MessageCountLimit, ${DB_TABLE_PREFIX}accounting.MessageCumulativeSizeLimit,
 				${DB_TABLE_PREFIX}accounting.Verdict, ${DB_TABLE_PREFIX}accounting.Data, 
+				${DB_TABLE_PREFIX}accounting.LastAccounting, 
 				${DB_TABLE_PREFIX}accounting.Comment, 
 				${DB_TABLE_PREFIX}accounting.Disabled,
 				
@@ -191,6 +192,17 @@ if ($_POST['frmaction'] == "change") {
 					<td><input type="text" name="accounting_data" /></td>
 				</tr>
 				<tr>
+					<td class="entrytitle">Stop processing here</td>
+					<td class="oldval"><?php echo $row->lastaccounting ? 'yes' : 'no' ?></td>
+					<td>
+						<select name="accounting_lastaccounting">
+							<option value="">--</option>
+							<option value="0">No</option>
+							<option value="1">Yes</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
 					<td class="entrytitle texttop">Comment</td>
 					<td class="oldval texttop"><?php echo $row->comment ?></td>
 					<td><textarea name="accounting_comment" cols="40" rows="5"></textarea></td>
@@ -252,6 +264,9 @@ if ($_POST['frmaction'] == "change") {
 	}
 	if (!empty($_POST['accounting_data'])) {
 		array_push($updates,"Data = ".$db->quote($_POST['accounting_data']));
+	}
+	if (!empty($_POST['accounting_lastaccounting'])) {
+		array_push($updates,"LastAccounting = ".$db->quote($_POST['accounting_lastaccounting']));
 	}
 	if (!empty($_POST['accounting_comment'])) {
 		array_push($updates,"Comment = ".$db->quote($_POST['accounting_comment']));

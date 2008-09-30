@@ -133,6 +133,15 @@ if ($_POST['frmaction'] == "add") {
 				<td><input type="text" name="accounting_data" /></td>
 			</tr>
 			<tr>
+				<td class="entrytitle">Stop processing here</td>
+				<td>
+					<select name="accounting_lastaccounting">
+						<option value="0">No</option>
+						<option value="1">Yes</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
 				<td class="entrytitle">Comment</td>
 				<td><textarea name="accounting_comment" cols="40" rows="5"></textarea></td>
 			</tr>
@@ -170,6 +179,12 @@ if ($_POST['frmaction'] == "add") {
 		<div class="warning">Track cannot be empty</div>
 <?php
 
+	# Check last accounting
+	} elseif (empty($_POST['accounting_lastaccounting'])) {
+?>
+		<div class="warning">Stop procesing here field cannot be empty</div>
+<?php
+
 	} else {
 		$stmt = $db->prepare("
 			INSERT INTO ${DB_TABLE_PREFIX}accounting 
@@ -177,10 +192,11 @@ if ($_POST['frmaction'] == "add") {
 					PolicyID, Name, Track, AccountingPeriod,
 					MessageCountLimit, MessageCumulativeSizeLimit,
 					Verdict, Data,
+					LastAccounting,
 					Comment, Disabled
 				) 
 			VALUES 
-				(?,?,?,?,?,?,?,?,?,1)");
+				(?,?,?,?,?,?,?,?,?,?,1)");
 		
 		$res = $stmt->execute(array(
 			$_POST['accounting_policyid'],
@@ -191,6 +207,7 @@ if ($_POST['frmaction'] == "add") {
 			$_POST['accounting_messagecumulativesize'],
 			$_POST['accounting_verdict'],
 			$_POST['accounting_data'],
+			$_POST['accounting_lastaccounting'],
 			$_POST['accounting_comment']
 		));
 		
