@@ -8,5 +8,5 @@ ALTER TABLE accounting ADD
 	AFTER Data;
 
 ALTER TABLE quotas ADD
-		LastAccounting		SMALLINT NOT NULL DEFAULT '0' 
+		LastQuota		SMALLINT NOT NULL DEFAULT '0' 
 	AFTER Data;
