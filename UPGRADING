@@ -1,0 +1,12 @@
+Upgrading from 2.0.x
+--------------------
+
+NOTE: This is required for upgrading svn below r348!!!
+
+ALTER TABLE accounting ADD
+		LastAccounting		SMALLINT NOT NULL DEFAULT '0' 
+	AFTER Data;
+
+ALTER TABLE quotas ADD
+		LastAccounting		SMALLINT NOT NULL DEFAULT '0' 
+	AFTER Data;
