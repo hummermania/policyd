@@ -28,12 +28,12 @@ printHeader();
 		<li>Protocols
 			<ul>
 				<li>Bizanga 
-					<a title="Help on Bizanga protocol" href="http://www.policyd.org/v2/features-protocol-bizanga.html" class="help">
+					<a title="Help on Bizanga protocol" href="http://www.policyd.org/tiki-index.php?page=Bizanga&structure=Documentation" class="help">
 						<img src="images/help.gif" alt="Help" />
 					</a>
 				</li>
 				<li>Postfix
-					<a title="Help on Postfix protocol" href="http://www.policyd.org/v2/features-protocol-postfix.html" class="help">
+					<a title="Help on Postfix protocol" href="http://www.policyd.org/tiki-index.php?page=Postfix&structure=Documentation" class="help">
 						<img src="images/help.gif" alt="Help" />
 					</a>
 				</li>
@@ -41,7 +41,7 @@ printHeader();
 		</li>
 
 		<li>Policies &amp; Policy Groups
-			<a title="Help on policies and groups" href="http://www.policyd.org/v2/features-policies.html" class="help">
+			<a title="Help on policies and groups" href="http://www.policyd.org/tiki-index.php?page=Policies%20%26%20Groups&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
 			<ul>
@@ -51,7 +51,7 @@ printHeader();
 		</li>
 
 		<li>Access Control
-			<a title="Help on access control" href="http://www.policyd.org/v2/features-accesscontrol.html" class="help">
+			<a title="Help on access control" href="http://www.policyd.org/tiki-index.php?page=AccessControl&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
 			<ul>
@@ -60,7 +60,7 @@ printHeader();
 		</li>
 
 		<li>Amavis Integration
-			<a title="Help on Amavis integration" href="http://www.policyd.org/v2/features-amavis.html" class="help">
+			<a title="Help on Amavis integration" href="http://www.policyd.org/tiki-index.php?page=Amavis&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
 			<ul>
@@ -75,7 +75,7 @@ printHeader();
 		</li>
 
 		<li>Greylisting
-			<a title="Help on greylisting" href="http://www.policyd.org/v2/features-greylisting.html" class="help">
+			<a title="Help on greylisting" href="http://www.policyd.org/tiki-index.php?page=Greylisting&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
 			<ul>
@@ -85,7 +85,7 @@ printHeader();
 		</li>
 
 		<li>HELO/EHLO Checks
-			<a title="Help on HELO/EHLO checks" href="http://www.policyd.org/v2/features-checkhelo.html" class="help">
+			<a title="Help on HELO/EHLO checks" href="http://www.policyd.org/tiki-index.php?page=CheckHelo&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
 			<ul>
@@ -97,7 +97,7 @@ printHeader();
 		</li>
 
 		<li>SPF Checks
-			<a title="Help on SPF checks" href="http://www.policyd.org/v2/features-checkspf.html" class="help">
+			<a title="Help on SPF checks" href="http://www.policyd.org/tiki-index.php?page=CheckSPF&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
 			<ul>
@@ -106,7 +106,7 @@ printHeader();
 		</li>
 
 		<li>Quotas
-			<a title="Help on quotas" href="http://www.policyd.org/v2/features-quotas.html" class="help">
+			<a title="Help on quotas" href="http://www.policyd.org/tiki-index.php?page=Quotas&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
 			<ul>
@@ -117,7 +117,7 @@ printHeader();
 		</li>
 
 		<li>Accounting
-			<a title="Help on accounting" href="http://www.policyd.org/v2/features-accounting.html" class="help">
+			<a title="Help on accounting" href="http://www.policyd.org/tiki-index.php?page=Accounting&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
 			<ul>
