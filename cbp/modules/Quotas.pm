@@ -611,7 +611,7 @@ sub getQuotas
 	my $sth = DBSelect('
 		SELECT
 			ID,
-			Period, Track, Verdict,	Data
+			Period, Track, Verdict,	Data, LastQuota
 		FROM
 			@TP@quotas
 		WHERE
@@ -625,7 +625,7 @@ sub getQuotas
 		return -1;
 	}
 	while (my $quota = $sth->fetchrow_hashref()) {
-		push(@res,hashifyLCtoMC($quota,qw(ID Period Track Verdict Data)));
+		push(@res,hashifyLCtoMC($quota,qw(ID Period Track Verdict Data LastQuotas)));
 	}
 
 	return \@res;

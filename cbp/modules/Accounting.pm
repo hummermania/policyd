@@ -678,7 +678,7 @@ sub getAccountings
 		return -1;
 	}
 	while (my $quota = $sth->fetchrow_hashref()) {
-		push(@res,hashifyLCtoMC($quota,qw(ID Track AccountingPeriod MessageCountLimit MessageCumulativeSizeLimit Verdict Data)));
+		push(@res,hashifyLCtoMC($quota,qw(ID Track AccountingPeriod MessageCountLimit MessageCumulativeSizeLimit Verdict Data LastAccounting)));
 	}
 
 	return \@res;
