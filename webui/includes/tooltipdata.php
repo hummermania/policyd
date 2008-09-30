@@ -1,7 +1,7 @@
 <?php
 
 # Tooltip data
-$tooltips['policy_priority'] = "Priority. Range 50-100. 50: lowest, 100: highest. Priorities are read in from lowest to highest, any rule linked to a policy has the potential to inherit, overwrite or merge the previous one.";
+$tooltips['policy_priority'] = "Priority. Range 0-100. 0: highest, 100: lowest. Priorities are processed in an ascending fashion, any rule linked to a policy has the potential to inherit, overwrite or merge the previous one.";
 
 $tooltips['policy_member_source'] = "Source: 'any' - Any source, '@domain' - From domain, 'user@domain' - From email address, 'a.b.c.d' - From IP address, 'a.b.c.d/e' - From a CIDR range, '%group' - From a group, '\$sasl_username' - From a SASL username, '\$*' would depict all SASL users.";
 $tooltips['policy_member_destination'] = "Destination. 'any' - Any destination, '@domain' - To domain, 'user@domain' - To to full email address, '%group' - To a group.";
