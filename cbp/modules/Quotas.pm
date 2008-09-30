@@ -625,7 +625,7 @@ sub getQuotas
 		return -1;
 	}
 	while (my $quota = $sth->fetchrow_hashref()) {
-		push(@res,hashifyLCtoMC($quota,qw(ID Period Track Verdict Data LastQuotas)));
+		push(@res,hashifyLCtoMC($quota,qw(ID Period Track Verdict Data LastQuota)));
 	}
 
 	return \@res;
