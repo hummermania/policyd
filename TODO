@@ -41,6 +41,8 @@ Planned Features:
 
 * Milter support as a different Protocol
 
+* Add firewall rules for abuse greylisted hosts?
+
 * Caching (2.2)
 
 * IPv6
