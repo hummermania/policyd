@@ -82,7 +82,7 @@ if ($_POST['frmaction'] == "add") {
 <?php
 
 	# Check priority
-	} elseif (empty($_POST['policy_priority'])) {
+	} elseif (!isset($_POST['policy_priority'])) {
 ?>
 		<div class="warning">Policy priority cannot be empty</div>
 <?php
