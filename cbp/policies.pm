@@ -312,7 +312,7 @@ sub policySourceItemMatches
 		my $res = 0;
 
 		# Match IP
-		if ($item =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})$/) {
+		if ($item =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?$/) {
 			$res = ipMatches($sessionData->{'ClientAddress'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a IP/CIDR specification, match = $res") if ($log);
 
@@ -431,7 +431,7 @@ sub ipMatches
 
 
 	# Pull off parts of IP
-	my ($cidr_address,$cidr_mask) = ($cidr =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))$/);
+	my ($cidr_address,$cidr_mask) = ($cidr =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))?$/);
 
 	# Pull long for IP we going to test
 	my $ip_long = ip_to_long($ip);
