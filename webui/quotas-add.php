@@ -161,7 +161,7 @@ if ($_POST['frmaction'] == "add") {
 <?php
 
 	# Check last quota
-	} elseif (empty($_POST['quota_lastquota'])) {
+	} elseif (!isset($_POST['quota_lastquota'])) {
 ?>
 		<div class="warning">Stop procesing here field cannot be empty</div>
 <?php

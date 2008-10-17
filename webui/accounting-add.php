@@ -180,7 +180,7 @@ if ($_POST['frmaction'] == "add") {
 <?php
 
 	# Check last accounting
-	} elseif (empty($_POST['accounting_lastaccounting'])) {
+	} elseif (!isset($_POST['accounting_lastaccounting'])) {
 ?>
 		<div class="warning">Stop procesing here field cannot be empty</div>
 <?php
