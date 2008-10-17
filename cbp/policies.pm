@@ -556,7 +556,7 @@ sub decodePolicyData
 	my $recipientData = shift;
 
 
-	my %recipientToPolicy;
+	my %recipientToPolicy = ();
 	# Build policy str list and recipients list
 	foreach my $item (split(/\//,$recipientData)) {
 		# Skip over first /
