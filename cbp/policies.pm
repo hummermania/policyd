@@ -563,14 +563,18 @@ sub decodePolicyData
 		next if ($item eq "");
 
 		my ($email,$rawPolicy) = ($item =~ /<([^>]*)>#(.*)/);
-		
-		# Loop with raw policies
-		foreach my $policy (split(/;/,$rawPolicy)) {
-			# Strip off priority and policy IDs
-			my ($prio,$policyIDs) = ( $policy =~ /(\d+)=(.*)/ );
-			# Pull off policyID's from string
-			foreach my $pid (split(/,/,$policyIDs)) {
-				push(@{$recipientToPolicy{$email}{$prio}},$pid);
+
+		# Make sure that the recipient data in the DB is not null, ie. it may 
+		# of been killed by the admin before it updated it	
+		if (defined($email) && defined($rawPolicy)) {
+			# Loop with raw policies
+			foreach my $policy (split(/;/,$rawPolicy)) {
+				# Strip off priority and policy IDs
+				my ($prio,$policyIDs) = ( $policy =~ /(\d+)=(.*)/ );
+				# Pull off policyID's from string
+				foreach my $pid (split(/,/,$policyIDs)) {
+					push(@{$recipientToPolicy{$email}{$prio}},$pid);
+				}
 			}
 		}
 	}
