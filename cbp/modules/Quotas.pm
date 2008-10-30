@@ -131,6 +131,8 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 			
 				# Loop with quotas
 				foreach my $quota (@{$quotas}) {
+					# Exceeded limit
+					my $exceededLimit;
 
 					# Last if we've exceeded
 					last if ($hasExceeded);
@@ -185,6 +187,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 								# Check for violation
 								if ($qtrack->{'Counter'} > $limit->{'CounterLimit'}) {
 									$hasExceeded = "Policy rejection; Message count quota exceeded";
+									$exceededLimit = $limit;
 								}
 								# Bump up limit
 								$newCounters{$qtrack->{'QuotasLimitsID'}}++;
@@ -194,6 +197,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 								# Check for violation
 								if ($qtrack->{'Counter'} > $limit->{'CounterLimit'}) {
 									$hasExceeded = "Policy rejection; Cumulative message size quota exceeded";
+									$exceededLimit = $limit;
 								}
 							}
 	
@@ -215,11 +219,11 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 						
 						# Setup some stuff we need for logging
 						$qtrack->{'DBKey'} = $key;
-						$qtrack->{'CounterLimit'} = $limit->{'CounterLimit'};
-						$qtrack->{'LimitType'} = $limit->{'Type'};
+						$qtrack->{'CounterLimit'} = $exceededLimit->{'CounterLimit'};
+						$qtrack->{'LimitType'} = $exceededLimit->{'Type'};
 						$qtrack->{'PolicyID'} = $policyID;
 						$qtrack->{'QuotaID'} = $quota->{'ID'};
-						$qtrack->{'LimitID'} = $limit->{'ID'};
+						$qtrack->{'LimitID'} = $exceededLimit->{'ID'};
 						$qtrack->{'Verdict'} = $quota->{'Verdict'};
 						$qtrack->{'VerdictData'} = $quota->{'Data'};
 
