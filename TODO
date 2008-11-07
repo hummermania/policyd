@@ -34,6 +34,7 @@ Immediate requirements:
 - Web interface
 * BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
 
+- Quotas based on per-recipient and per-message sent, make this optional.
 
 --------------
 
