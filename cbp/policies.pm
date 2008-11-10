@@ -489,12 +489,17 @@ sub saslUsernameMatches
 	# Decipher template
 	my ($template_user) = ($template =~ /^\$(\S+)$/);
 
-	# $- is a special case which allows matching against no SASL username
-	if ($template_user eq '-' && !$saslUsername) {
-		$match = 1;
+	# If there is no SASL username
+	if (!defined($saslUsername) || $saslUsername eq "") {
+		# $- is a special case which allows matching against no SASL username
+		if ($template_user eq '-') {
+			$match = 1;
+		}
 	# Else normal match
-	} elsif (lc($saslUsername) eq lc($template_user) || $template_user eq "*") {
-		$match = 1;
+	} else {
+		if (lc($saslUsername) eq lc($template_user) || $template_user eq "*") {
+			$match = 1;
+		}
 	}
 
 	return $match;
