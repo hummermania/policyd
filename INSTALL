@@ -2,11 +2,14 @@ Installing Policyd v2.
 
 
 * Requirements for Policyd v2
+- MySQL or PostgreSQL or SQLite
 - Net::Server >= 0.96
 - Net::CIDR
 - Config::IniFiles (Debian based: libconfig-inifiles-perl, RPM based: perl-Config-IniFiles)
 - Cache::FastMmap (Debian based: libcache-fastmmap-perl, RPM based: perl-Cache-FastMmap)
 
+* Requirements for webui
+- PHP v5+
 
 
 
