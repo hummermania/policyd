@@ -7,6 +7,7 @@ Installing Policyd v2.
 - Net::CIDR
 - Config::IniFiles (Debian based: libconfig-inifiles-perl, RPM based: perl-Config-IniFiles)
 - Cache::FastMmap (Debian based: libcache-fastmmap-perl, RPM based: perl-Cache-FastMmap)
+- Mail::SPF (Required for SPF)
 
 * Requirements for webui
 - PHP v5+
