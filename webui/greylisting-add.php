@@ -284,7 +284,7 @@ if ($_POST['frmaction'] == "add") {
 			$AWLCount = $_POST['greylisting_awlcount'];
 		}
 		# AWL percentage 
-		if (empty($_POST['greylisting_awlpercentage'])) {
+		if (!isset($_POST['greylisting_awlpercentage']) || $_POST['greylisting_awlpercentage'] == "") {
 			$AWLPercentage = null;
 		} else {
 			$AWLPercentage = $_POST['greylisting_awlpercentage'];
@@ -315,7 +315,7 @@ if ($_POST['frmaction'] == "add") {
 			$ABLCount = $_POST['greylisting_ablcount'];
 		}
 		# ABL percentage 
-		if (empty($_POST['greylisting_ablpercentage'])) {
+		if (!isset($_POST['greylisting_ablpercentage']) || $_POST['greylisting_ablpercentage'] == "") {
 			$ABLPercentage = null;
 		} else {
 			$ABLPercentage = $_POST['greylisting_ablpercentage'];

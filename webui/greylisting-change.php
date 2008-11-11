@@ -282,7 +282,15 @@ if ($_POST['frmaction'] == "change") {
 						<?php tooltip('greylisting_awl_percentage'); ?>
 					</td>
 					<td class="oldval">
-							<?php echo is_null($row->autowhitelistpercentage) ? '*inherited*' : $row->autowhitelistpercentage ?>
+							<?php 
+								if (is_null($row->autowhitelistpercentage)) {
+									echo '*inherited*';
+								} elseif ($row->autowhitelistpercentage  == "0") {
+									echo '*disabled*';
+								} else {
+									echo $row->autowhitelistpercentage;
+								}
+							?>
 					</td>
 					<td>
 						<input type="text" name="greylisting_awlpercentage" />
@@ -361,7 +369,15 @@ if ($_POST['frmaction'] == "change") {
 						<?php tooltip('greylisting_abl_percentage'); ?>
 					</td>
 					<td class="oldval">
-							<?php echo is_null($row->autoblacklistpercentage) ? '*inherited*' : $row->autoblacklistpercentage ?>
+							<?php 
+								if (is_null($row->autoblacklistpercentage)) {
+									echo '*inherited*';
+								} elseif ($row->autoblacklistpercentage  == "0") {
+									echo '*disabled*';
+								} else {
+									echo $row->autoblacklistpercentage;
+								}
+							?>
 					</td>
 					<td>
 						<input type="text" name="greylisting_ablpercentage" />
@@ -506,7 +522,7 @@ if ($_POST['frmaction'] == "change") {
 	if (!empty($_POST['greylisting_awlpercentage_m'])) {
 		if ($_POST['greylisting_awlpercentage_m'] == "1") {
 			$awlpercentage = null;
-		} elseif ($_POST['greylisting_awlpercentage_m'] == "2") {
+		} else {
 			$awlpercentage = $_POST['greylisting_awlpercentage'];
 		}
 		array_push($updates,"AutoWhitelistPercentage = ".$db->quote($awlpercentage));
@@ -547,7 +563,7 @@ if ($_POST['frmaction'] == "change") {
 	if (!empty($_POST['greylisting_ablpercentage_m'])) {
 		if ($_POST['greylisting_ablpercentage_m'] == "1") {
 			$ablpercentage = null;
-		} elseif ($_POST['greylisting_ablpercentage_m'] == "2") {
+		} else {
 			$ablpercentage = $_POST['greylisting_ablpercentage'];
 		}
 		array_push($updates,"AutoBlacklistPercentage = ".$db->quote($ablpercentage));
