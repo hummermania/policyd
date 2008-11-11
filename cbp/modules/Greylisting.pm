@@ -496,14 +496,17 @@ sub check {
 			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 
-		$server->maillog("module=Greylisting, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=greylisted",
-				$sessionData->{'ClientAddress'},
-				$sessionData->{'Helo'},
-				$sessionData->{'Sender'},
-				$sessionData->{'Recipient'});
+		# Make sure we're not in training mode
+		if (!$config{'training_mode'}) {
+			$server->maillog("module=Greylisting, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=greylisted",
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
 
-		# Skip to rejection, if we using greylisting 0 seconds is highly unlikely to be a greylisitng period
-		return $server->protocol_response(PROTO_DEFER,"451 4.7.1 Greylisting in effect, please come back later");
+			# Skip to rejection, if we using greylisting 0 seconds is highly unlikely to be a greylisitng period
+			return $server->protocol_response(PROTO_DEFER,"451 4.7.1 Greylisting in effect, please come back later");
+		}
 
 	# And just a bit of debug
 	} else {
