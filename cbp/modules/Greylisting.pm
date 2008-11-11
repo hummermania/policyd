@@ -701,8 +701,15 @@ sub check {
 			}
 		}
 
+		# Depending on if we training or not, set the reason
+		my $reason;
+		if ($config{'training_mode'}) {
+			$reason = "training";
+		} else {
+			$reason = "authenticated";
+		}
 		
-		$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=authenticated",
+		$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=$reason",
 				$sessionData->{'ClientAddress'},
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
