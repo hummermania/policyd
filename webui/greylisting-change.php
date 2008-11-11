@@ -519,7 +519,7 @@ if ($_POST['frmaction'] == "change") {
 	}
 
 	# AWL Percentage
-	if (!empty($_POST['greylisting_awlpercentage_m'])) {
+	if (isset($_POST['greylisting_awlpercentage_m'])) {
 		if ($_POST['greylisting_awlpercentage_m'] == "1") {
 			$awlpercentage = null;
 		} else {
@@ -560,7 +560,7 @@ if ($_POST['frmaction'] == "change") {
 	}
 
 	# AWL Percentage
-	if (!empty($_POST['greylisting_ablpercentage_m'])) {
+	if (isset($_POST['greylisting_ablpercentage_m'])) {
 		if ($_POST['greylisting_ablpercentage_m'] == "1") {
 			$ablpercentage = null;
 		} else {
