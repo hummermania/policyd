@@ -46,6 +46,8 @@ Planned Features:
 
 * Commandline tool to check the flow of policy matching and the verdicts
 
+* GUI support to see which modules are linked to the policy (using an api to register each modules' check function)
+
 * Add firewall rules for abuse greylisted hosts?
 
 * Caching (2.2)
