@@ -10,6 +10,7 @@ Immediate requirements:
 - Greylisting: regex   (2.1)
 * Option, bypass greylisting for non-dynamic reverse DNS hosts
 * Option, bypass greylisting for hosts where HELO == reverse dns
+* Option to train only
 
 - CheckHelo Blacklisting against regex/wildcard?  (2.1)
 * Select the current helo's and compare to the helo blacklist list
@@ -33,6 +34,7 @@ Immediate requirements:
 
 - Web interface
 * BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
+* Add "enable" box so new entries are not disabled automagically apon adding
 
 - Quotas based on per-recipient and per-message sent, make this optional.
 
