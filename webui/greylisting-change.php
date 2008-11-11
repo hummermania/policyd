@@ -521,11 +521,11 @@ if ($_POST['frmaction'] == "change") {
 	# AWL Percentage
 	if (isset($_POST['greylisting_awlpercentage_m'])) {
 		if ($_POST['greylisting_awlpercentage_m'] == "1") {
-			$awlpercentage = null;
+			$awlpercentage = "NULL";
 		} else {
-			$awlpercentage = $_POST['greylisting_awlpercentage'];
+			$awlpercentage = $db->quote($_POST['greylisting_awlpercentage']);
 		}
-		array_push($updates,"AutoWhitelistPercentage = ".$db->quote($awlpercentage));
+		array_push($updates,"AutoWhitelistPercentage = $awlpercentage");
 	}
 
 	# Autoblacklist
@@ -562,11 +562,11 @@ if ($_POST['frmaction'] == "change") {
 	# AWL Percentage
 	if (isset($_POST['greylisting_ablpercentage_m'])) {
 		if ($_POST['greylisting_ablpercentage_m'] == "1") {
-			$ablpercentage = null;
+			$ablpercentage = "NULL";
 		} else {
-			$ablpercentage = $_POST['greylisting_ablpercentage'];
+			$ablpercentage = $db->quote($_POST['greylisting_ablpercentage']);
 		}
-		array_push($updates,"AutoBlacklistPercentage = ".$db->quote($ablpercentage));
+		array_push($updates,"AutoBlacklistPercentage = $ablpercentage");
 	}
 
 	if (!empty($_POST['greylisting_comment'])) {
