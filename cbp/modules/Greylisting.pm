@@ -49,6 +49,9 @@ sub init {
 
 	# Defaults
 	$config{'enable'} = 0;
+	$config{'training_mode'} = 0;
+
+	my $moreInfo = "";
 
 	# Parse in config
 	if (defined($inifile->{'greylisting'})) {
@@ -57,11 +60,19 @@ sub init {
 		}
 	}
 
+	# Check if training
+	if ($config{'training_mode'} =~ /^\s*(y|yes|1|on)\s*$/i) {
+		$server->log(LOG_NOTICE,"  => Greylisting training mode: enabled");
+		$config{'training_mode'} = 1;
+		$moreInfo .= " (TRAINING)";
+	}
+
 	# Check if enabled
 	if ($config{'enable'} =~ /^\s*(y|yes|1|on)\s*$/i) {
-		$server->log(LOG_NOTICE,"  => Greylisting: enabled");
+		$server->log(LOG_NOTICE,"  => Greylisting: enabled$moreInfo");
 		$config{'enable'} = 1;
 	}
+
 }
 
 
@@ -297,7 +308,7 @@ sub check {
 	#
 	# Check if we we must use auto-blacklisting and check if we're blacklisted
 	#
-	if (defined($policy{'UseAutoBlacklist'}) && $policy{'UseAutoBlacklist'} eq "1") {
+	if (!$config{'training_mode'} && defined($policy{'UseAutoBlacklist'}) && $policy{'UseAutoBlacklist'} eq "1") {
 
 		# Sanity check, no use doing the query to find out we don't have a period
 		if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0) {
@@ -365,7 +376,7 @@ sub check {
 		#
 		# Check if we must blacklist the host for abuse ...
 		#
-		if (defined($policy{'UseAutoBlacklist'}) && $policy{'UseAutoBlacklist'} eq "1") {
+		if (!$config{'training_mode'} && defined($policy{'UseAutoBlacklist'}) && $policy{'UseAutoBlacklist'} eq "1") {
 
 			# Only proceed if we have a period
 			if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0) {
@@ -535,7 +546,7 @@ sub check {
 
 	# Check if we should greylist, or not
 	my $timeElapsed = $row->{'lastupdate'} - $row->{'firstseen'};
-	if ($timeElapsed < $policy{'GreylistPeriod'}) {
+	if (!$config{'training_mode'} && $timeElapsed < $policy{'GreylistPeriod'}) {
 		# Get time left, debug and return
 		my $timeLeft = $policy{'GreylistPeriod'} - $timeElapsed;
 		$server->maillog("module=Greylisting, action=defer, host=%s, helo=%s, from=%s, to=%s, reason=greylisted, tries=%s",
