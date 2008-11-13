@@ -149,6 +149,11 @@ sub protocol_response
 		$response_data = $data;
 		return CBP_CONTINUE;
 
+	} elsif ($resp == PROTO_OK) {
+		$response = "200";
+		$response_data = $data;
+		return CBP_STOP;
+
 	} elsif ($resp == PROTO_REJECT) {
 		if ($data =~ /^(5[0-9]{2}) (.*)/) {
 			$response = "403";

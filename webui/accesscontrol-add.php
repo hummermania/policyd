@@ -76,6 +76,7 @@ if ($_POST['frmaction'] == "add") {
 						<option value="DISCARD">Discard (drop)</option>
 						<option value="FILTER">Filter</option>
 						<option value="REDIRECT">Redirect</option>
+						<option value="OK">Ok</option>
 					</select>
 				</td>
 			</tr>

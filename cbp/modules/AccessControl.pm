@@ -156,6 +156,14 @@ sub check {
 						$sessionData->{'Recipient'});
 				return $server->protocol_response(PROTO_REDIRECT,$row->{'data'});
 
+			} elsif ($row->{'verdict'} =~ /^pass$/i) {
+				$server->maillog("module=AccessControl, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
+						$sessionData->{'ClientAddress'},
+						$sessionData->{'Helo'},
+						$sessionData->{'Sender'},
+						$sessionData->{'Recipient'});
+				return $server->protocol_response(PROTO_PASS,$row->{'data'});
+
 			} else {
 				$server->log(LOG_ERR,"[ACCESSCONTROL] Unknown Verdict specification in access control '".$row->{'verdict'}."'");
 				$server->maillog("module=AccessControl, action=none, host=%s, helo=%s, from=%s, to=%s, reason=invalid_verdict",
