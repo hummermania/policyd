@@ -56,7 +56,7 @@ sub getSessionDataFromQueueID
 	my $sth = DBSelect('
 		SELECT
 			Instance, QueueID,
-			Timestamp,
+			UnixTimestamp,
 			ClientAddress, ClientName, ClientReverseName,
 			Protocol,
 			EncryptionProtocol, EncryptionCipher, EncryptionKeySize,
@@ -124,7 +124,7 @@ sub getSessionDataFromRequest
 			my $sth = DBSelect('
 				SELECT
 					Instance, QueueID,
-					Timestamp,
+					UnixTimestamp,
 					ClientAddress, ClientName, ClientReverseName,
 					Protocol,
 					EncryptionProtocol, EncryptionCipher, EncryptionKeySize,
@@ -161,7 +161,7 @@ sub getSessionDataFromRequest
 						INSERT INTO @TP@session_tracking 
 							(
 								Instance,QueueID,
-								Timestamp,
+								UnixTimestamp,
 								ClientAddress, ClientName, ClientReverseName,
 								Protocol,
 								EncryptionProtocol,EncryptionCipher,EncryptionKeySize,
@@ -275,7 +275,7 @@ sub getSessionDataFromRequest
 	# Shove in various thing not stored in DB
 	$sessionData->{'ProtocolTransport'} = $request->{'_protocol_transport'};
 	$sessionData->{'ProtocolState'} = $request->{'protocol_state'};
-	$sessionData->{'Timestamp'} = $request->{'_timestamp'};
+	$sessionData->{'UnixTimestamp'} = $request->{'_timestamp'};
 	$sessionData->{'ParsedClientAddress'} = parseCIDR($sessionData->{'ClientAddress'});
 
 	# Make sure HELO is clean...
@@ -357,7 +357,7 @@ sub hashifyDBSessionData
 
 	return hashifyLCtoMC($record, qw(
 			Instance QueueID
-			Timestamp
+			UnixTimestamp
 			ClientAddress ClientName ClientReverseName
 			Protocol
 			EncryptionProtocol EncryptionCipher EncryptionKeySize

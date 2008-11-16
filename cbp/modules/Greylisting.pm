@@ -271,7 +271,7 @@ sub check {
 			if ($row) {
 
 				# Check if we're within the auto-whitelisting period
-				if ($sessionData->{'Timestamp'} - $row->{'lastseen'} <= $policy{'AutoWhitelistPeriod'}) {
+				if ($sessionData->{'UnixTimestamp'} - $row->{'lastseen'} <= $policy{'AutoWhitelistPeriod'}) {
 
 					my $sth = DBDo('
 						UPDATE
@@ -281,7 +281,7 @@ sub check {
 						WHERE
 							TrackKey = ?
 						',
-						$sessionData->{'Timestamp'},$key
+						$sessionData->{'UnixTimestamp'},$key
 					);
 					if (!$sth) {
 						$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
@@ -330,7 +330,7 @@ sub check {
 			if ((my $row =  $sth->fetchrow_hashref())) {
 
 				# Check if we're within the auto-blacklisting period
-				if ($sessionData->{'Timestamp'} - $row->{'added'} <= $policy{'AutoBlacklistPeriod'}) {
+				if ($sessionData->{'UnixTimestamp'} - $row->{'added'} <= $policy{'AutoBlacklistPeriod'}) {
 
 					$server->maillog("module=Greylisting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=auto-blacklisted",
 							$sessionData->{'ClientAddress'},
@@ -365,7 +365,7 @@ sub check {
 			AND Sender = ?
 			AND Recipient = ?
 		',
-		$sessionData->{'Timestamp'},$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
+		$sessionData->{'UnixTimestamp'},$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
@@ -384,7 +384,7 @@ sub check {
 				# Check if we have a count
 				if (defined($policy{'AutoBlacklistCount'}) && $policy{'AutoBlacklistCount'} > 0) {
 					# Work out time to check from...
-					my $addedTime = $sessionData->{'Timestamp'} - $policy{'AutoBlacklistPeriod'};
+					my $addedTime = $sessionData->{'UnixTimestamp'} - $policy{'AutoBlacklistPeriod'};
 
 					my $sth = DBSelect('
 						SELECT
@@ -458,7 +458,7 @@ sub check {
 								VALUES
 									(?,?,?)
 								',
-								$key,$sessionData->{'Timestamp'},$blacklist
+								$key,$sessionData->{'UnixTimestamp'},$blacklist
 							);
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
@@ -489,7 +489,7 @@ sub check {
 			VALUES
 				(?,?,?,?,?,1,0)
 			',
-			$key,$sessionData->{'Sender'},$sessionData->{'Recipient'},$sessionData->{'Timestamp'},$sessionData->{'Timestamp'}
+			$key,$sessionData->{'Sender'},$sessionData->{'Recipient'},$sessionData->{'UnixTimestamp'},$sessionData->{'UnixTimestamp'}
 		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
@@ -511,7 +511,7 @@ sub check {
 	# And just a bit of debug
 	} else {
 		$server->log(LOG_DEBUG,"[GREYLISTING] Updated greylisting triplet ('$key','".$sessionData->{'Sender'}."','".
-				$sessionData->{'Recipient'}."') @ ".$sessionData->{'Timestamp'}."");
+				$sessionData->{'Recipient'}."') @ ".$sessionData->{'UnixTimestamp'}."");
 	}
 
 
@@ -608,7 +608,7 @@ sub check {
 
 				# Check if we have a count
 				if (defined($policy{'AutoWhitelistCount'}) && $policy{'AutoWhitelistCount'} > 0) {
-					my $addedTime = $sessionData->{'Timestamp'} - $policy{'AutoWhitelistPeriod'};
+					my $addedTime = $sessionData->{'UnixTimestamp'} - $policy{'AutoWhitelistPeriod'};
 
 					my $sth = DBSelect('
 						SELECT
@@ -678,7 +678,7 @@ sub check {
 								VALUES
 									(?,?,?,?)
 								',
-								$key,$sessionData->{'Timestamp'},$sessionData->{'Timestamp'},$whitelist
+								$key,$sessionData->{'UnixTimestamp'},$sessionData->{'UnixTimestamp'},$whitelist
 							);
 							if (!$sth) {
 								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());

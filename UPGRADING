@@ -10,3 +10,9 @@ ALTER TABLE accounting ADD
 ALTER TABLE quotas ADD
 		LastQuota		SMALLINT NOT NULL DEFAULT '0' 
 	AFTER Data;
+
+NOTE: This is required for upgrading svn below r387!!!!
+
+ALTER TABLE tracking CHANGE
+		Timestamp	UnixTimestamp BIGINT NOT NULL;
+

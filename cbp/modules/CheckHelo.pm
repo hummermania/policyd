@@ -156,7 +156,7 @@ sub check {
 			Address = ?
 			AND Helo = ?
 		',
-		$sessionData->{'Timestamp'},$sessionData->{'ClientAddress'},$sessionData->{'Helo'}
+		$sessionData->{'UnixTimestamp'},$sessionData->{'ClientAddress'},$sessionData->{'Helo'}
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Database update failed: ".cbp::dblayer::Error());
@@ -170,7 +170,7 @@ sub check {
 			VALUES
 				(?,?,?)
 			',
-			$sessionData->{'ClientAddress'},$sessionData->{'Helo'},$sessionData->{'Timestamp'}
+			$sessionData->{'ClientAddress'},$sessionData->{'Helo'},$sessionData->{'UnixTimestamp'}
 		);
 		if (!$sth) {
 			use Data::Dumper;

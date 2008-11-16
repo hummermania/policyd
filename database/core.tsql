@@ -122,7 +122,7 @@ CREATE TABLE @PREFIX@session_tracking (
 	Instance		VARCHAR(255),
 	QueueID			VARCHAR(255),
 
-	Timestamp		BIGINT NOT NULL,
+	UnixTimestamp		BIGINT NOT NULL,
 
 	ClientAddress		VARCHAR(64),
 	ClientName		VARCHAR(255),
@@ -149,7 +149,7 @@ CREATE TABLE @PREFIX@session_tracking (
 	UNIQUE (Instance)
 )  @CREATE_TABLE_SUFFIX@;
 CREATE INDEX @PREFIX@session_tracking_idx1 ON @PREFIX@session_tracking (QueueID,ClientAddress,Sender);
-CREATE INDEX @PREFIX@session_tracking_idx2 ON @PREFIX@session_tracking (Timestamp);
+CREATE INDEX @PREFIX@session_tracking_idx2 ON @PREFIX@session_tracking (UnixTimestamp);
 
 
 

@@ -48,7 +48,7 @@ sub cleanup
 		DELETE FROM 
 			@TP@session_tracking
 		WHERE
-			Timestamp < ?
+			UnixTimestamp < ?
 		',
 		$yesterday
 	);
