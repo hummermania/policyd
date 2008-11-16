@@ -264,9 +264,8 @@ sub plugin_register {
 
 	# If we should, init the module
 	if (defined($info->{'init'})) {
-			$info->{'init'}($self);
+		$info->{'init'}($self);
 	}
-
 
 	return 0;
 }
