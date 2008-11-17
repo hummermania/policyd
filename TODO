@@ -38,6 +38,10 @@ Immediate requirements:
 
 - Quotas based on per-recipient and per-message sent, make this optional.
 
+- Special treatment of    user+something@domain    and changing to   user@domain, global config option   (2.1)
+
+- Template based replies for greylisting, helo checks ... etc  (2.1)
+
 --------------
 
 Planned Features:
