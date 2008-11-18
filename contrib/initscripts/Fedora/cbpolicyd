@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+# chkconfig: - 73 27
+# description: Postfix Policy Daemon
+#
+# processname: cbpolicyd
+
+# source function library
+. /etc/init.d/functions
+
+# Get config.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "${NETWORKING}" = "no" ] && exit 0
+
+
+RETVAL=0
+
+
+start() {
+	# Check for if we already running
+	if [ -f /var/lock/subsys/cbpolicyd ]
+	then
+		echo "Already running."
+		return 1 
+	fi
+	echo -n $"Starting cbpolicyd: "
+        daemon /usr/sbin/cbpolicyd
+	RETVAL=$?
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/cbpolicyd
+	echo
+	return $RETVAL
+}
+
+
+stop() {
+	echo -n $"Shutting down cbpolicyd: "
+	killproc cbpolicyd
+	RETVAL=$?
+	rm -f /var/lock/subsys/cbpolicyd
+	echo
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}	
+
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart|reload)
+	restart
+        ;;
+  condrestart)
+        if [ -f /var/lock/subsys/cbpolicyd ]; then
+		restart
+        fi
+        ;;
+  status)
+        status cbpolicyd
+	RETVAL=$?
+        ;;
+  *)
+	echo $"Usage: $0 {start|stop|restart|reload|condrestart|status}"
+	exit 1
+esac
+
+exit $RETVAL
