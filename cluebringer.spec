@@ -56,7 +56,7 @@ cat << EOF > %{name}-req
 %{__perl_requires} $* | sed -e '/perl(cbp::/d'
 EOF
 
-%define __perl_requires %{_builddir}/%{name}-%{version}/%{name}-req
+%define __perl_requires %{_builddir}/%{name}-%{tarver}/%{name}-req
 chmod +x %{__perl_requires}
 
 
