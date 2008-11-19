@@ -1,8 +1,10 @@
 #!/bin/bash
 #
-# chkconfig: - 73 27
+# chkconfig: - 75 25
 # description: Postfix Policy Daemon
-#
+# processname: httpd
+# config: /etc/cluebringer.conf
+# pidfile: /var/run/cbpolicyd.pid
 # processname: cbpolicyd
 
 # source function library
@@ -19,17 +21,11 @@ RETVAL=0
 
 
 start() {
-	# Check for if we already running
-	if [ -f /var/lock/subsys/cbpolicyd ]
-	then
-		echo "Already running."
-		return 1 
-	fi
 	echo -n $"Starting cbpolicyd: "
         daemon /usr/sbin/cbpolicyd
 	RETVAL=$?
-	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/cbpolicyd
 	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/cbpolicyd
 	return $RETVAL
 }
 
@@ -38,9 +34,8 @@ stop() {
 	echo -n $"Shutting down cbpolicyd: "
 	killproc cbpolicyd
 	RETVAL=$?
-	rm -f /var/lock/subsys/cbpolicyd
 	echo
-	return $RETVAL
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/cbpolicyd
 }
 
 restart() {
