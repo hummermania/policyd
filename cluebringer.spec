@@ -47,7 +47,7 @@ hosting industry.
 
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{tarver}
 
 # hack to prevent rpmbuild from automatically detecting "requirements" that
 # aren't actually external requirements.  See https://fedoraproject.org/wiki/Packaging/Perl#In_.25prep_.28preferred.29
