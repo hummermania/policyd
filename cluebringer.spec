@@ -92,7 +92,7 @@ install -m 755 contrib/initscripts/Fedora/cbpolicyd $RPM_BUILD_ROOT%{_initrddir}
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}
 mkdir -p $RPM_BUILD_ROOT%{apacheconfdir}
 cp -R webui/* $RPM_BUILD_ROOT%{_datadir}/%{name}
-install -m 644 contrib/httpd/cluebringer.conf $RPM_BUILD_ROOT%{apacheconfdir}/cluebringer.conf
+install -m 644 contrib/httpd/cluebringer-httpd.conf $RPM_BUILD_ROOT%{apacheconfdir}/cluebringer.conf
 # Move config into /etc
 mv $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php $RPM_BUILD_ROOT%{_sysconfdir}/policyd/webui.conf
 ln -s %{_sysconfdir}/policyd/webui.conf $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php
