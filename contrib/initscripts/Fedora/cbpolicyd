@@ -3,7 +3,7 @@
 # chkconfig: - 75 25
 # description: Postfix Policy Daemon
 # processname: httpd
-# config: /etc/cluebringer.conf
+# config: /etc/policyd/cluebringer.conf
 # pidfile: /var/run/cbpolicyd.pid
 # processname: cbpolicyd
 
@@ -22,7 +22,7 @@ RETVAL=0
 
 start() {
 	echo -n $"Starting cbpolicyd: "
-        daemon /usr/sbin/cbpolicyd
+        daemon /usr/sbin/cbpolicyd --config /etc/policyd/cluebringer.conf
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/cbpolicyd

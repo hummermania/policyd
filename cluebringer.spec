@@ -1,15 +1,27 @@
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
 # this path is hardcoded
-%define cblibdir /usr/lib/policyd-2.0
+%define cblibdir %{_libdir}/policyd-2.0
+
+%define cvsver yyyymmddhhmm
+
+%if %{cvsver}
+%define version 2.1
+%define release %{cvsver}
+%define tarver snapshot-%{cvsver}
+%else
+%define version 2.0.5
+%define release 1
+%define tarver %{version}
+%endif
 
 Summary: Postfix Policy Daemon
 Name: cluebringer
-Version: 2.0.5
-Release: 1
+Version: %{version}
+Release: %{release}
 License: GPLv2
 Group: System/Daemons
 URL: http://www.policyd.org
-Source0: http://downloads.sourceforge.net/policyd/%{name}-%{version}.tar.bz2
+Source0: http://downloads.sourceforge.net/policyd/%{name}-%{tarver}.tar.bz2
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
@@ -70,10 +82,10 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{cblibdir}
 mkdir -p $RPM_BUILD_ROOT%{_sbindir}
 mkdir -p $RPM_BUILD_ROOT%{_initrddir}
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/policyd
 cp -R cbp $RPM_BUILD_ROOT%{cblibdir}
 install -m 755 cbpolicyd cbpadmin database/convert-tsql $RPM_BUILD_ROOT%{_sbindir}
-install -m 644 cluebringer.conf $RPM_BUILD_ROOT%{_sysconfdir}/cluebringer.conf
+install -m 644 cluebringer.conf $RPM_BUILD_ROOT%{_sysconfdir}/policyd/cluebringer.conf
 install -m 755 contrib/initscripts/Fedora/cbpolicyd $RPM_BUILD_ROOT%{_initrddir}
 
 # Webui
@@ -81,6 +93,10 @@ mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}
 mkdir -p $RPM_BUILD_ROOT%{apacheconfdir}
 cp -R webui/* $RPM_BUILD_ROOT%{_datadir}/%{name}
 install -m 644 contrib/httpd/cluebringer.conf $RPM_BUILD_ROOT%{apacheconfdir}/cluebringer.conf
+# Move config into /etc
+mv $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php $RPM_BUILD_ROOT%{_sysconfdir}/policyd/webui.conf
+ln -s %{_sysconfdir}/policyd/webui.conf $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php
+chmod 0640 $RPM_BUILD_ROOT%{_sysconfdir}/policyd/webui.conf
 
 # Docdir
 mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/contrib
@@ -100,34 +116,22 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-
+%doc %{_docdir}/%{name}-%{version}
 %{cblibdir}/
-
 %{_sbindir}/cbpolicyd
 %{_sbindir}/cbpadmin
 %{_sbindir}/convert-tsql
-
 %{_initrddir}/cbpolicyd
-
-%attr(-,root,apache) %{_datadir}/%{name}/*.php
-%attr(-,root,apache) %{_datadir}/%{name}/*.css
-%attr(-,root,apache) %{_datadir}/%{name}/images
-%attr(-,root,apache) %{_datadir}/%{name}/tooltips
-%attr(-,root,apache) %{_datadir}/%{name}/includes/db.php
-%attr(-,root,apache) %{_datadir}/%{name}/includes/footer.php
-%attr(-,root,apache) %{_datadir}/%{name}/includes/header.php
-%attr(-,root,apache) %{_datadir}/%{name}/includes/tooltipdata.php
-%attr(-,root,apache) %{_datadir}/%{name}/includes/tooltips.php
-
-%config(noreplace) %{_sysconfdir}/cluebringer.conf
+%attr(-,root,apache) %{_datadir}/%{name}/
+%config(noreplace) %{_sysconfdir}/policyd/cluebringer.conf
+%attr(-,root,apache) %config(noreplace) %{_sysconfdir}/policyd/webui.conf
 %config(noreplace) %{apacheconfdir}/cluebringer.conf
-%attr(-,root,apache) %config(noreplace) %{_datadir}/%{name}/includes/config.php
-
-
-%doc %{_docdir}/%{name}-%{version}
 
 
 %changelog
+* Wed Nov 19 2008 Nigel Kukard  <nkukard@lbsd.net>
+- Various updates and changes
+
 * Tue Nov 18 2008 Christopher St Pierre <stpierre@NebrWesleyan.edu> - 
 - Initial build.
 
