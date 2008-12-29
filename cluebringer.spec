@@ -78,7 +78,7 @@ done
 rm -rf $RPM_BUILD_ROOT
 
 
-# Cbpolicyd
+# cbpolicyd
 mkdir -p $RPM_BUILD_ROOT%{cblibdir}
 mkdir -p $RPM_BUILD_ROOT%{_sbindir}
 mkdir -p $RPM_BUILD_ROOT%{_initrddir}
@@ -89,9 +89,9 @@ install -m 644 cluebringer.conf $RPM_BUILD_ROOT%{_sysconfdir}/policyd/cluebringe
 install -m 755 contrib/initscripts/Fedora/cbpolicyd $RPM_BUILD_ROOT%{_initrddir}
 
 # Webui
-mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}/webui
 mkdir -p $RPM_BUILD_ROOT%{apacheconfdir}
-cp -R webui/* $RPM_BUILD_ROOT%{_datadir}/%{name}
+cp -R webui/* $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/
 install -m 644 contrib/httpd/cluebringer-httpd.conf $RPM_BUILD_ROOT%{apacheconfdir}/cluebringer.conf
 # Move config into /etc
 mv $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php $RPM_BUILD_ROOT%{_sysconfdir}/policyd/webui.conf
@@ -122,9 +122,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_sbindir}/cbpadmin
 %{_sbindir}/convert-tsql
 %{_initrddir}/cbpolicyd
-%attr(-,root,apache) %{_datadir}/%{name}/
+
+%dir %{_datadir}/%{name}
+%attr(-,root,apache) %{_datadir}/%{name}/webui/
+
+%dir %{_sysconfdir}/policyd
 %config(noreplace) %{_sysconfdir}/policyd/cluebringer.conf
+
 %attr(-,root,apache) %config(noreplace) %{_sysconfdir}/policyd/webui.conf
+
 %config(noreplace) %{apacheconfdir}/cluebringer.conf
 
 
