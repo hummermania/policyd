@@ -79,7 +79,7 @@ if ($_POST['frmaction'] == "delete") {
 
 			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}accounting_tracking WHERE AccountingID = ".$db->quote($_POST['accounting_id']));
 
-			if ($res !== FALSE) {
+			if ($res) {
 ?>
 				<div class="notice">Accounting tracking info deleted</div>
 <?php
