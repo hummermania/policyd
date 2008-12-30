@@ -77,13 +77,7 @@ if ($_POST['frmaction'] == "delete") {
 			# Check last query succeeded, if so continue
 			$db->beginTransaction();
 
-			$stmt = $db->prepare("
-				DELETE FROM 
-					${DB_TABLE_PREFIX}accounting_tracking 
-				WHERE 
-					AccountingID = ?
-			");
-			$res = $stmt->execute($_POST['accounting_id']);
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}accounting_tracking WHERE AccountingID = ".$db->quote($_POST['accounting_id']));
 
 			if ($res !== FALSE) {
 ?>
