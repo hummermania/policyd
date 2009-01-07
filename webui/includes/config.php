@@ -7,14 +7,18 @@
 # sqlite:////full/unix/path/to/file.db?mode=0666
 #
 #$DB_DSN="sqlite:////tmp/cluebringer.sqlite";
-$DB_DSN="mysql:host=localhost;dbname=policyd";
+$DB_DSN="mysql:host=localhost;dbname=cluebringer";
 $DB_USER="root";
 #$DB_PASS="";
 $DB_TABLE_PREFIX="";
 
-$DB_POSTFIX_DSN="mysql:host=localhost;dbname=postfix";
-#$DB_POSTFIX_DSN="DBI:mysql:database=cluebringer;host=localhost";
-$DB_POSTFIX_USER="root";
+
+#
+# THE BELOW SECTION IS UNSUPPORTED AND MEANT FOR THE ORIGINAL SPONSOR OF V2
+#
+
+#$DB_POSTFIX_DSN="mysql:host=localhost;dbname=postfix";
+#$DB_POSTFIX_USER="root";
 #$DB_POSTFIX_PASS="";
 
 ?>
