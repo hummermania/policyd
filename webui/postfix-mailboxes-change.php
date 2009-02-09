@@ -163,10 +163,8 @@ if ($_POST['frmaction'] == "change") {
 	if (isset($_POST['postfix_mailbox_quota'])) {
 		if (!empty($_POST['postfix_mailbox_quota'])) {
 			$quota = $db->quote($_POST['postfix_mailbox_quota']);
-		} else {
-			$quota = "NULL";
+			array_push($updates,"Quota = ".$quota);
 		}
-		array_push($updates,"Quota = ".$quota);
 	}
 
 	if (!empty($_POST['postfix_mailbox_bcc'])) {
