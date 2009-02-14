@@ -321,6 +321,11 @@ sub policySourceItemMatches
 			$res = saslUsernameMatches($sessionData->{'SASLUsername'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a SASL user specification, match = $res") if ($log);
 
+		# Match blank email addy
+		} elsif ($item eq "@") {
+			$res = 1 if ($sessionData->{'Sender'} eq "");
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a email blank address specification, match = $res") if ($log);
+
 		# Match email addy
 		} elsif ($item =~ /^\S*@\S+$/) {
 			$res = emailAddressMatches($sessionData->{'Sender'},$item);

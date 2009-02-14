@@ -638,8 +638,14 @@ sub getKey
 
 	# Check TrackSender
 	} elsif ($method eq "sender") {
-		my $key = getEmailKey($spec,$sessionData->{'Sender'});
-	
+		# Check if the sender is blank (<>), it makes no sense at present to work out how its tracked, <> is <>
+		my $key;
+		if ($sessionData->{'Sender'} ne "") {
+			$key = getEmailKey($spec,$sessionData->{'Sender'});
+		} else {
+			$key = "<>";
+		}
+
 		# Check for no key
 		if (defined($key)) {
 			$res = "Sender:$key";
