@@ -102,7 +102,8 @@ sub configure {
 	) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
 	# Copy config
 	my %config = %inifile;
-	untie(%inifile);
+	# FIXME: This now generates a warning as Config::Inifiles doesn't implement UNTIE
+	# untie(%inifile);
 
 	# Pull in params for the server
 	my @server_params = (
@@ -140,19 +141,21 @@ sub configure {
 	if (!defined($config{'server'}{'protocols'})) {
 		die "Server configuration error: 'protocols' not found";
 	}
-	foreach my $module (@{$config{'server'}{'modules'}}) {
-		$module =~ s/\s+//g;
+	# Split off modules
+	my @moduleList = split(/\s+/,$config{'server'}{'modules'});
+	foreach my $module (@moduleList) {
 		# Skip comments
 		next if ($module =~ /^#/);
 		$module = "modules/$module";
-		push(@{$cfg->{'module_list'}},$module) if ($module ne "");
+		push(@{$cfg->{'module_list'}},$module);
 	}
-	foreach my $module (@{$config{'server'}{'protocols'}}) {
-		$module =~ s/\s+//g;
+	# Split off protocols
+	my @protocolList = split(/\s+/,$config{'server'}{'protocols'});
+	foreach my $module (@protocolList) {
 		# Skip comments
 		next if ($module =~ /^#/);
 		$module = "protocols/$module";
-		push(@{$cfg->{'module_list'}},$module) if ($module ne "");
+		push(@{$cfg->{'module_list'}},$module);
 	}
 	
 	# Override
