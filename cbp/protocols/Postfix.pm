@@ -102,6 +102,8 @@ sub protocol_check {
 # Process buffer into sessionData
 sub protocol_parse {
 	my ($server,$buffer) = @_;
+	# Get this instance we're working with
+	my $serverInstance = $server->{'server'};
 
 	my %res;
 
@@ -113,6 +115,7 @@ sub protocol_parse {
 	}
 
 	$res{'_protocol_transport'} = "Postfix";
+	$res{'_protocol_peeraddr'} = $serverInstance->{'peeraddr'};
 
 	return \%res;
 }

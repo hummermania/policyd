@@ -316,6 +316,23 @@ sub policySourceItemMatches
 			$res = ipMatches($sessionData->{'ClientAddress'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a IP/CIDR specification, match = $res") if ($log);
 
+		# Match peer IP (the server requesting the policy)
+		} elsif ($item =~ /^\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?\]$/) {
+			# Check if peer is actually defined
+			if (defined($sessionData->{'_protocol_peeraddr'})) {
+				# Check if its in a supported format
+				if ($sessionData->{'_protocol_peeraddr'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+					$res = ipMatches($sessionData->{'_protocol_peeraddr'},$item);
+					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, match = $res") if ($log);
+				# If unsupported...
+				} else {
+					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, but peeraddr '".$sessionData->{'_protocol_peeraddr'}."' is not yet supported") if ($log);
+				}
+			# If undefined...
+			} else {
+					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, but peeraddr '".$sessionData->{'_protocol_peeraddr'}."' is not defined??") if ($log);
+			}
+
 		# Match SASL user, must be above email addy to match SASL usernames in the same format as email addies
 		} elsif ($item =~ /^\$\S+$/) {
 			$res = saslUsernameMatches($sessionData->{'SASLUsername'},$item);

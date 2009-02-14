@@ -110,6 +110,9 @@ sub protocol_check {
 # Process buffer into sessionData
 sub protocol_parse {
 	my ($server,$buffer) = @_;
+	# Get this instance we're working with
+	my $serverInstance = $server->{'server'};
+	# Are we going to log?
 	my $log = defined($server->{'config'}{'logging'}{'bizanga'});
 
 	my %res;
@@ -132,6 +135,7 @@ sub protocol_parse {
 	$res{'protocol_state'} = "RCPT" if (!defined($res{'protocol_state'}));
 
 	$res{'_protocol_transport'} = "HTTP";
+	$res{'_protocol_peeraddr'} = $serverInstance->{'peeraddr'};
 
 	return \%res;
 }
