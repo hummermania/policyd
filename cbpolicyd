@@ -51,6 +51,9 @@ sub configure {
 	my $inifile;
 
 
+	# We're being called from somewhere else, maybe a protocol?
+	return if (@_);
+
 	# Set defaults
 	$cfg->{'config_file'} = "/etc/cluebringer.conf";
 	$cfg->{'track_sessions'} = 0;
@@ -61,6 +64,7 @@ sub configure {
 	$server->{'log_level'} = 2;
 	$server->{'log_file'} = "/var/log/cbpolicyd.log";
 
+	$server->{'proto'} = "tcp";
 	$server->{'host'} = "*";
 	$server->{'port'} = 10031;
 			
@@ -108,7 +112,7 @@ sub configure {
 	# Pull in params for the server
 	my @server_params = (
 			'log_level','log_file',
-			'port', 'host',
+			'proto', 'host', 'port',
 			'cidr_allow', 'cidr_deny',
 			'pid_file', 
 			'user', 'group',
