@@ -13,6 +13,6 @@ ALTER TABLE quotas ADD
 
 NOTE: This is required for upgrading svn below r387!!!!
 
-ALTER TABLE tracking CHANGE
+ALTER TABLE session_tracking CHANGE
 		Timestamp	UnixTimestamp BIGINT NOT NULL;
 
