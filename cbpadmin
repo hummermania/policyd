@@ -72,7 +72,8 @@ tie my %inifile, 'Config::IniFiles', (
 ) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
 # Copy config
 my %config = %inifile;
-untie(%inifile);
+# FIXME: This now generates a warning as Config::Inifiles doesn't implement UNTIE
+# untie(%inifile);
 
 
 # Our fake server...
@@ -141,12 +142,22 @@ sub loadModules
 	# Pull in module list
 	my $modules = $config{'server'}{'modules'};
 	my @modulelist;
-	foreach my $module (@{$modules}) {
-		$module =~ s/\s+//g;
-		# Skip comments
-		next if ($module =~ /^#/);
-		$module = "modules/$module";
-		push(@modulelist,$module);
+	if (ref($config{'server'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$modules}) {
+			$module =~ s/\s+//g;
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "modules/$module";
+			push(@modulelist,$module);
+		}
+	} else {
+		my @splitModules = split(/\s+/,$config{'server'}{'modules'});
+		foreach my $module (@splitModules) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "modules/$module";
+			push(@modulelist,$module);
+		}
 	}
 	
 	# Emulate server

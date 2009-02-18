@@ -146,22 +146,42 @@ sub configure {
 		die "Server configuration error: 'protocols' not found";
 	}
 	# Split off modules
-	my @moduleList = split(/\s+/,$config{'server'}{'modules'});
-	foreach my $module (@moduleList) {
-		# Skip comments
-		next if ($module =~ /^#/);
-		$module = "modules/$module";
-		push(@{$cfg->{'module_list'}},$module);
+	if (ref($config{'server'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$config{'server'}{'modules'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "modules/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'server'}{'modules'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "modules/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
 	}
 	# Split off protocols
-	my @protocolList = split(/\s+/,$config{'server'}{'protocols'});
-	foreach my $module (@protocolList) {
-		# Skip comments
-		next if ($module =~ /^#/);
-		$module = "protocols/$module";
-		push(@{$cfg->{'module_list'}},$module);
-	}
-	
+	if (ref($config{'server'}{'protocols'}) eq "ARRAY") {
+		foreach my $module (@{$config{'server'}{'protocols'}}) {
+			$module =~ s/\s+//g;
+ 			# Skip comments
+	 		next if ($module =~ /^#/);
+ 			$module = "protocols/$module";
+			push(@{$cfg->{'module_list'}},$module);
+	 	}
+	} else {
+		my @protocolList = split(/\s+/,$config{'server'}{'protocols'});
+		foreach my $module (@protocolList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "protocols/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}	
+
 	# Override
 	if ($cmdline->{'debug'}) {
 		$server->{'log_level'} = 4;
