@@ -20,8 +20,6 @@ Immediate requirements:
 - option to not add timestamps to logs (we capture logs with daemontools which adds (numeric) timestamps)  (2.1)
 * log_timestamp=false in options
 
-- make the responses ("Greylisting in effect") configurable  (2.1)
-
 - Email notification when hosts are added to whitelist/blacklist  (2.1)
 
 * Blacklist on excessive greylist retries, ie 50 in 1 minute ... etc. (2.1)
@@ -36,7 +34,7 @@ Immediate requirements:
 * BCC To in amavis plugin needs Merge option, don't overwrite fields offer merge option?
 * Add "enable" box so new entries are not disabled automagically apon adding
 
-- Quotas based on per-recipient and per-message sent, make this optional.
+- Quotas based on per-recipient and per-message sent, make this optional. (2.1)
 
 - Special treatment of    user+something@domain    and changing to   user@domain, global config option   (2.1)
 

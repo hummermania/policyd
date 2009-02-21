@@ -50,6 +50,8 @@ sub init {
 	# Defaults
 	$config{'enable'} = 0;
 	$config{'training_mode'} = 0;
+	$config{'defer_message'} = "Greylisting in effect, please come back later";
+	$config{'blacklist_message'} = "Greylisting in effect, sending server blacklisted";
 
 	my $moreInfo = "";
 
@@ -340,7 +342,7 @@ sub check {
 							$sessionData->{'Sender'},
 							$sessionData->{'Recipient'});
 
-					return $server->protocol_response(PROTO_REJECT,"Greylisting in effect, sending server blacklisted");
+					return $server->protocol_response(PROTO_REJECT,$config{'blacklist_message'});
 				}
 
 			}
@@ -473,7 +475,7 @@ sub check {
 									$sessionData->{'Sender'},
 									$sessionData->{'Recipient'});
 
-							return $server->protocol_response(PROTO_REJECT,"Greylisting in effect, sending server blacklisted");
+							return $server->protocol_response(PROTO_REJECT,$config{'blacklist_message'});
 						}
 					} # if ($totalCount > 0 && $totalCount >= $policy{'AutoBlacklistCount'})
 				} # if (defined($policy{'AutoBlacklistCount'}) && $policy{'AutoBlacklistCount'} > 0)
@@ -507,7 +509,7 @@ sub check {
 					$sessionData->{'Recipient'});
 
 			# Skip to rejection, if we using greylisting 0 seconds is highly unlikely to be a greylisitng period
-			return $server->protocol_response(PROTO_DEFER,"451 4.7.1 Greylisting in effect, please come back later");
+			return $server->protocol_response(PROTO_DEFER,"451 4.7.1 ".$config{'defer_message'});
 		}
 
 	# And just a bit of debug
@@ -579,7 +581,7 @@ sub check {
 			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 
-		return $server->protocol_response(PROTO_DEFER,"451 4.7.1 Greylisting in effect, please come back later");
+		return $server->protocol_response(PROTO_DEFER,"451 4.7.1 ".$config{'defer_message'});
 
 	} else {
 		# Insert/update triplet in database
