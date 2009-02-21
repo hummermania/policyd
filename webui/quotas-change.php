@@ -233,7 +233,7 @@ if ($_POST['frmaction'] == "change") {
 	if (!empty($_POST['quota_data'])) {
 		array_push($updates,"Data = ".$db->quote($_POST['quota_data']));
 	}
-	if (!empty($_POST['quota_lastquota'])) {
+	if (isset($_POST['quota_lastquota']) && $_POST['quota_lastquota'] != "") {
 		array_push($updates,"LastQuota = ".$db->quote($_POST['quota_lastquota']));
 	}
 	if (!empty($_POST['quota_comment'])) {
