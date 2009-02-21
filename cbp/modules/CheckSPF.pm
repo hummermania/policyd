@@ -65,6 +65,8 @@ sub init {
 		$server->log(LOG_NOTICE,"  => CheckSPF: enabled");
 		$config{'enable'} = 1;
 		$spf_server = Mail::SPF::Server->new();
+	} else {
+		$server->log(LOG_NOTICE,"  => CheckSPF: disabled");
 	}
 }
 

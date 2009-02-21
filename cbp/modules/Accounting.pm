@@ -65,6 +65,8 @@ sub init {
 		$config{'enable'} = 1;
 		# Enable tracking, we need this to recipients for the message in END-OF-DATA
 		$server->{'config'}{'track_sessions'} = 1;
+	} else {
+		$server->log(LOG_NOTICE,"  => Accounting: disabled");
 	}
 }
 

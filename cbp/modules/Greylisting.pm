@@ -71,6 +71,8 @@ sub init {
 	if ($config{'enable'} =~ /^\s*(y|yes|1|on)\s*$/i) {
 		$server->log(LOG_NOTICE,"  => Greylisting: enabled$moreInfo");
 		$config{'enable'} = 1;
+	} else {
+		$server->log(LOG_NOTICE,"  => Greylisting: disabled");
 	}
 
 }
