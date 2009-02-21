@@ -36,11 +36,35 @@ our $pluginInfo = {
 };
 
 
+# Module configuration
+my %config;
+
+
 # Create a child specific context
 sub init {
 	my $server = shift;
+	my $inifile = $server->{'inifile'};
 
-	$server->{'config'}{'track_sessions'} = 1;
+
+	# Defaults
+	$config{'enable'} = 0;
+
+	# Parse in config
+	if (defined($inifile->{'amavis'})) {
+		foreach my $key (keys %{$inifile->{'amavis'}}) {
+			$config{$key} = $inifile->{'amavis'}->{$key};
+		}
+	}
+
+	# Check if enabled
+	if ($config{'enable'} =~ /^\s*(y|yes|1|on)\s*$/i) {
+		$server->log(LOG_NOTICE,"  => Amavis: enabled");
+		$config{'enable'} = 1;
+		# Enable tracking, we need this to pass data to the amavis plugin
+		$server->{'config'}{'track_sessions'} = 1;
+	} else {
+		$server->log(LOG_NOTICE,"  => Amavis: disabled");
+	}
 }
 
 
