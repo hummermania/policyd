@@ -247,6 +247,9 @@ sub check {
 		return $server->protocol_response(PROTO_DATA_ERROR);
 	}
 
+	# Do we have entries that we can use?
+	my $currentAutoBlacklistEntry;
+	my $currentAutoWhitelistEntry;
 
 	#
 	# Check if we we must use auto-whitelisting and if we're auto-whitelisted
@@ -299,6 +302,9 @@ sub check {
 							$sessionData->{'Recipient'});
 
 					return $server->protocol_response(PROTO_PASS);
+				# We already have a auto-whitelist entry, but its old
+				} else {
+					$currentAutoWhitelistEntry = $row->{'ID'};
 				}
 			} # if ($row)
 
@@ -330,8 +336,10 @@ sub check {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
+			my $row = $sth->fetchrow_hashref();
+
 			# Pull off first row
-			if ((my $row =  $sth->fetchrow_hashref())) {
+			if ($row) {
 
 				# Check if we're within the auto-blacklisting period
 				if ($sessionData->{'UnixTimestamp'} - $row->{'added'} <= $policy{'AutoBlacklistPeriod'}) {
@@ -343,8 +351,10 @@ sub check {
 							$sessionData->{'Recipient'});
 
 					return $server->protocol_response(PROTO_REJECT,$config{'blacklist_message'});
+				# We already have a auto-blacklist entry, but its old
+				} else {
+					$currentAutoBlacklistEntry = $row->{'ID'};
 				}
-
 			}
 
 		} else {  # if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0)
@@ -455,18 +465,40 @@ sub check {
 					
 						# If we are to be listed, this is our reason
 						if ($blacklist) {
-							# Record blacklisting
-							$sth = DBDo('
-								INSERT INTO @TP@greylisting_autoblacklist
-									(TrackKey,Added,Comment)
-								VALUES
-									(?,?,?)
-								',
-								$key,$sessionData->{'UnixTimestamp'},$blacklist
-							);
-							if (!$sth) {
-								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
-								return $server->protocol_response(PROTO_DB_ERROR);
+							# Check if we already have an expired autoblacklist entry, this happens if the cleanup has not run yet
+							if (defined($currentAutoBlacklistEntry)) {
+								# Update blacklisting to the new details
+								$sth = DBDo('
+									UPDATE 
+										@TP@greylisting_autoblacklist
+									SET
+										TrackKey = ?,
+										Added = ?,
+										Comment = ?
+									WHERE
+										ID = ?
+									',
+									$key,$sessionData->{'UnixTimestamp'},$blacklist,$currentAutoBlacklistEntry
+								);
+								if (!$sth) {
+									$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+									return $server->protocol_response(PROTO_DB_ERROR);
+								}
+							# If we don't have an entry we can use, create one
+							} else {
+								# Record blacklisting
+								$sth = DBDo('
+									INSERT INTO @TP@greylisting_autoblacklist
+										(TrackKey,Added,Comment)
+									VALUES
+										(?,?,?)
+									',
+									$key,$sessionData->{'UnixTimestamp'},$blacklist
+								);
+								if (!$sth) {
+									$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
+									return $server->protocol_response(PROTO_DB_ERROR);
+								}
 							}
 
 							$server->maillog("module=Greylisting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=auto-blacklisted",
@@ -675,19 +707,42 @@ sub check {
 	
 						# If we are to be listed, this is our reason
 						if ($whitelist) {
-							# Record whitelisting
-							$sth = DBDo('
-								INSERT INTO @TP@greylisting_autowhitelist
-									(TrackKey,Added,LastSeen,Comment)
-								VALUES
-									(?,?,?,?)
-								',
-								$key,$sessionData->{'UnixTimestamp'},$sessionData->{'UnixTimestamp'},$whitelist
-							);
-							if (!$sth) {
-								$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
-								return $server->protocol_response(PROTO_DB_ERROR);
+							# Check if we already have an expired autowhitelist entry, this happens if the cleanup has not run yet
+							if (defined($currentAutoWhitelistEntry)) {
+								# Update whitelisting to the new details
+								$sth = DBDo('
+									UPDATE 
+										@TP@greylisting_autowhitelist
+									SET
+										TrackKey = ?,
+										Added = ?,
+										LastSeen = ?,
+										Comment = ?
+									WHERE
+										ID = ?
+									',
+									$key,$sessionData->{'UnixTimestamp'},$sessionData->{'UnixTimestamp'},$whitelist,$currentAutoWhitelistEntry
+								);
+								if (!$sth) {
+									$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+									return $server->protocol_response(PROTO_DB_ERROR);
+								}
+							} else {
+								# Update whitelisting to the new details
+								$sth = DBDo('
+									INSERT INTO @TP@greylisting_autowhitelist
+										(TrackKey,Added,LastSeen,Comment)
+									VALUES
+										(?,?,?,?)
+									',
+									$key,$sessionData->{'UnixTimestamp'},$sessionData->{'UnixTimestamp'},$whitelist
+								);
+								if (!$sth) {
+									$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
+									return $server->protocol_response(PROTO_DB_ERROR);
+								}
 							}
+
 							$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=auto-whitelisted",
 									$sessionData->{'ClientAddress'},
 									$sessionData->{'Helo'},
