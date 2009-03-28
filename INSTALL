@@ -38,7 +38,8 @@ mkdir /usr/local/lib/policyd-2.0
 cp -r cbp /usr/local/lib/policyd-2.0/
 
 4. Copy cbpolicyd and cbpadmin into /usr/local/bin
-cp cbpolicyd cbpadmin /usr/local/bin/
+cp cbpadmin /usr/local/bin/
+cp cbpolicyd /usr/local/sbin/
 
 
 5. Install the webui/*  into your apache directory, check out   includes/config.php  and adjust the MySQL server details.
