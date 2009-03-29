@@ -322,7 +322,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 				# If we updated ...
 				} else {
 					# Log update to mail log
-					$server->maillog("module=Accounting, mode=create, host=%s, helo=%s, from=%s, to=%s, reason=accounting_update, policy=%s, accounting=%s, "
+					$server->maillog("module=Accounting, mode=update, host=%s, helo=%s, from=%s, to=%s, reason=accounting_update, policy=%s, accounting=%s, "
 								."track=%s, period=%s, count=%s, size=%s",
 							$sessionData->{'ClientAddress'},
 							$sessionData->{'Helo'},
