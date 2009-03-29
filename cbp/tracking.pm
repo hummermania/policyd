@@ -215,6 +215,9 @@ sub getSessionDataFromRequest
 			$sessionData->{'Size'} = $request->{'size'};
 			$sessionData->{'RecipientData'} = "";
 		}
+		
+		# Requesting server address, we need this before the policy call
+		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
 
 		# If we in rcpt, caclulate and save policy
 		if ($request->{'protocol_state'} eq 'RCPT') {
@@ -250,6 +253,9 @@ sub getSessionDataFromRequest
 
 	# Check for HTTP protocol transport
 	} elsif ($request->{'_protocol_transport'} eq "HTTP") {
+		# Requesting server address, we need this before the policy call
+		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
+
 		$sessionData->{'ClientAddress'} = $request->{'client_address'};
 		$sessionData->{'ClientReverseName'} = $request->{'client_reverse_name'} if (defined($request->{'client_reverse_name'}));
 		$sessionData->{'Helo'} = $request->{'helo_name'} if (defined($request->{'helo_name'}));

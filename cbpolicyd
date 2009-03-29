@@ -435,6 +435,7 @@ sub process_request {
 	$request->{'sasl_username'} = lc($request->{'sasl_username'}) if (defined($request->{'sasl_username'}));
 
 	# Internal data
+	$request->{'_peer_address'} = $server->{'peeraddr'};
 	$request->{'_timestamp'} = time();
 	
 	

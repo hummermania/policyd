@@ -135,7 +135,6 @@ sub protocol_parse {
 	$res{'protocol_state'} = "RCPT" if (!defined($res{'protocol_state'}));
 
 	$res{'_protocol_transport'} = "HTTP";
-	$res{'_protocol_peeraddr'} = $serverInstance->{'peeraddr'};
 
 	return \%res;
 }

@@ -115,7 +115,6 @@ sub protocol_parse {
 	}
 
 	$res{'_protocol_transport'} = "Postfix";
-	$res{'_protocol_peeraddr'} = $serverInstance->{'peeraddr'};
 
 	return \%res;
 }
