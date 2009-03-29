@@ -377,7 +377,7 @@ sub check {
 					$sessionData->{'Sender'},
 					$sessionData->{'Recipient'});
 
-			return $server->protocol_response(PROTO_REJECT,"REJECT","Invalid HELO/EHLO; Blacklisted");
+			return $server->protocol_response(PROTO_REJECT,"Invalid HELO/EHLO; Blacklisted");
 		}
 	}
 
