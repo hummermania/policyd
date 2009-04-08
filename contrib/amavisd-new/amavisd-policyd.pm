@@ -168,8 +168,10 @@ sub process_policy {
 		# If this recipient isn't part of the stored policy, get the policy ourselves
 		# This means that the recipients addy changed, or there is no policy for them??
 		if (!defined($sessionData->{'_Recipient_To_Policy'}{$emailAddy})) {
+			# Override recipient
+			$sessionData->{'Recipient'} = $emailAddy;
 			# Now pull in policy
-			my $policy = getPolicy($self,$msginfo->client_addr,$msginfo->sender,$sessionData->{'SASLUsername'});
+			my $policy = getPolicy($self,$sessionData);
 			if (!$policy) {
 				next;
 			}
