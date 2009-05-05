@@ -1,4 +1,5 @@
 # System functions
+# Copyright (C) 2009, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
 # 
 # This program is free software; you can redistribute it and/or modify
