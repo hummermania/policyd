@@ -169,8 +169,11 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 						}
 	
 						# Check for violation
-						if (
-								defined($accounting->{'MessageCountLimit'}) && (
+						if (defined($accounting->{'MessageCountLimit'}) && $accounting->{'MessageCountLimit'} ne "") {
+							# If its a valid message count limit
+							if ($accounting->{'MessageCountLimit'} =~ /^[0-9]+$/) {
+								# Check if we exceeded
+								if ($accounting->{'MessageCountLimit'} > 0 && (
 										# Check current counter
 										(
 											defined($newCounters{$atrack->{'AccountingID'}}->{'MessageCount'}) && 
@@ -178,20 +181,31 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 										) || 
 										# Or if that doesn't match, the DB counter
 										$atrack->{'MessageCount'} >= $accounting->{'MessageCountLimit'}
-									)
-								) {
-							$hasExceeded = "Policy rejection; Message count exceeded";
-						} else {
-							# Bump up limit
-							$newCounters{$atrack->{'AccountingID'}}->{'MessageCount'}++;
+								)) {
+									$hasExceeded = "Policy rejection; Message count exceeded";
+								}
+							} else {
+								$server->log(LOG_ERR,"[ACCOUNTING] The value for MessageCountLimit is invalid for accounting ID  '".$accounting->{'ID'}."'");
+							}
 						}
 
 						# If we've not exceeded, check the message cumulative size
 						if (!$hasExceeded) {
+							# Bump up count
+							$newCounters{$atrack->{'AccountingID'}}->{'MessageCount'}++;
+
 							# Check for cumulative size violation
 							if (defined($accounting->{'MessageCumulativeSizeLimit'}) && 
-									$atrack->{'MessageCumulativeSize'} > $accounting->{'MessageCumulativeSizeLimit'}) {
-								$hasExceeded = "Policy rejection; Cumulative message size exceeded";
+									$accounting->{'MessageCumulativeSizeLimit'} ne "") {
+								# If its a valid message count limit
+								if ($accounting->{'MessageCumulativeSizeLimit'} =~ /^[0-9]+$/) {
+									if ($accounting->{'MessageCumulativeSizeLimit'} > 0 &&
+											$atrack->{'MessageCumulativeSize'} > $accounting->{'MessageCumulativeSizeLimit'}) {
+										$hasExceeded = "Policy rejection; Cumulative message size exceeded";
+									}
+								} else {
+									$server->log(LOG_ERR,"[ACCOUNTING] The value for MessageCumulativeSizeLimit is invalid for accounting ID  '".$accounting->{'ID'}."'");
+								}
 							}
 						}
 	
