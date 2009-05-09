@@ -33,9 +33,9 @@ $ mysql -u root -p policyd < policyd.mysql
 2. Put cluebringer.conf in your /etc directory and adjust cluebringer.conf with your MySQL database details
 
 
-3. Copy the cbp/ directory into /usr/local/lib/policyd-2.0/
-mkdir /usr/local/lib/policyd-2.0
-cp -r cbp /usr/local/lib/policyd-2.0/
+3. Copy the cbp/ directory into /usr/local/lib/policyd-2.1/
+mkdir /usr/local/lib/policyd-2.1
+cp -r cbp /usr/local/lib/policyd-2.1/
 
 4. Copy cbpolicyd and cbpadmin into /usr/local/bin
 cp cbpadmin /usr/local/bin/
