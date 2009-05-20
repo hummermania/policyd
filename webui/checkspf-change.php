@@ -73,6 +73,8 @@ if ($_POST['frmaction'] == "change") {
 			$res = $stmt->execute(array($_POST['checkspf_id']));
 
 			$row = $stmt->fetchObject();
+			$stmt->closeCursor();
+                                                
 ?>
 			<table class="entry" style="width: 75%;">
 				<tr>
@@ -98,6 +100,7 @@ if ($_POST['frmaction'] == "change") {
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
 <?php
 							}
+							$res->closeCursor();
 ?>
 						</select>
 					</td>

@@ -102,6 +102,7 @@ if ($_POST['frmaction'] == "change") {
 								<option value="<?php echo $row2->id ?>" ><?php echo $row2->name ?></option>
 <?php
 							}
+							$res->closeCursor();
 ?>
 						</select>
 					</td>
