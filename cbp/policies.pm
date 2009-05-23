@@ -226,6 +226,16 @@ sub getGroupMembers
 	my $group = shift;
 
 
+	# Check cache
+	my ($cache_res,$cache) = cacheGetKeyPair('Policies/Groups/Name-to-Members',$group);
+	if ($cache_res) {
+		return cbp::cache::Error();
+	}
+	if (defined($cache)) {
+		my @groupMembers = split(/,/,$cache);
+		return \@groupMembers;
+	}
+
 	# Grab group members
 	my $sth = DBSelect('
 		SELECT 
@@ -247,6 +257,12 @@ sub getGroupMembers
 	my @groupMembers;
 	while (my $row = $sth->fetchrow_hashref()) {
 		push(@groupMembers,$row->{'member'});
+	}
+
+	# Cache this
+	$cache_res = cacheStoreKeyPair('Policies/Groups/Name-to-Members',$group,join(',',@groupMembers));
+	if ($cache_res) {
+		return cbp::cache::Error();
 	}
 
 	return \@groupMembers;

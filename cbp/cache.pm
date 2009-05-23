@@ -82,8 +82,9 @@ sub Init
 	$ch = Cache::FastMmap->new(
 		'page_size' => 2048,
 		'num_pages' => 1000,
+		'expire_time' => 300,
 		'raw_values' => 1,
-		'unlink_on_exit'	=> 1,
+		'unlink_on_exit' => 1,
 	);
 
 	# Stats
