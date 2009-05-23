@@ -24,6 +24,7 @@ use warnings;
 
 
 use cbp::logging;
+use cbp::cache;
 use cbp::dblayer;
 use cbp::protocols;
 use cbp::system;
@@ -88,6 +89,7 @@ sub check {
 
 	# Policy we're about to build
 	my %policy;
+	$policy{'Identifier'} = "S";  # S for start, why not?
 
 	# Loop with priorities, low to high
 	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
@@ -113,6 +115,8 @@ sub check {
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			while (my $row = $sth->fetchrow_hashref()) {
+				$policy{'Identifier'} .= ":$policyID";
+
 				# If defined, its to override
 				if (defined($row->{'useblacklist'})) {
 					$policy{'UseBlacklist'} = $row->{'useblacklist'};
@@ -405,35 +409,46 @@ sub check {
 							}
 						}
 
-						my $sth = DBSelect('
-							SELECT
-								Count(*) AS Count
-
-							FROM
-								@TP@checkhelo_tracking
-
-							WHERE
-								Address = ?
-								AND LastUpdate >= ?
-							',
-							$sessionData->{'ClientAddress'},$start
-						);
-						if (!$sth) {
-							$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
-							return $server->protocol_response(PROTO_DB_ERROR);
+						# Check cache
+						my ($cache_res,$cache) = cacheGetKeyPair('CheckHelo/HRP/PolicyIdentifierIP-to-Blacklisted',
+								$policy{'Identifier'}."/".$sessionData->{'ClientAddress'});
+						if ($cache_res) {
+							return $server->protocol_response(PROTO_ERROR);
 						}
-						my $row = $sth->fetchrow_hashref();
 
-
-						# If count > $limit , reject
-						if ($row->{'count'} > $policy{'HRPLimit'}) {
-							$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=hrp_blacklisted",
+						# Check if we have a cache value and if its a match
+						if (defined($cache) && $cache) {
+							$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=hrp_blacklisted_cached",
 									$sessionData->{'ClientAddress'},
 									$sessionData->{'Helo'},
 									$sessionData->{'Sender'},
 									$sessionData->{'Recipient'});
 
 							return $server->protocol_response(PROTO_REJECT,"Invalid HELO/EHLO; HRP limit exceeded");
+						} else {
+							# Get HRP count
+							my $hrpCount = getHRPCount($server,$sessionData->{'ClientAddress'},$start);
+							if ($hrpCount < 0) {
+								return $server->protocol_response(PROTO_DB_ERROR);
+							}
+
+							# If count > $limit , reject
+							if ($hrpCount > $policy{'HRPLimit'}) {
+								# Cache this
+								$cache_res = cacheStoreKeyPair('CheckHelo/HRP/PolicyIdentifierIP-to-Blacklisted',
+								$policy{'Identifier'}."/".$sessionData->{'ClientAddress'},1);
+								if ($cache_res) {
+									return $server->protocol_response(PROTO_ERROR);
+								}
+
+								$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=hrp_blacklisted",
+										$sessionData->{'ClientAddress'},
+										$sessionData->{'Helo'},
+										$sessionData->{'Sender'},
+										$sessionData->{'Recipient'});
+
+								return $server->protocol_response(PROTO_REJECT,"Invalid HELO/EHLO; HRP limit exceeded");
+							}
 						}
 
 					} else {
@@ -520,6 +535,33 @@ sub cleanup
 }
 
 
+
+# Get HRP count for a specific client address
+sub getHRPCount
+{
+	my ($server,$clientAddress,$start) = @_;
+
+	my $sth = DBSelect('
+		SELECT
+			Count(*) AS Count
+
+		FROM
+			@TP@checkhelo_tracking
+
+		WHERE
+			Address = ?
+			AND LastUpdate >= ?
+		',
+		$clientAddress,$start
+	);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
+	}
+
+	my $row = $sth->fetchrow_hashref();
+
+	return $row->{'count'};
+}
 
 
 
