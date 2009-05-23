@@ -72,7 +72,6 @@ sub Error
 }
 
 
-
 # Return a hash of policies matches
 # Returns:
 # 	Hash - indexed by policy priority, the value is an array of policy ID's
@@ -88,39 +87,15 @@ sub getPolicy
 	my %matchedPolicies = ();
 
 
-	# Grab all the policy members
-	my $sth = DBSelect('
-		SELECT 
-			@TP@policies.Name, @TP@policies.Priority, @TP@policies.Disabled AS PolicyDisabled,
-			@TP@policy_members.ID, @TP@policy_members.PolicyID, @TP@policy_members.Source, 
-			@TP@policy_members.Destination, @TP@policy_members.Disabled AS MemberDisabled
-		FROM
-			@TP@policies, @TP@policy_members
-		WHERE
-			@TP@policies.Disabled = 0
-			AND @TP@policy_members.Disabled = 0
-			AND @TP@policy_members.PolicyID = @TP@policies.ID
-	');
-	if (!$sth) {
-		$server->log(LOG_DEBUG,"[POLICIES] Error while selecing policy members from database: ".cbp::dblayer::Error());
-		return undef;
-	}
-	# Loop with results
-	my @policyMembers;
-	while (my $row = $sth->fetchrow_hashref()) {
-		# Log what we see
-		if ($row->{'policydisabled'} eq "1") {
-			$server->log(LOG_DEBUG,"[POLICIES] Policy '".$row->{'name'}."' is disabled") if ($log);
-		} elsif ($row->{'memberdisabled'} eq "1") {
-			$server->log(LOG_DEBUG,"[POLICIES] Policy member item with ID '".$row->{'id'}."' is disabled") if ($log);
-		} else {
-			$server->log(LOG_DEBUG,"[POLICIES] Found policy member with ID '".$row->{'id'}."' in policy '".$row->{'name'}."'") if ($log);
-			push(@policyMembers,hashifyLCtoMC($row,qw(Name Priority PolicyDisabled ID PolicyID Source Destination MemberDisabled)));
-		}
+	# Grab policy members from database
+	my $policyMembers = getPolicyMembers($server,$log);
+	if (ref($policyMembers) ne "ARRAY") {
+		$server->log(LOG_DEBUG,"[POLICIES] Error while retriving policy members: $policyMembers");
+		return \%matchedPolicies;
 	}
 
 	# Process the Members
-	foreach my $policyMember (@policyMembers) {
+	foreach my $policyMember (@{$policyMembers}) {
 		# Make debugging a bit easier
 		my $debugTxt = sprintf('[ID:%s/Name:%s]',$policyMember->{'ID'},$policyMember->{'Name'});
 
@@ -217,6 +192,64 @@ sub getPolicy
 
 	return \%matchedPolicies;
 }
+
+
+# Return an array of the policy members from the database
+# Returns:
+#	Array - array of policy members
+sub getPolicyMembers
+{
+	my ($server,$log) = @_;
+
+
+	# Check cache
+	my ($cache_res,$cache) = cacheGetComplexKeyPair('Policies','Members');
+	if ($cache_res) {
+		return cbp::cache::Error();
+	}
+	return $cache if (defined($cache));
+
+	# Grab all the policy members
+	my $sth = DBSelect('
+		SELECT 
+			@TP@policies.Name, @TP@policies.Priority, @TP@policies.Disabled AS PolicyDisabled,
+			@TP@policy_members.ID, @TP@policy_members.PolicyID, @TP@policy_members.Source, 
+			@TP@policy_members.Destination, @TP@policy_members.Disabled AS MemberDisabled
+		FROM
+			@TP@policies, @TP@policy_members
+		WHERE
+			@TP@policies.Disabled = 0
+			AND @TP@policy_members.Disabled = 0
+			AND @TP@policy_members.PolicyID = @TP@policies.ID
+	');
+	if (!$sth) {
+		$server->log(LOG_DEBUG,"[POLICIES] Error while selecing policy members from database: ".cbp::dblayer::Error());
+		return undef;
+	}
+
+	# Loop with results
+	my @policyMembers;
+	while (my $row = $sth->fetchrow_hashref()) {
+		# Log what we see
+		if ($row->{'policydisabled'} eq "1") {
+			$server->log(LOG_DEBUG,"[POLICIES] Policy '".$row->{'name'}."' is disabled") if ($log);
+		} elsif ($row->{'memberdisabled'} eq "1") {
+			$server->log(LOG_DEBUG,"[POLICIES] Policy member item with ID '".$row->{'id'}."' is disabled") if ($log);
+		} else {
+			$server->log(LOG_DEBUG,"[POLICIES] Found policy member with ID '".$row->{'id'}."' in policy '".$row->{'name'}."'") if ($log);
+			push(@policyMembers,hashifyLCtoMC($row,qw(Name Priority PolicyDisabled ID PolicyID Source Destination MemberDisabled)));
+		}
+	}
+	
+	# Cache this
+	$cache_res = cacheStoreComplexKeyPair('Policies','Members',\@policyMembers);
+	if ($cache_res) {
+		return cbp::cache::Error();
+	}
+
+	return \@policyMembers;
+}
+
 
 
 
