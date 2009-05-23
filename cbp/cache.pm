@@ -29,10 +29,13 @@ our (@ISA,@EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(
 	cacheStoreKeyPair
+	cacheStoreComplexKeyPair
 	cacheGetKeyPair
+	cacheGetComplexKeyPair
 );
 
 use Cache::FastMmap;
+use Storable;
 
 # Cache stuff
 my $cache_type = "FastMmap";
@@ -188,6 +191,47 @@ sub cacheGetKeyPair
 
 	return (0,$res);
 }
+
+
+# Store a complex item
+# Parameters:
+# 		CacheName	- Name of cache we storing things in
+# 		Key			- Item key
+# 		Value		- Item value
+sub cacheStoreComplexKeyPair
+{
+	my ($cacheName,$key,$value) = @_;
+
+
+	my $rawValue = Storable::freeze($value);
+	if (!defined($rawValue)) {
+		setError("Unable to freeze cache value in '$cacheName'");
+		return -1;
+	}
+
+	return cacheStoreKeyPair($cacheName,$key,$rawValue);
+}
+
+
+
+# Get a complex item
+# Parameters:
+# 		CacheName	- Name of cache we storing things in
+# 		Key			- Item key
+sub cacheGetComplexKeyPair
+{
+	my ($cacheName,$key) = @_;
+
+
+	my ($res,$rawValue) = cacheGetKeyPair($cacheName,$key);
+	# Thaw out item, if there is no error and we are defined
+	if (!$res && defined($rawValue)) {
+		$rawValue = Storable::thaw($rawValue);
+	}
+
+	return ($res,$rawValue);
+}
+
 
 
 # Return cache hit ratio
