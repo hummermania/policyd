@@ -247,7 +247,7 @@ sub check {
 					if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
 								$sessionData->{'ParsedClientAddress'}->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
 						# Cache positive result
-						my ($cache_res,$cache) = cacheStoreKeyPair('CheckHelo/Whitelist/IP',
+						my $cache_res = cacheStoreKeyPair('CheckHelo/Whitelist/IP',
 								$sessionData->{'ClientAddress'},1);
 						if ($cache_res) {
 							return $server->protocol_response(PROTO_ERROR);
@@ -262,7 +262,7 @@ sub check {
 						return $server->protocol_response(PROTO_PASS);
 					}
 					# Cache negative result
-					my ($cache_res,$cache) = cacheStoreKeyPair('CheckHelo/Whitelist/IP',$sessionData->{'ClientAddress'},0);
+					my $cache_res = cacheStoreKeyPair('CheckHelo/Whitelist/IP',$sessionData->{'ClientAddress'},0);
 					if ($cache_res) {
 						return $server->protocol_response(PROTO_ERROR);
 					}
