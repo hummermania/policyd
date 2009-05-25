@@ -90,7 +90,6 @@ sub check {
 
 	# Policy we're about to build
 	my %policy;
-	$policy{'Identifier'} = "S";  # S for start, why not?
 
 	# Loop with priorities, low to high
 	foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}) {
