@@ -84,6 +84,7 @@ sub init {
 # Do our check
 sub check {
 	my ($server,$sessionData) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'modules'});
 
 
 	# If we not enabled, don't do anything
@@ -548,7 +549,7 @@ sub check {
 	# And just a bit of debug
 	} else {
 		$server->log(LOG_DEBUG,"[GREYLISTING] Updated greylisting triplet ('$key','".$sessionData->{'Sender'}."','".
-				$sessionData->{'Recipient'}."') @ ".$sessionData->{'UnixTimestamp'}."");
+				$sessionData->{'Recipient'}."') @ ".$sessionData->{'UnixTimestamp'}."") if ($log);
 	}
 
 
