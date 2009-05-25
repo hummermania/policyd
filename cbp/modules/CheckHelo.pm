@@ -154,17 +154,30 @@ sub check {
 	}
 
 	# Insert/update HELO in database
-	my $sth = DBDo('
-		UPDATE
-			@TP@checkhelo_tracking
-		SET
-			LastUpdate = ?
-		WHERE
-			Address = ?
-			AND Helo = ?
-		',
-		$sessionData->{'UnixTimestamp'},$sessionData->{'ClientAddress'},$sessionData->{'Helo'}
-	);
+	my $sth = DBDo({
+		'mysql' => ['
+					INSERT INTO @TP@checkhelo_tracking 
+						(Address,Helo,LastUpdate) 
+					VALUES	
+						(?,?,?)
+					ON DUPLICATE KEY
+						UPDATE LastUpdate = ?
+				',
+				$sessionData->{'ClientAddress'},$sessionData->{'Helo'},$sessionData->{'UnixTimestamp'},
+				$sessionData->{'UnixTimestamp'},
+			],
+		'*' => ['
+					UPDATE
+						@TP@checkhelo_tracking
+					SET
+						LastUpdate = ?
+					WHERE
+						Address = ?
+						AND Helo = ?
+				',
+				$sessionData->{'UnixTimestamp'},$sessionData->{'ClientAddress'},$sessionData->{'Helo'}
+			]
+	});
 	if (!$sth) {
 		$server->log(LOG_ERR,"[CHECKHELO] Database update failed: ".cbp::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
@@ -172,10 +185,10 @@ sub check {
 	# If we didn't update anything, insert
 	if ($sth eq "0E0") {
 		$sth = DBDo('
-			INSERT INTO @TP@checkhelo_tracking
-				(Address,Helo,LastUpdate)
-			VALUES
-				(?,?,?)
+				INSERT INTO @TP@checkhelo_tracking 
+					(Address,Helo,LastUpdate) 
+				VALUES
+					(?,?,?)
 			',
 			$sessionData->{'ClientAddress'},$sessionData->{'Helo'},$sessionData->{'UnixTimestamp'}
 		);
