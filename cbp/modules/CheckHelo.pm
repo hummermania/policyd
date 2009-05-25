@@ -395,37 +395,46 @@ sub check {
 				$start = $policy{'BlacklistPeriod'};
 			}
 		}
-		# Select and compare the number of tracking HELO's in the past time with the blacklisted ones
-		$sth = DBSelect('
-			SELECT
-				Count(*) AS Count
-
-			FROM
-				@TP@checkhelo_tracking, @TP@checkhelo_blacklist
-
-			WHERE
-				@TP@checkhelo_tracking.LastUpdate >= ?
-				AND @TP@checkhelo_tracking.Address = ?
-				AND @TP@checkhelo_tracking.Helo = @TP@checkhelo_blacklist.Helo
-				AND @TP@checkhelo_blacklist.Disabled = 0
-			',
-			$start,$sessionData->{'ClientAddress'}
-		);
-		if (!$sth) {
-			$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
-			return $server->protocol_response(PROTO_DB_ERROR);
+		# Check cache
+		my ($cache_res,$cache) = cacheGetKeyPair('CheckHelo/Blacklist/PolicyIdentifier-Blacklisted-IP',
+				$policy{'Identifier'}."/".$sessionData->{'ClientAddress'});
+		if ($cache_res) {
+			return $server->protocol_response(PROTO_ERROR);
 		}
-		my $row = $sth->fetchrow_hashref();
 
-		# If count > 0 , then its blacklisted
-		if ($row->{'count'} > 0) {
-			$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=blacklisted",
+		# Check if we have a cache value and if its a match
+		if (defined($cache) && $cache) {
+			$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=blacklisted_cached",
 					$sessionData->{'ClientAddress'},
 					$sessionData->{'Helo'},
 					$sessionData->{'Sender'},
 					$sessionData->{'Recipient'});
 
 			return $server->protocol_response(PROTO_REJECT,"Invalid HELO/EHLO; Blacklisted");
+		} else {
+			# Get blacklist count
+			my $blacklistCount = getBlacklistCount($server,$sessionData->{'ClientAddress'},$start);
+			if (!defined($blacklistCount)) {
+				return $server->protocol_response(PROTO_DB_ERROR);
+			}
+
+			# If count > 0 , then its blacklisted
+			if ($blacklistCount > 0) {
+				# Cache this
+				$cache_res = cacheStoreKeyPair('CheckHelo/Blacklist/PolicyIdentifier-Blacklisted-IP',
+				$policy{'Identifier'}."/".$sessionData->{'ClientAddress'},1);
+				if ($cache_res) {
+					return $server->protocol_response(PROTO_ERROR);
+				}
+
+				$server->maillog("module=CheckHelo, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=blacklisted",
+						$sessionData->{'ClientAddress'},
+						$sessionData->{'Helo'},
+						$sessionData->{'Sender'},
+						$sessionData->{'Recipient'});
+
+				return $server->protocol_response(PROTO_REJECT,"Invalid HELO/EHLO; Blacklisted");
+			}
 		}
 	}
 
@@ -453,7 +462,7 @@ sub check {
 						}
 
 						# Check cache
-						my ($cache_res,$cache) = cacheGetKeyPair('CheckHelo/HRP/PolicyIdentifierIP-to-Blacklisted',
+						my ($cache_res,$cache) = cacheGetKeyPair('CheckHelo/HRP/PolicyIdentifier-Blacklisted-IP',
 								$policy{'Identifier'}."/".$sessionData->{'ClientAddress'});
 						if ($cache_res) {
 							return $server->protocol_response(PROTO_ERROR);
@@ -478,7 +487,7 @@ sub check {
 							# If count > $limit , reject
 							if ($hrpCount > $policy{'HRPLimit'}) {
 								# Cache this
-								$cache_res = cacheStoreKeyPair('CheckHelo/HRP/PolicyIdentifierIP-to-Blacklisted',
+								$cache_res = cacheStoreKeyPair('CheckHelo/HRP/PolicyIdentifier-Blacklisted-IP',
 								$policy{'Identifier'}."/".$sessionData->{'ClientAddress'},1);
 								if ($cache_res) {
 									return $server->protocol_response(PROTO_ERROR);
@@ -606,6 +615,54 @@ sub getHRPCount
 
 	return $row->{'count'};
 }
+
+
+# Check if we've used a blacklisted HELO
+sub getBlacklistCount
+{
+	my ($server,$clientAddress,$start) = @_;
+
+
+	# Check cache
+	my ($cache_res,$cache) = cacheGetKeyPair('CheckHelo/Blacklist',$clientAddress);
+	if ($cache_res) {
+		$server->log(LOG_ERR,"[CHECKHELO] Blacklist cache get failed: ".cbp::cache::Error());
+		return;
+	}
+	return $cache if ($cache);
+
+	# Select and compare the number of tracking HELO's in the past time with the blacklisted ones
+	my $sth = DBSelect('
+		SELECT
+			Count(*) AS Count
+
+		FROM
+			@TP@checkhelo_tracking, @TP@checkhelo_blacklist
+
+		WHERE
+			@TP@checkhelo_tracking.LastUpdate >= ?
+			AND @TP@checkhelo_tracking.Address = ?
+			AND @TP@checkhelo_tracking.Helo = @TP@checkhelo_blacklist.Helo
+			AND @TP@checkhelo_blacklist.Disabled = 0
+		',
+		$start,$clientAddress
+	);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
+		return $server->protocol_response(PROTO_DB_ERROR);
+	}
+	my $row = $sth->fetchrow_hashref();
+	
+	# Cache this
+	$cache_res = cacheStoreKeyPair('CheckHelo/Blacklist',$clientAddress,$row->{'count'});
+	if ($cache_res) {
+		$server->log(LOG_ERR,"[CHECKHELO] Blacklist cache store failed: ".cbp::cache::Error());
+		return;
+	}
+
+	return $row->{'count'};
+}
+
 
 
 # Return checkhelo whitelist
