@@ -340,8 +340,8 @@ sub child_finish_hook {
 
 	$self->SUPER::child_finish_hook();
 	
-	$self->log(LOG_DEBUG,"[CBPOLICYD] Caching engine: hits = ".cbp::cache:getHitRatio().", misses = ".
-			cbp::cache:getMissRatio()) if ($log_cache);
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Caching engine: hits = ".cbp::cache::getHitRatio().", misses = ".
+			cbp::cache::getMissRatio()) if ($log_cache);
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Shutting down caching engine ($$)");
 	cbp::cache::disconnect($self);
 }
