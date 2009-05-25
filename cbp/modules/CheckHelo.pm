@@ -153,7 +153,9 @@ sub check {
 		return CBP_CONTINUE;
 	}
 
+	#
 	# Insert/update HELO in database
+	#
 	my $sth = DBDo({
 		'mysql' => ['
 					INSERT INTO @TP@checkhelo_tracking 
@@ -204,55 +206,82 @@ sub check {
 				$sessionData->{'ClientAddress'}."'");
 	}
 
+
+	#
 	# Check if we whitelisted or not...
-	$sth = DBSelect('
-		SELECT
-			Source
+	#
 
-		FROM
-			@TP@checkhelo_whitelist
-
-		WHERE
-			Disabled = 0
-	');
-	if (!$sth) {
-		$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
-		return $server->protocol_response(PROTO_DB_ERROR);
+	# Check cache
+	my ($cache_res,$cache) = cacheGetKeyPair('CheckHelo/Whitelist/IP',$sessionData->{'ClientAddress'});
+	if ($cache_res) {
+		return $server->protocol_response(PROTO_ERROR);
 	}
-	# Loop with whitelist and calculate
-	while (my $row = $sth->fetchrow_hashref()) {
-		# Check format is SenderIP
-		if ((my $address = $row->{'source'}) =~ s/^SenderIP://i) {
+	# Check if we have a cache value and if its a match
+	if (defined($cache)) {
 
-			# Parse CIDR into its various peices
-			my $parsedIP = parseCIDR($address);
-			# Check if this is a valid cidr or IP
-			if (ref $parsedIP eq "HASH") {
-				# Check if IP is whitelisted
-				if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
-							$sessionData->{'ParsedClientAddress'}->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
-					$server->maillog("module=CheckHelo, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted",
-							$sessionData->{'ClientAddress'},
-							$sessionData->{'Helo'},
-							$sessionData->{'Sender'},
-							$sessionData->{'Recipient'});
-					DBFreeRes($sth);
-					return $server->protocol_response(PROTO_PASS);
+		# If cache is positive, whitelist
+		if ($cache) {
+			$server->maillog("module=CheckHelo, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted_cached",
+					$sessionData->{'ClientAddress'},
+					$sessionData->{'Helo'},
+					$sessionData->{'Sender'},
+					$sessionData->{'Recipient'});
+			return $server->protocol_response(PROTO_PASS);
+		}
+
+	} else {
+		my $whitelistSources = getWhitelist($server);
+		if (!defined($whitelistSources)) {
+			return $server->protocol_response(PROTO_DB_ERROR);
+		}
+
+		# Loop with whitelist and calculate
+		foreach my $source (@{$whitelistSources}) {
+			# Check format is SenderIP
+			if ((my $address = $source) =~ s/^SenderIP://i) {
+				# Parse CIDR into its various peices
+				my $parsedIP = parseCIDR($address);
+				# Check if this is a valid cidr or IP
+				if (ref $parsedIP eq "HASH") {
+					# Check if IP is whitelisted
+					if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
+								$sessionData->{'ParsedClientAddress'}->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
+						# Cache positive result
+						my ($cache_res,$cache) = cacheStoreKeyPair('CheckHelo/Whitelist/IP',
+								$sessionData->{'ClientAddress'},1);
+						if ($cache_res) {
+							return $server->protocol_response(PROTO_ERROR);
+						}
+						# Log...
+						$server->maillog("module=CheckHelo, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted",
+								$sessionData->{'ClientAddress'},
+								$sessionData->{'Helo'},
+								$sessionData->{'Sender'},
+								$sessionData->{'Recipient'});
+
+						return $server->protocol_response(PROTO_PASS);
+					}
+					# Cache negative result
+					my ($cache_res,$cache) = cacheStoreKeyPair('CheckHelo/Whitelist/IP',$sessionData->{'ClientAddress'},0);
+					if ($cache_res) {
+						return $server->protocol_response(PROTO_ERROR);
+					}
+				} else {
+					$server->log(LOG_ERR,"[CHECKHELO] Failed to parse address '$address' is invalid.");
+					return $server->protocol_response(PROTO_DATA_ERROR);
 				}
+
 			} else {
-				$server->log(LOG_ERR,"[CHECKHELO] Failed to parse address '$address' is invalid.");
-				DBFreeRes($sth);
+				$server->log(LOG_ERR,"[CHECKHELO] Whitelist entry '$source' is invalid.");
 				return $server->protocol_response(PROTO_DATA_ERROR);
 			}
-
-		} else {
-			$server->log(LOG_ERR,"[CHECKHELO] Whitelist entry '".$row->{'source'}."' is invalid.");
-			DBFreeRes($sth);
-			return $server->protocol_response(PROTO_DATA_ERROR);
 		}
 	}
 
+
+	#
 	# Check if we need to reject invalid HELO's
+	#
 	if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} eq "1") {
 
 		# Check if helo is an IP address
@@ -441,7 +470,7 @@ sub check {
 						} else {
 							# Get HRP count
 							my $hrpCount = getHRPCount($server,$sessionData->{'ClientAddress'},$start);
-							if ($hrpCount < 0) {
+							if (!defined($hrpCount)) {
 								return $server->protocol_response(PROTO_DB_ERROR);
 							}
 
@@ -569,6 +598,7 @@ sub getHRPCount
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
+		return;
 	}
 
 	my $row = $sth->fetchrow_hashref();
@@ -576,6 +606,50 @@ sub getHRPCount
 	return $row->{'count'};
 }
 
+
+# Return checkhelo whitelist
+sub getWhitelist
+{
+	my $server = shift;
+
+	# Check cache
+	my ($cache_res,$cache) = cacheGetComplexKeyPair('CheckHelo/Whitelist','Sources');
+	if ($cache_res) {
+		$server->log(LOG_ERR,"[CHECKHELO] Whitelist cache get failed: ".cbp::cache::Error());
+		return;
+	}
+	return $cache if ($cache);
+
+	# Check if we whitelisted or not...
+	my $sth = DBSelect('
+		SELECT
+			Source
+
+		FROM
+			@TP@checkhelo_whitelist
+
+		WHERE
+			Disabled = 0
+	');
+	if (!$sth) {
+		$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
+		return;
+	}
+	# Loop with whitelist and calculate
+	my @sources;
+	while (my $row = $sth->fetchrow_hashref()) {
+			push(@sources,$row->{'source'});
+	}
+
+	# Cache this
+	$cache_res = cacheStoreComplexKeyPair('CheckHelo/Whitelist','Sources',\@sources);
+	if ($cache_res) {
+		$server->log(LOG_ERR,"[CHECKHELO] Whitelist cache store failed: ".cbp::cache::Error());
+		return;
+	}
+
+	return \@sources;
+}
 
 
 1;
