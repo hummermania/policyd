@@ -121,17 +121,37 @@ sub DBSelect
 # Args: <command statement>
 sub DBDo
 {
-	my ($command,@params) = @_;
+	my (@params) = @_;
 
 
 	my $table_prefix = $dbh->table_prefix();
+
+	# Check type of params we have
+	if (ref($params[0]) eq 'HASH') {
+		my $queryHash = $params[0];
+		my $dbType = $dbh->type();
+
+		# Check DB type is defined, if not use *
+		if (defined($queryHash->{$dbType})) {
+			@params = @{$queryHash->{$dbType}};
+		} elsif (defined($queryHash->{'*'})) {
+			@params = @{$queryHash->{'*'}};
+		} else {
+			setError("Error executing, database type in query not fund and no '*' query found");
+			return undef;	
+		}
+	}
+
+	# Grab command and data
+	my $command = shift(@params);
+	my @data = @params;
 
 	# Replace table prefix macro
 	$command =~ s/\@TP\@/$table_prefix/g;
 
 	# Prepare query
 	my $sth;
-	if (!($sth = $dbh->do($command,@params))) {
+	if (!($sth = $dbh->do($command,@data))) {
 		setError("Error executing command '$command': ".$dbh->Error());
 		return undef;	
 	}

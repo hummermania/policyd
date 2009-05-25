@@ -52,8 +52,10 @@ sub Init
 
 
 	# Check if we created
-	my $dbh = cbp::dbilayer->new($dbconfig->{'DSN'},$dbconfig->{'Username'},$dbconfig->{'Password'},$dbconfig->{'TablePrefix'});
+	my $dbh = cbp::dbilayer->new($dbconfig->{'DSN'},$dbconfig->{'Username'},$dbconfig->{'Password'},
+			$dbconfig->{'TablePrefix'});
 	return undef if (!defined($dbh));
+
 
 	return $dbh;
 }
@@ -66,6 +68,8 @@ sub new
 
 	# Iternals
 	my $self = {
+		_type => undef,
+
 		_dbh => undef,
 		_error => undef,
 
@@ -88,6 +92,10 @@ sub new
 		$internalError = "Invalid DSN given";
 		return undef;
 	}
+
+	# Try grab database type
+	$self->{_dsn} =~ /^DBI:([^:]+):/i;
+	$self->{_type} = (defined($1) && $1 ne "") ? lc($1) : "unknown";
 
 	# Create...
 	bless $self, $class;
@@ -135,6 +143,16 @@ sub connect
 	$self->{_in_transaction} = 0;
 
 	return 0;
+}
+
+
+# Return database type
+# Args: none
+sub type
+{
+	my $self = shift;
+
+	return $self->{_type};
 }
 
 
