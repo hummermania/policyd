@@ -24,6 +24,7 @@ use warnings;
 
 
 use cbp::logging;
+use cbp::cache;
 use cbp::dblayer;
 use cbp::system;
 use cbp::protocols;
@@ -130,6 +131,8 @@ sub check {
 			}
 			# Loop with rows and build end policy
 			while (my $row = $sth->fetchrow_hashref()) {
+				$policy{'Identifier'} .= ":$policyID";
+
 				# If defined, its to override
 				if (defined($row->{'usegreylisting'})) {
 					$policy{'UseGreylisting'} = $row->{'usegreylisting'};
@@ -244,7 +247,7 @@ sub check {
 	# Get tracking key used below
 	#
 	my $key = getKey($server,$policy{'Track'},$sessionData);
-	if (!$key) {
+	if (!defined($key)) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to get key from tracking spec '".$policy{'Track'}."'");
 		return $server->protocol_response(PROTO_DATA_ERROR);
 	}
@@ -324,39 +327,67 @@ sub check {
 
 		# Sanity check, no use doing the query to find out we don't have a period
 		if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0) {
-			my $sth = DBSelect('
-				SELECT
-					ID, Added
-				FROM
-					@TP@greylisting_autoblacklist
-				WHERE
-					TrackKey = ?
-				',
-				$key
-			);
-			if (!$sth) {
-				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
-				return $server->protocol_response(PROTO_DB_ERROR);
+			# Check cache
+			my ($cache_res,$cache) = cacheGetKeyPair('Greylisting/Auto-Blacklist/PolicyIdentifier-Blacklisted-IP',
+					$policy{'Identifier'}."/".$sessionData->{'ClientAddress'});
+			if ($cache_res) {
+				return $server->protocol_response(PROTO_ERROR);
 			}
-			my $row = $sth->fetchrow_hashref();
 
-			# Pull off first row
-			if ($row) {
+			# Check if we have a cache value and if its a match
+			if (defined($cache) && $cache) {
+				$server->maillog("module=Greylisting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=auto-blacklisted_cached",
+						$sessionData->{'ClientAddress'},
+						$sessionData->{'Helo'},
+						$sessionData->{'Sender'},
+						$sessionData->{'Recipient'});
 
-				# Check if we're within the auto-blacklisting period
-				if ($sessionData->{'UnixTimestamp'} - $row->{'added'} <= $policy{'AutoBlacklistPeriod'}) {
+				return $server->protocol_response(PROTO_REJECT,$config{'blacklist_message'});
 
-					$server->maillog("module=Greylisting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=auto-blacklisted",
-							$sessionData->{'ClientAddress'},
-							$sessionData->{'Helo'},
-							$sessionData->{'Sender'},
-							$sessionData->{'Recipient'});
-
-					return $server->protocol_response(PROTO_REJECT,$config{'blacklist_message'});
-				# We already have a auto-blacklist entry, but its old
-				} else {
-					$currentAutoBlacklistEntry = $row->{'ID'};
+			# Else lets do a query...
+			} else {
+				my $sth = DBSelect('
+					SELECT
+						ID, Added
+					FROM
+						@TP@greylisting_autoblacklist
+					WHERE
+						TrackKey = ?
+					',
+					$key
+				);
+				if (!$sth) {
+					$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+					return $server->protocol_response(PROTO_DB_ERROR);
 				}
+				my $row = $sth->fetchrow_hashref();
+	
+				# Pull off first row
+				if ($row) {
+	
+					# Check if we're within the auto-blacklisting period
+					if ($sessionData->{'UnixTimestamp'} - $row->{'added'} <= $policy{'AutoBlacklistPeriod'}) {
+						# Cache positive result
+						my $cache_res = cacheStoreKeyPair(
+								'Greylisting/Auto-Blacklist/PolicyIdentifier-Blacklisted-IP',
+								$policy{'Identifier'}."/".$sessionData->{'ClientAddress'},1);
+						if ($cache_res) {
+							return $server->protocol_response(PROTO_ERROR);
+						}
+	
+						$server->maillog("module=Greylisting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=auto-blacklisted",
+								$sessionData->{'ClientAddress'},
+								$sessionData->{'Helo'},
+								$sessionData->{'Sender'},
+								$sessionData->{'Recipient'});
+	
+						return $server->protocol_response(PROTO_REJECT,$config{'blacklist_message'});
+					# We already have a auto-blacklist entry, but its old
+					} else {
+						$currentAutoBlacklistEntry = $row->{'ID'};
+					}
+				}
+
 			}
 
 		} else {  # if (defined($policy{'AutoBlacklistPeriod'}) && $policy{'AutoBlacklistPeriod'} > 0)
@@ -399,9 +430,10 @@ sub check {
 
 				# Check if we have a count
 				if (defined($policy{'AutoBlacklistCount'}) && $policy{'AutoBlacklistCount'} > 0) {
+
 					# Work out time to check from...
 					my $addedTime = $sessionData->{'UnixTimestamp'} - $policy{'AutoBlacklistPeriod'};
-
+	
 					my $sth = DBSelect('
 						SELECT
 							Count(*) AS TotalCount
@@ -420,13 +452,13 @@ sub check {
 					}
 					my $row = $sth->fetchrow_hashref();
 					my $totalCount = defined($row->{'totalcount'}) ? $row->{'totalcount'} : 0;
-
-
+	
+	
 					# If count exceeds or equals blacklist count, nail the server
 					if ($totalCount > 0 && $totalCount >= $policy{'AutoBlacklistCount'}) {
 						# Start off as undef
 						my $blacklist;
-
+	
 						$sth = DBSelect('
 							SELECT
 								Count(*) AS FailCount
@@ -445,12 +477,12 @@ sub check {
 						}
 						$row = $sth->fetchrow_hashref();
 						my $failCount = defined($row->{'failcount'}) ? $row->{'failcount'} : 0;
-
+	
 						# Check if we should blacklist this host
 						if (defined($policy{'AutoBlacklistPercentage'}) && $policy{'AutoBlacklistPercentage'} > 0) {
 					
 							my $percentage = ( $failCount / $totalCount ) * 100;
-
+	
 							# If we meet the percentage of unauthenticated triplets, blacklist
 							if ($percentage >= $policy{'AutoBlacklistPercentage'} ) {
 								$blacklist = sprintf("Auto-blacklisted: TotalCount/Required = %s/%s, Percentage/Threshold = %s/%s",
@@ -461,13 +493,15 @@ sub check {
 						} else {
 							# Check if we exceed
 							if ($failCount >= $policy{'AutoBlacklistCount'}) {
-								$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s", $failCount, $policy{'AutoBlacklistCount'});
+								$blacklist = sprintf("Auto-blacklisted: Count/Required = %s/%s", $failCount, 
+										$policy{'AutoBlacklistCount'});
 							}
 						}
 					
 						# If we are to be listed, this is our reason
 						if ($blacklist) {
-							# Check if we already have an expired autoblacklist entry, this happens if the cleanup has not run yet
+							# Check if we already have an expired autoblacklist entry, this happens if 
+							# the cleanup has not run yet
 							if (defined($currentAutoBlacklistEntry)) {
 								# Update blacklisting to the new details
 								$sth = DBDo('
@@ -483,7 +517,8 @@ sub check {
 									$key,$sessionData->{'UnixTimestamp'},$blacklist,$currentAutoBlacklistEntry
 								);
 								if (!$sth) {
-									$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+									$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".
+											cbp::dblayer::Error());
 									return $server->protocol_response(PROTO_DB_ERROR);
 								}
 							# If we don't have an entry we can use, create one
@@ -498,17 +533,26 @@ sub check {
 									$key,$sessionData->{'UnixTimestamp'},$blacklist
 								);
 								if (!$sth) {
-									$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
+									$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".
+											cbp::dblayer::Error());
 									return $server->protocol_response(PROTO_DB_ERROR);
 								}
 							}
-
+	
+							# Cache positive result
+							my $cache_res = cacheStoreKeyPair(
+									'Greylisting/Auto-Blacklist/PolicyIdentifier-Blacklisted-IP',
+									$policy{'Identifier'}."/".$sessionData->{'ClientAddress'},1);
+							if ($cache_res) {
+								return $server->protocol_response(PROTO_ERROR);
+							}
+	
 							$server->maillog("module=Greylisting, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=auto-blacklisted",
 									$sessionData->{'ClientAddress'},
 									$sessionData->{'Helo'},
 									$sessionData->{'Sender'},
 									$sessionData->{'Recipient'});
-
+	
 							return $server->protocol_response(PROTO_REJECT,$config{'blacklist_message'});
 						}
 					} # if ($totalCount > 0 && $totalCount >= $policy{'AutoBlacklistCount'})
