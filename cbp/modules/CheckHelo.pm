@@ -74,6 +74,7 @@ sub init {
 # Do our check
 sub check {
 	my ($server,$sessionData) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'modules'});
 
 	# If we not enabled, don't do anything
 	return CBP_SKIP if (!$config{'enable'});
@@ -199,11 +200,11 @@ sub check {
 			$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error().", data: ".Dumper($sessionData));
 			return $server->protocol_response(PROTO_DB_ERROR);
 		}
-		$server->log(LOG_DEBUG,"[CHECKHELO] Recorded helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'");
+		$server->log(LOG_DEBUG,"[CHECKHELO] Recorded helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'") if ($log);
 	# And just a bit of debug
 	} else {
 		$server->log(LOG_DEBUG,"[CHECKHELO] Updated timestamp for helo '".$sessionData->{'Helo'}."' from address '".
-				$sessionData->{'ClientAddress'}."'");
+				$sessionData->{'ClientAddress'}."'") if ($log);
 	}
 
 
