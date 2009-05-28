@@ -34,6 +34,7 @@ our (@ISA,@EXPORT);
 
 
 use cbp::logging;
+use cbp::cache;
 use cbp::dblayer;
 use cbp::system;
 
