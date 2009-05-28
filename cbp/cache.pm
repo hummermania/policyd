@@ -241,7 +241,7 @@ sub getHitRatio
 
 
 	# Get counter
-	$res = $cache->get('Cache/Stats/Hit');
+	$res = defined($cache->get('Cache/Stats/Hit')) ? $cache->get('Cache/Stats/Hit') : 0;
 
 	return $res;
 }
@@ -254,7 +254,7 @@ sub getMissRatio
 
 
 	# Get counter
-	$res = $cache->get('Cache/Stats/Miss');
+	$res = defined($cache->get('Cache/Stats/Miss')) ? $cache->get('Cache/Stats/Miss') : 0;
 
 	return $res;
 }
