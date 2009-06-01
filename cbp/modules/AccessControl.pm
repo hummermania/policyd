@@ -159,6 +159,14 @@ sub check {
 						$sessionData->{'Recipient'});
 				return $server->protocol_response(PROTO_REDIRECT,$row->{'data'});
 
+			} elsif ($row->{'verdict'} =~ /^ok$/i) {
+				$server->maillog("module=AccessControl, action=ok, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
+						$sessionData->{'ClientAddress'},
+						$sessionData->{'Helo'},
+						$sessionData->{'Sender'},
+						$sessionData->{'Recipient'});
+				return $server->protocol_response(PROTO_OK,$row->{'data'});
+
 			} elsif ($row->{'verdict'} =~ /^pass$/i) {
 				$server->maillog("module=AccessControl, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 						$sessionData->{'ClientAddress'},
