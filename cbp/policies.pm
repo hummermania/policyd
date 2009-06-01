@@ -403,7 +403,7 @@ sub policySourceItemMatches
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a email address specification, match = $res") if ($log);
 
 		# Match domain name (for reverse dns)
-		} elsif ($item =~ /^(?:[a-z0-9\-_\*]+\.)+[a-z0-9]+$/i) {
+		} elsif ($item =~ /^\.?(?:[a-z0-9\-_\*]+\.)+[a-z0-9]+$/i) {
 			$res = reverseDNSMatches($sessionData->{'ClientReverseName'},$item);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a reverse dns specification, match = $res") if ($log);
 
