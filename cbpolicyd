@@ -455,12 +455,17 @@ sub process_request {
 			$action = "tempfail";
 		# Check for "tempfail"
 		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "tempfail") {
-			$self->protocol_response(PROTO_PASS);
+			$self->protocol_response(PROTO_DB_ERROR);
 			$action = "tempfail";
 		# And for "bypass"
 		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "pass") {
-			$self->protocol_response(PROTO_DB_ERROR);
+			$self->protocol_response(PROTO_PASS);
 			$action = "pass";
+		# Lasty for invalid
+		} else {
+			$self->log(LOG_ERR,"[CBPOLICYD] bypass_mode is invalid, defaulting to tempfail");
+			$self->protocol_response(PROTO_DB_ERROR);
+			$action = "tempfail";
 		}
 		
 		$self->maillog("module=Core, action=$action, host=%s, from=%s, to=%s, reason=db_failure_bypass",
