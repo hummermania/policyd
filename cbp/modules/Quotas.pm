@@ -24,7 +24,7 @@ use warnings;
 
 
 use cbp::logging;
-use cbp::dblayer;
+use awitpt::db::dblayer;
 use cbp::system;
 use cbp::protocols;
 
@@ -269,7 +269,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 					$newCounters{$qtrack->{'QuotasLimitsID'}},$now,$qtrack->{'QuotasLimitsID'},$qtrack->{'TrackKey'}
 				);
 				if (!$sth) {
-					$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
+					$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".awitpt::db::dblayer::Error());
 					return $server->protocol_response(PROTO_DB_ERROR);
 				}
 				
@@ -285,7 +285,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 						$qtrack->{'QuotasLimitsID'},$qtrack->{'TrackKey'},$qtrack->{'LastUpdate'},$newCounters{$qtrack->{'QuotasLimitsID'}}
 					);
 					if (!$sth) {
-						$server->log(LOG_ERR,"[QUOTAS] Failed to insert quota_tracking item: ".cbp::dblayer::Error());
+						$server->log(LOG_ERR,"[QUOTAS] Failed to insert quota_tracking item: ".awitpt::db::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 					
@@ -432,7 +432,7 @@ POLICY:			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipie
 									$qtrack->{'Counter'},$now,$qtrack->{'QuotasLimitsID'},$qtrack->{'TrackKey'}
 								);
 								if (!$sth) {
-									$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".cbp::dblayer::Error());
+									$server->log(LOG_ERR,"[QUOTAS] Failed to update quota_tracking item: ".awitpt::db::dblayer::Error());
 									return $server->protocol_response(PROTO_DB_ERROR);
 								}
 
@@ -596,7 +596,7 @@ sub getQuotas
 		$policyID
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get quota data: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get quota data: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	while (my $quota = $sth->fetchrow_hashref()) {
@@ -709,7 +709,7 @@ sub getTrackingInfo
 		$quotaID,$key
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_tracking: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_tracking: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	my $row = $sth->fetchrow_hashref(); 
@@ -738,7 +738,7 @@ sub getLimits
 		$quotasID
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_limits: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_limits: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	my $list = [];
@@ -768,7 +768,7 @@ sub cleanup
 		$lastMonth
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[QUOTAS] Failed to remove old quota tracking records: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[QUOTAS] Failed to remove old quota tracking records: ".awitpt::db::dblayer::Error());
 	}
 	$server->log(LOG_INFO,"[QUOTAS] Removed ".( $sth ne "0E0" ? $sth : 0).." records from tracking table");
 }

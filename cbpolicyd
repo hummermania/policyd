@@ -34,9 +34,10 @@ use Sys::Syslog;
 
 use cbp::version;
 
+use cbp::config;
 use cbp::logging;
-use cbp::dbilayer;
-use cbp::cache;
+use awitpt::db::dbilayer;
+use awitpt::cache;
 use cbp::tracking;
 use cbp::protocols;
 
@@ -236,7 +237,7 @@ sub post_configure_hook {
 	# Init config
 	cbp::config::Init($self);
 	# Init caching engine
-	cbp::cache::Init($self);
+	awitpt::cache::Init($self);
 	$self->log(LOG_NOTICE,"[CBPOLICYD] System modules initialized.");
 
 
@@ -308,14 +309,14 @@ sub child_init_hook
 	$self->SUPER::child_init_hook();
 	
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Starting up caching engine");
-	cbp::cache::connect($self);
+	awitpt::cache::connect($self);
 
 	# This is the database connection timestamp, if we connect, it resets to 0
 	# if not its used to check if we must kill the child and try a reconnect
 	$self->{'client'}->{'dbh_status'} = time();
 
 	# Init system stuff
-	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
+	$self->{'client'}->{'dbh'} = awitpt::db::dbilayer::Init($self,'cbp');
 	if (defined($self->{'client'}->{'dbh'})) {
 		# Check if we succeeded
 		if (!($self->{'client'}->{'dbh'}->connect())) {
@@ -325,7 +326,7 @@ sub child_init_hook
 			$self->log(LOG_WARN,"[CBPOLICYD] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
 		}
 	} else {
-		$self->log(LOG_WARN,"[CBPOLICYD] Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
+		$self->log(LOG_WARN,"[CBPOLICYD] Failed to Initialize: ".awitpt::db::dbilayer::internalError()." ($$)");
 	}
 }
 
@@ -340,10 +341,10 @@ sub child_finish_hook {
 
 	$self->SUPER::child_finish_hook();
 	
-	$self->log(LOG_DEBUG,"[CBPOLICYD] Caching engine: hits = ".cbp::cache::getHitRatio().", misses = ".
-			cbp::cache::getMissRatio()) if ($log_cache);
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Caching engine: hits = ".awitpt::cache::getHitRatio().", misses = ".
+			awitpt::cache::getMissRatio()) if ($log_cache);
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Shutting down caching engine ($$)");
-	cbp::cache::disconnect($self);
+	awitpt::cache::disconnect($self);
 }
 
 
@@ -495,7 +496,7 @@ sub process_request {
 	}
 
 	# Setup database handle
-	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
+	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 	# Grab session data
 	my $sessionData = getSessionDataFromRequest($self,$request);
@@ -572,7 +573,7 @@ sub server_exit
 	
 	$self->log(LOG_DEBUG,"Destroying system modules.");
 	# Destroy cache
-	cbp::cache::Destroy($self);
+	awitpt::cache::Destroy($self);
 	$self->log(LOG_DEBUG,"System modules destroyed.");
 
 	# Check if we using syslog

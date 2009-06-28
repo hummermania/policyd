@@ -24,7 +24,7 @@ use warnings;
 
 
 use cbp::logging;
-use cbp::dblayer;
+use awitpt::db::dblayer;
 use cbp::protocols;
 
 use Mail::SPF;
@@ -111,7 +111,7 @@ sub check {
 				$policyID
 			);
 			if (!$sth) {
-				$server->log(LOG_ERR,"[CHECKSPF] Database query failed: ".cbp::dblayer::Error());
+				$server->log(LOG_ERR,"[CHECKSPF] Database query failed: ".awitpt::db::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			while (my $row = $sth->fetchrow_hashref()) {

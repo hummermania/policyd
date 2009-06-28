@@ -212,8 +212,8 @@ use warnings;
 
 use cbp::logging;
 use cbp::config;
-use cbp::dbilayer;
-use cbp::dblayer;
+use awitpt::db::dbilayer;
+use awitpt::db::dblayer;
 
 # Return oursevles
 sub new
@@ -235,9 +235,9 @@ sub init
 	cbp::config::Init($self);
 
 	# Init system stuff
-	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
+	$self->{'client'}->{'dbh'} = awitpt::db::dbilayer::Init($self);
 	if (!defined($self->{'client'}->{'dbh'})) {
-		$self->log(LOG_WARN,"Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
+		$self->log(LOG_WARN,"Failed to Initialize: ".awitpt::db::dbilayer::internalError()." ($$)");
 		die;
 	}
 	if ($self->{'client'}->{'dbh'}->connect()) {
@@ -245,7 +245,7 @@ sub init
 		die;
 	}
 	# Setup database handle
-	cbp::dblayer::setHandle($self->{'client'}->{'dbh'});
+	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
 }
 
 sub log

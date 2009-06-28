@@ -34,8 +34,8 @@ our (@ISA,@EXPORT);
 
 
 use cbp::logging;
-use cbp::cache;
-use cbp::dblayer;
+use awitpt::cache;
+use awitpt::db::dblayer;
 use cbp::system;
 
 use Data::Dumper;
@@ -206,7 +206,7 @@ sub getPolicyMembers
 	# Check cache
 	my ($cache_res,$cache) = cacheGetComplexKeyPair('Policies','Members');
 	if ($cache_res) {
-		return cbp::cache::Error();
+		return awitpt::cache::Error();
 	}
 	return $cache if (defined($cache));
 
@@ -224,7 +224,8 @@ sub getPolicyMembers
 			AND @TP@policy_members.PolicyID = @TP@policies.ID
 	');
 	if (!$sth) {
-		$server->log(LOG_DEBUG,"[POLICIES] Error while selecing policy members from database: ".cbp::dblayer::Error());
+		$server->log(LOG_DEBUG,"[POLICIES] Error while selecing policy members from database: ".
+				awitpt::db::dblayer::Error());
 		return undef;
 	}
 
@@ -245,7 +246,7 @@ sub getPolicyMembers
 	# Cache this
 	$cache_res = cacheStoreComplexKeyPair('Policies','Members',\@policyMembers);
 	if ($cache_res) {
-		return cbp::cache::Error();
+		return awitpt::cache::Error();
 	}
 
 	return \@policyMembers;
@@ -263,7 +264,7 @@ sub getGroupMembers
 	# Check cache
 	my ($cache_res,$cache) = cacheGetKeyPair('Policies/Groups/Name-to-Members',$group);
 	if ($cache_res) {
-		return cbp::cache::Error();
+		return awitpt::cache::Error();
 	}
 	if (defined($cache)) {
 		my @groupMembers = split(/,/,$cache);
@@ -285,7 +286,7 @@ sub getGroupMembers
 		$group
 	);
 	if (!$sth) {
-		return cbp::dblayer::Error();
+		return awitpt::db::dblayer::Error();
 	}
 	# Pull in groups
 	my @groupMembers;
@@ -296,7 +297,7 @@ sub getGroupMembers
 	# Cache this
 	$cache_res = cacheStoreKeyPair('Policies/Groups/Name-to-Members',$group,join(',',@groupMembers));
 	if ($cache_res) {
-		return cbp::cache::Error();
+		return awitpt::cache::Error();
 	}
 
 	return \@groupMembers;

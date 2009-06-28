@@ -33,7 +33,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 );
 
 
-use cbp::dblayer;
+use awitpt::db::dblayer;
 use cbp::logging;
 use cbp::policies;
 use cbp::system qw(parseCIDR);
@@ -76,7 +76,7 @@ sub getSessionDataFromQueueID
 		$queueID,$clientAddress,$sender
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 
@@ -142,7 +142,7 @@ sub getSessionDataFromRequest
 				$request->{'instance'}
 			);
 			if (!$sth) {
-				$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".cbp::dblayer::Error());
+				$server->log(LOG_ERR,"[TRACKING] Failed to select session tracking info: ".awitpt::db::dblayer::Error());
 				return -1;
 			}
 			
@@ -181,7 +181,7 @@ sub getSessionDataFromRequest
 						$request->{'sender'},$request->{'size'}
 					);
 					if (!$sth) {
-						$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".cbp::dblayer::Error());
+						$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".awitpt::db::dblayer::Error());
 						DBRollback();
 						return -1;
 					}
@@ -327,7 +327,7 @@ sub updateSessionData
 				$recipientData,$sessionData->{'Instance'}
 			);
 			if (!$sth) {
-				$server->log(LOG_ERR,"[TRACKING] Failed to update recipient data in session tracking info: ".cbp::dblayer::Error());
+				$server->log(LOG_ERR,"[TRACKING] Failed to update recipient data in session tracking info: ".awitpt::db::dblayer::Error());
 				return -1;
 			}
 		
@@ -346,7 +346,7 @@ sub updateSessionData
 				$sessionData->{'QueueID'},$sessionData->{'Size'},$sessionData->{'Instance'}
 			);
 			if (!$sth) {
-				$server->log(LOG_ERR,"[TRACKING] Failed to update size in session tracking info: ".cbp::dblayer::Error());
+				$server->log(LOG_ERR,"[TRACKING] Failed to update size in session tracking info: ".awitpt::db::dblayer::Error());
 				return -1;
 			}
 		}

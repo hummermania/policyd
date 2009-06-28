@@ -96,7 +96,7 @@ BEGIN {
 
 	# Use cluebringer modules
 	use cbp::config;
-	use cbp::dblayer;
+	use awitpt::db::dblayer;
 	use cbp::tracking;
 	use cbp::policies;
 	use cbp::logging;
@@ -116,9 +116,9 @@ sub new {
 	cbp::config::Init($self);
 	
 	# Init system stuff
-	$self->{'dbh'} = cbp::dbilayer::Init($self);
+	$self->{'dbh'} = awitpt::db::dbilayer::Init($self);
 	if (!defined($self->{'dbh'})) {
-		$self->log(LOG_WARN,"Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
+		$self->log(LOG_WARN,"Failed to Initialize: ".awitpt::db::dbilayer::internalError()." ($$)");
 		die;
 	}
 	if ($self->{'dbh'}->connect()) {
@@ -127,7 +127,7 @@ sub new {
 	}
 
 	# Setup database handle
-	cbp::dblayer::setHandle($self->{'dbh'});
+	awitpt::db::dblayer::setHandle($self->{'dbh'});
 
 	return $self;
 }
@@ -718,7 +718,7 @@ sub getAmavisRule
 		$policyID
 	);
 	if (!$sth) {
-		do_log(-2,"policyd/process_policyd: Failed to query amavis: ".cbp::dblayer::Error());
+		do_log(-2,"policyd/process_policyd: Failed to query amavis: ".awitpt::db::dblayer::Error());
 		return;
 	}
 

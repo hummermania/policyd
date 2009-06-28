@@ -24,8 +24,8 @@ use warnings;
 
 
 use cbp::logging;
-use cbp::cache;
-use cbp::dblayer;
+use awitpt::cache;
+use awitpt::db::dblayer;
 use cbp::system;
 use cbp::protocols;
 
@@ -126,7 +126,7 @@ sub check {
 				$policyID
 			);
 			if (!$sth) {
-				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			# Loop with rows and build end policy
@@ -204,7 +204,7 @@ sub check {
 			Disabled = 0
 	');
 	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# Loop with whitelist and calculate
@@ -274,7 +274,7 @@ sub check {
 				$key
 			);
 			if (!$sth) {
-				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			my $row = $sth->fetchrow_hashref();
@@ -296,7 +296,7 @@ sub check {
 						$sessionData->{'UnixTimestamp'},$key
 					);
 					if (!$sth) {
-						$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+						$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".awitpt::db::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 
@@ -357,7 +357,7 @@ sub check {
 					$key
 				);
 				if (!$sth) {
-					$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+					$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 					return $server->protocol_response(PROTO_DB_ERROR);
 				}
 				my $row = $sth->fetchrow_hashref();
@@ -415,7 +415,7 @@ sub check {
 		$sessionData->{'UnixTimestamp'},$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".awitpt::db::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# If we didn't update anything, insert
@@ -447,7 +447,7 @@ sub check {
 						$addedTime
 					);
 					if (!$sth) {
-						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 					my $row = $sth->fetchrow_hashref();
@@ -472,7 +472,7 @@ sub check {
 							$key,$addedTime
 						);
 						if (!$sth) {
-							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
 						}
 						$row = $sth->fetchrow_hashref();
@@ -518,7 +518,7 @@ sub check {
 								);
 								if (!$sth) {
 									$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".
-											cbp::dblayer::Error());
+											awitpt::db::dblayer::Error());
 									return $server->protocol_response(PROTO_DB_ERROR);
 								}
 							# If we don't have an entry we can use, create one
@@ -534,7 +534,7 @@ sub check {
 								);
 								if (!$sth) {
 									$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".
-											cbp::dblayer::Error());
+											awitpt::db::dblayer::Error());
 									return $server->protocol_response(PROTO_DB_ERROR);
 								}
 							}
@@ -574,7 +574,7 @@ sub check {
 			$key,$sessionData->{'Sender'},$sessionData->{'Recipient'},$sessionData->{'UnixTimestamp'},$sessionData->{'UnixTimestamp'}
 		);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
+			$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".awitpt::db::dblayer::Error());
 			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 
@@ -620,7 +620,7 @@ sub check {
 		$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	my $row = $sth->fetchrow_hashref();
@@ -655,7 +655,7 @@ sub check {
 			$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
 		);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".awitpt::db::dblayer::Error());
 			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 
@@ -676,7 +676,7 @@ sub check {
 			$key,$sessionData->{'Sender'},$sessionData->{'Recipient'}
 		);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+			$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".awitpt::db::dblayer::Error());
 			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 
@@ -704,7 +704,7 @@ sub check {
 						$key,$addedTime
 					);
 					if (!$sth) {
-						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 					my $row = $sth->fetchrow_hashref();
@@ -727,7 +727,7 @@ sub check {
 							$key,$addedTime
 						);
 						if (!$sth) {
-							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".cbp::dblayer::Error());
+							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
 						}
 						$row = $sth->fetchrow_hashref();
@@ -770,7 +770,7 @@ sub check {
 									$key,$sessionData->{'UnixTimestamp'},$sessionData->{'UnixTimestamp'},$whitelist,$currentAutoWhitelistEntry
 								);
 								if (!$sth) {
-									$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".cbp::dblayer::Error());
+									$server->log(LOG_ERR,"[GREYLISTING] Database update failed: ".awitpt::db::dblayer::Error());
 									return $server->protocol_response(PROTO_DB_ERROR);
 								}
 							} else {
@@ -784,7 +784,7 @@ sub check {
 									$key,$sessionData->{'UnixTimestamp'},$sessionData->{'UnixTimestamp'},$whitelist
 								);
 								if (!$sth) {
-									$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".cbp::dblayer::Error());
+									$server->log(LOG_ERR,"[GREYLISTING] Database insert failed: ".awitpt::db::dblayer::Error());
 									return $server->protocol_response(PROTO_DB_ERROR);
 								}
 							}
@@ -916,7 +916,7 @@ sub cleanup
 			@TP@greylisting
 	');
 	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoWhitelistPeriod: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoWhitelistPeriod: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	my $row = $sth->fetchrow_hashref();
@@ -937,7 +937,7 @@ sub cleanup
 			$AWLPeriod
 		);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autowhitelist records: ".cbp::dblayer::Error());
+			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autowhitelist records: ".awitpt::db::dblayer::Error());
 			return -1;
 		}
 		$server->log(LOG_INFO,"[GREYLISTING] Removed ".( $sth ne "0E0" ? $sth : 0)." records from autowhitelist table");
@@ -956,7 +956,7 @@ sub cleanup
 			@TP@greylisting
 	');
 	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoBlacklistPeriod: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoBlacklistPeriod: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	$row = $sth->fetchrow_hashref();
@@ -977,7 +977,7 @@ sub cleanup
 			$ABLPeriod
 		);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autoblacklist records: ".cbp::dblayer::Error());
+			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old autoblacklist records: ".awitpt::db::dblayer::Error());
 			return -1;
 		}
 		$server->log(LOG_INFO,"[GREYLISTING] Removed ".( $sth ne "0E0" ? $sth : 0)." records from autoblacklist table");
@@ -995,7 +995,7 @@ sub cleanup
 			@TP@greylisting
 	');
 	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistAuthValidity: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistAuthValidity: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	$row = $sth->fetchrow_hashref();
@@ -1017,7 +1017,7 @@ sub cleanup
 			$AuthPeriod
 		);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old authenticated records: ".cbp::dblayer::Error());
+			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old authenticated records: ".awitpt::db::dblayer::Error());
 			return -1;
 		}
 		$server->log(LOG_INFO,"[GREYLISTING] Removed ".( $sth ne "0E0" ? $sth : 0)." authenticated records from greylist tracking table");
@@ -1035,7 +1035,7 @@ sub cleanup
 			@TP@greylisting
 	');
 	if (!$sth) {
-		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistUnAuthValidity: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistUnAuthValidity: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	$row = $sth->fetchrow_hashref();
@@ -1057,7 +1057,7 @@ sub cleanup
 			$UnAuthPeriod
 		);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old un-authenticated records: ".cbp::dblayer::Error());
+			$server->log(LOG_ERR,"[GREYLISTING] Failed to remove old un-authenticated records: ".awitpt::db::dblayer::Error());
 			return -1;
 		}
 		$server->log(LOG_INFO,"[GREYLISTING] Removed ".( $sth ne "0E0" ? $sth : 0)." unauthenticated records from greylist tracking table");

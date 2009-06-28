@@ -24,7 +24,7 @@ use warnings;
 use POSIX qw( ceil strftime );
 
 use cbp::logging;
-use cbp::dblayer;
+use awitpt::db::dblayer;
 use cbp::system;
 use cbp::protocols;
 
@@ -295,7 +295,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 					$now,$atrack->{'AccountingID'},$atrack->{'TrackKey'},$atrack->{'PeriodKey'}
 				);
 				if (!$sth) {
-					$server->log(LOG_ERR,"[ACCOUNTING] Failed to update accounting_tracking item: ".cbp::dblayer::Error());
+					$server->log(LOG_ERR,"[ACCOUNTING] Failed to update accounting_tracking item: ".awitpt::db::dblayer::Error());
 					return $server->protocol_response(PROTO_DB_ERROR);
 				}
 				
@@ -314,7 +314,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 						$atrack->{'LastUpdate'}
 					);
 					if (!$sth) {
-						$server->log(LOG_ERR,"[ACCOUNTING] Failed to insert accounting_tracking item: ".cbp::dblayer::Error());
+						$server->log(LOG_ERR,"[ACCOUNTING] Failed to insert accounting_tracking item: ".awitpt::db::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
 					
@@ -472,7 +472,7 @@ POLICY:			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipie
 							$atrack->{'PeriodKey'}
 						);
 						if (!$sth) {
-							$server->log(LOG_ERR,"[ACCOUNTING] Failed to update accounting_tracking item: ".cbp::dblayer::Error());
+							$server->log(LOG_ERR,"[ACCOUNTING] Failed to update accounting_tracking item: ".awitpt::db::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
 						}
 
@@ -660,7 +660,7 @@ sub getAccountings
 		$policyID
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get accounting data: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get accounting data: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	while (my $quota = $sth->fetchrow_hashref()) {
@@ -805,7 +805,7 @@ sub getTrackingInfo
 		$accountID,$trackKey,$periodKey
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[ACCOUNTING] Failed to query accounting_tracking: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[ACCOUNTING] Failed to query accounting_tracking: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	my $row = $sth->fetchrow_hashref(); 
@@ -834,7 +834,7 @@ sub getTrackingInfo
 #		$lastMonth
 #	);
 #	if (!$sth) {
-#		$server->log(LOG_ERR,"[ACCOUNTING] Failed to remove old accounting tracking records: ".cbp::dblayer::Error());
+#		$server->log(LOG_ERR,"[ACCOUNTING] Failed to remove old accounting tracking records: ".awitpt::db::dblayer::Error());
 #	}
 #	$server->log(LOG_INFO,"[ACCOUNTING] Removed ".( $sth ne "0E0" ? $sth : 0).." records from tracking table");
 #}

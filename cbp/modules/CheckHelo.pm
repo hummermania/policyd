@@ -24,8 +24,8 @@ use warnings;
 
 
 use cbp::logging;
-use cbp::cache;
-use cbp::dblayer;
+use awitpt::cache;
+use awitpt::db::dblayer;
 use cbp::protocols;
 use cbp::system;
 
@@ -111,7 +111,7 @@ sub check {
 				$policyID
 			);
 			if (!$sth) {
-				$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
+				$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".awitpt::db::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			while (my $row = $sth->fetchrow_hashref()) {
@@ -181,7 +181,7 @@ sub check {
 			]
 	});
 	if (!$sth) {
-		$server->log(LOG_ERR,"[CHECKHELO] Database update failed: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Database update failed: ".awitpt::db::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# If we didn't update anything, insert
@@ -196,7 +196,7 @@ sub check {
 		);
 		if (!$sth) {
 			use Data::Dumper;
-			$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error().", data: ".Dumper($sessionData));
+			$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".awitpt::db::dblayer::Error().", data: ".Dumper($sessionData));
 			return $server->protocol_response(PROTO_DB_ERROR);
 		}
 		$server->log(LOG_DEBUG,"[CHECKHELO] Recorded helo '".$sessionData->{'Helo'}."' from address '".$sessionData->{'ClientAddress'}."'") if ($log);
@@ -551,7 +551,7 @@ sub cleanup
 			@TP@checkhelo
 	');
 	if (!$sth) {
-		$server->log(LOG_ERR,"[CHECKHELO] Failed to query maximum periods: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Failed to query maximum periods: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	my $row = $sth->fetchrow_hashref();
@@ -578,7 +578,7 @@ sub cleanup
 		$period
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[CHECKHELO] Failed to remove old helo records: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Failed to remove old helo records: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 
@@ -606,7 +606,7 @@ sub getHRPCount
 		$clientAddress,$start
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"Database query failed: ".awitpt::db::dblayer::Error());
 		return;
 	}
 
@@ -625,7 +625,7 @@ sub getBlacklistCount
 	# Check cache
 	my ($cache_res,$cache) = cacheGetKeyPair('CheckHelo/Blacklist',$clientAddress);
 	if ($cache_res) {
-		$server->log(LOG_ERR,"[CHECKHELO] Blacklist cache get failed: ".cbp::cache::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Blacklist cache get failed: ".awitpt::cache::Error());
 		return;
 	}
 	return $cache if ($cache);
@@ -647,7 +647,7 @@ sub getBlacklistCount
 		$start,$clientAddress
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Database query failed: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"Database query failed: ".awitpt::db::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	my $row = $sth->fetchrow_hashref();
@@ -655,7 +655,7 @@ sub getBlacklistCount
 	# Cache this
 	$cache_res = cacheStoreKeyPair('CheckHelo/Blacklist',$clientAddress,$row->{'count'});
 	if ($cache_res) {
-		$server->log(LOG_ERR,"[CHECKHELO] Blacklist cache store failed: ".cbp::cache::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Blacklist cache store failed: ".awitpt::cache::Error());
 		return;
 	}
 
@@ -672,7 +672,7 @@ sub getWhitelist
 	# Check cache
 	my ($cache_res,$cache) = cacheGetComplexKeyPair('CheckHelo/Whitelist','Sources');
 	if ($cache_res) {
-		$server->log(LOG_ERR,"[CHECKHELO] Whitelist cache get failed: ".cbp::cache::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Whitelist cache get failed: ".awitpt::cache::Error());
 		return;
 	}
 	return $cache if ($cache);
@@ -689,7 +689,7 @@ sub getWhitelist
 			Disabled = 0
 	');
 	if (!$sth) {
-		$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".cbp::dblayer::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".awitpt::db::dblayer::Error());
 		return;
 	}
 	# Loop with whitelist and calculate
@@ -701,7 +701,7 @@ sub getWhitelist
 	# Cache this
 	$cache_res = cacheStoreComplexKeyPair('CheckHelo/Whitelist','Sources',\@sources);
 	if ($cache_res) {
-		$server->log(LOG_ERR,"[CHECKHELO] Whitelist cache store failed: ".cbp::cache::Error());
+		$server->log(LOG_ERR,"[CHECKHELO] Whitelist cache store failed: ".awitpt::cache::Error());
 		return;
 	}
 
