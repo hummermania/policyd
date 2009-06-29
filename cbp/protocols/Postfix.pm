@@ -237,28 +237,28 @@ sub protocol_validate {
 	}
 
 	if (!defined($request->{'client_address'}) || !($request->{'client_address'} =~ /^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$/) ) {
-		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'client_address' cannot be ".
-				defined($request->{'client_address'}) ? "'".$request->{'client_address'}."'" : "undef") if ($log);
+		my $client_address = defined($request->{'client_address'}) ? "'".$request->{'client_address'}."'" : "undef";
+		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'client_address' cannot be $client_address") if ($log);
 		return "required parameter 'client_address' was not found or invalid format";
 	}
 
 	if (!defined($request->{'sender'}) || !($request->{'sender'} =~ /^(?:\S+@\S+|)$/) ) {
-		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'sender' cannot be ".
-				defined($request->{'sender'}) ? "'".$request->{'sender'}."'" : "undef") if ($log);
+		my $sender = defined($request->{'sender'}) ? "'".$request->{'sender'}."'" : "undef";
+		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'sender' cannot be $sender") if ($log);
 		return "required parameter 'sender' was not found or invalid format";
 	}
 
 	if ($request->{'protocol_state'} eq "RCPT") {
 		if (!defined($request->{'recipient'}) || !($request->{'recipient'} =~ /^\S+@\S+$/) ) {
-			$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'recipient' cannot be ".
-					defined($request->{'recipient'}) ? "'".$request->{'recipient'}."'" : "undef") if ($log);
+			my $recipient = defined($request->{'recipient'}) ? "'".$request->{'recipient'}."'" : "undef"; 
+			$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'recipient' cannot be $recipient") if ($log);
 			return "required parameter 'recipient' was not found or invalid format";
 		}
 	}
 
 	if (!defined($request->{'instance'}) || $request->{'instance'} eq "") {
-		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'instance' cannot be ".
-				defined($request->{'instance'}) ? "'".$request->{'instance'}."'" : "undef") if ($log);
+		my $instance = defined($request->{'instance'}) ? "'".$request->{'instance'}."'" : "undef";
+		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'instance' cannot be $instance") if ($log);
 		return "required parameter 'instance' was not found or invalid format";
 	}
 }
