@@ -499,13 +499,13 @@ if ($_POST['frmaction'] == "change") {
 		}
 		array_push($updates,"GreylistAuthValidity = $validity");
 	}
-	if (!empty($_POST['greylisting_noauthvalidity_m'])) {
-		if ($_POST['greylisting_noauthvalidity_m'] == "1") {
+	if (!empty($_POST['greylisting_unauthvalidity_m'])) {
+		if ($_POST['greylisting_unauthvalidity_m'] == "1") {
 			$validity = "NULL";
-		} elseif ($_POST['greylisting_noauthvalidity_m'] == "2") {
-			$validity = $db->quote($_POST['greylisting_noauthvalidity']);
+		} elseif ($_POST['greylisting_unauthvalidity_m'] == "2") {
+			$validity = $db->quote($_POST['greylisting_unauthvalidity']);
 		}
-		array_push($updates,"GreylistNoAuthValidity = $validity");
+		array_push($updates,"GreylistUnAuthValidity = $validity");
 	}
 
 	# Autowhitelist	
@@ -531,7 +531,9 @@ if ($_POST['frmaction'] == "change") {
 
 	# AWL Count
 	if (!empty($_POST['greylisting_awlcount_m'])) {
-		if ($_POST['greylisting_awlcount_m'] == "1") {
+		if ($_POST['greylisting_awlcount_m'] == "0") {
+			$awlcount = $db->quote(0);
+		} elseif ($_POST['greylisting_awlcount_m'] == "1") {
 			$awlcount = "NULL";
 		} elseif ($_POST['greylisting_awlcount_m'] == "2") {
 			$awlcount = $db->quote($_POST['greylisting_awlcount']);
@@ -540,10 +542,12 @@ if ($_POST['frmaction'] == "change") {
 	}
 
 	# AWL Percentage
-	if (isset($_POST['greylisting_awlpercentage_m'])) {
-		if ($_POST['greylisting_awlpercentage_m'] == "1") {
+	if (!empty($_POST['greylisting_awlpercentage_m'])) {
+		if ($_POST['greylisting_awlpercentage_m'] == "0") {
+			$awlpercentage = $db->quote(0);
+		} elseif ($_POST['greylisting_awlpercentage_m'] == "1") {
 			$awlpercentage = "NULL";
-		} else {
+		} elseif ($_POST['greylisting_awlpercentage_m'] == "2") {
 			$awlpercentage = $db->quote($_POST['greylisting_awlpercentage']);
 		}
 		array_push($updates,"AutoWhitelistPercentage = $awlpercentage");
@@ -570,9 +574,11 @@ if ($_POST['frmaction'] == "change") {
 		array_push($updates,"AutoBlacklistPeriod = $ablperiod");
 	}
 
-	# AWL Count
+	# ABL Count
 	if (!empty($_POST['greylisting_ablcount_m'])) {
-		if ($_POST['greylisting_ablcount_m'] == "1") {
+		if ($_POST['greylisting_ablcount_m'] == "0") {
+			$ablcount = $db->quote(0);
+		} elseif ($_POST['greylisting_ablcount_m'] == "1") {
 			$ablcount = "NULL";
 		} elseif ($_POST['greylisting_ablcount_m'] == "2") {
 			$ablcount = $db->quote($_POST['greylisting_ablcount']);
@@ -580,11 +586,13 @@ if ($_POST['frmaction'] == "change") {
 		array_push($updates,"AutoBlacklistCount = $ablcount");
 	}
 
-	# AWL Percentage
-	if (isset($_POST['greylisting_ablpercentage_m'])) {
-		if ($_POST['greylisting_ablpercentage_m'] == "1") {
+	# ABL Percentage
+	if (!empty($_POST['greylisting_ablpercentage_m'])) {
+		if ($_POST['greylisting_ablpercentage_m'] == "0") {
+			$ablpercentage = $db->quote(0);
+		} elseif ($_POST['greylisting_ablpercentage_m'] == "1") {
 			$ablpercentage = "NULL";
-		} else {
+		} elseif ($_POST['greylisting_ablpercentage_m'] == "2") {
 			$ablpercentage = $db->quote($_POST['greylisting_ablpercentage']);
 		}
 		array_push($updates,"AutoBlacklistPercentage = $ablpercentage");
