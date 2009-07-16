@@ -115,7 +115,7 @@ if ($_POST['frmaction'] == "change") {
 
 									if (myobj.selectedIndex == 1) {
 										myobj2.disabled = false;
-										myobj2.value = '0.0.0.0/0';
+										myobj2.value = '/32';
 									} else if (myobj.selectedIndex != 1) {
 										myobj2.disabled = true;
 										myobj2.value = 'n/a';
