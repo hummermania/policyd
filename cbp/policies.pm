@@ -204,11 +204,11 @@ sub getPolicyMembers
 
 
 	# Check cache
-	my ($cache_res,$cache) = cacheGetComplexKeyPair('Policies','Members');
-	if ($cache_res) {
-		return awitpt::cache::Error();
-	}
-	return $cache if (defined($cache));
+#	my ($cache_res,$cache) = cacheGetComplexKeyPair('Policies','Members');
+#	if ($cache_res) {
+#		return awitpt::cache::Error();
+#	}
+#	return $cache if (defined($cache));
 
 	# Grab all the policy members
 	my $sth = DBSelect('
@@ -244,10 +244,10 @@ sub getPolicyMembers
 	}
 	
 	# Cache this
-	$cache_res = cacheStoreComplexKeyPair('Policies','Members',\@policyMembers);
-	if ($cache_res) {
-		return awitpt::cache::Error();
-	}
+#	$cache_res = cacheStoreComplexKeyPair('Policies','Members',\@policyMembers);
+#	if ($cache_res) {
+#		return awitpt::cache::Error();
+#	}
 
 	return \@policyMembers;
 }
