@@ -113,12 +113,31 @@ sub bits_to_mask {
 sub parseCIDR
 {
 	my $cidr = shift;
-	
-	# Regex CIDR
-	if ($cidr =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))?$/) {
-		my $ip = $1;
-		my $mask = ( defined($2) && $2 >= 1 && $2 <= 32 ) ? $2 : 32;
 
+	# Regex CIDR
+	if ($cidr =~ /^(\d{1,3})(?:\.(\d{1,3})(?:\.(\d{1,3})(?:\.(\d{1,3}))?)?)?(?:\/(\d{1,2}))?$/) {
+		# Strip any ip blocks and mask from string
+		my ($a,$b,$c,$d,$mask) = ($1,$2,$3,$4,$5);
+
+		# Set undefined ip blocks and mask if missing
+		if (!defined($b)) {
+			$b = 0;
+			$mask = 8 if !defined($mask);
+		}
+		if (!defined($c)) {
+			$c = 0;
+			$mask = 16 if !defined($mask);
+		}
+		if (!defined($d)) {
+			$d = 0;
+			$mask = 24 if !defined($mask);
+		}
+
+		# Default mask
+		$mask = ( defined($mask) && $mask >= 1 && $mask <= 32 ) ? $mask : 32;
+
+		# Build ip
+		my $ip = "$a.$b.$c.$d";
 
 		# Pull long for IP we going to test
 		my $ip_long = ip_to_long($ip);
