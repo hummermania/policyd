@@ -230,17 +230,14 @@ sub check {
 					return $server->protocol_response(PROTO_PASS);
 				}
 			} else {
-				$server->log(LOG_ERR,"[GREYLISTING] Failed to parse address '$address' is invalid.");
-				DBFreeRes($sth);
-				return $server->protocol_response(PROTO_DATA_ERROR);
+				$server->log(LOG_WARN,"[GREYLISTING] Skipping invalid address '$address'.");
 			}
 
 		} else {
-			$server->log(LOG_ERR,"[GREYLISTING] Whitelist entry '".$row->{'source'}."' is invalid.");
-			DBFreeRes($sth);
-			return $server->protocol_response(PROTO_DATA_ERROR);
+			$server->log(LOG_WARN,"[GREYLISTING] Skipping invalid whitelist entry '".$row->{'source'}."'.");
 		}
 	}
+	DBFreeRes($sth);
 
 
 	#
