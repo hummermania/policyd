@@ -26,6 +26,7 @@ use warnings;
 
 use cbp::logging;
 use awitpt::db::dblayer;
+use awitpt::netip;
 use cbp::protocols;
 
 
