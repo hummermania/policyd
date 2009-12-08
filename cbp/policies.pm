@@ -363,30 +363,39 @@ sub policySourceItemMatches
 	} else {
 		my $res = 0;
 
-		# Match IP
-		if ($item =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?$/) {
-			$res = ipMatches($sessionData->{'ClientAddress'},$item);
+		# Match IPv4 or IPv6
+		if (
+			$item =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?$/ ||
+			$item =~ /^(?:::(:?[a-f0-9]{1,4}:){0,6}?[a-f0-9]{0,4}|[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,6}?::|[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,6}?::(?:[a-f0-9]{1,4}:){0,6}?[a-f0-9]{1,4})(?:\/\d{1,3})?$/i
+		) {
+			# See if we get an object from 
+			my $matchRange = new awitpt::netip($item);
+			if (!defined($matchRange)) {
+				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Resolved source '$item' to a IP/CIDR specification, but its INVALID: ".awitpt::netip::Error());
+				next;
+			}
+			# Check if IP is within the range
+			$res = $sessionData->{'_ClientAddress'}->is_within($matchRange);
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a IP/CIDR specification, match = $res") if ($log);
 
-		# Match peer IP (the server requesting the policy)
-		} elsif ($item =~ /^\[(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?)\]$/) {
+		# Match peer IPv4 or IPv6 (the server requesting the policy)
+		} elsif (
+			$item =~ /^\[(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?:\/\d{1,2})?)\]$/ ||
+			$item =~ /^\[((?:::(:?[a-f0-9]{1,4}:){0,6}?[a-f0-9]{0,4}|[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,6}?::|[a-f0-9]{1,4}(?::[a-f0-9]{1,4}){0,6}?::(?:[a-f0-9]{1,4}:){0,6}?[a-f0-9]{1,4})(?:\/\d{1,3})?)\]$/i
+		) {
 			# We don't want the [ and ]
 			my $cleanItem = $1;
 
-			# Check if peer is actually defined
-			if (defined($sessionData->{'PeerAddress'})) {
-				# Check if its in a supported format
-				if ($sessionData->{'PeerAddress'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
-					$res = ipMatches($sessionData->{'PeerAddress'},$cleanItem);
-					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, match = $res") if ($log);
-				# If unsupported...
-				} else {
-					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, but peeraddr '".$sessionData->{'PeerAddress'}."' is not yet supported") if ($log);
-				}
-			# If undefined...
-			} else {
-					$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, but PeerAddress is not defined??") if ($log);
+			# See if we get an object from 
+			my $matchRange = new awitpt::netip($cleanItem);
+			if (!defined($matchRange)) {
+				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, but its INVALID: ".awitpt::netip::Error());
+				next;
 			}
+			# Check if IP is within the range
+			$res = $sessionData->{'_PeerAddress'}->is_within($matchRange);
+			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, match = $res") if ($log);
+
 
 		# Match SASL user, must be above email addy to match SASL usernames in the same format as email addies
 		} elsif ($item =~ /^\$\S+$/) {
@@ -499,42 +508,6 @@ sub policyDestinationItemMatches
 	return ($negate ? !$match : $match) ? 1 : 0;
 }
 
-
-
-# Check if first arg falls within second arg CIDR
-sub ipMatches
-{
-	my ($ip,$cidr) = @_;
-
-
-	# Pull off parts of IP
-	my ($cidr_address,$cidr_mask) = ($cidr =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\/(\d{1,2}))?$/);
-
-	# Pull long for IP we going to test
-	my $ip_long = ip_to_long($ip);
-
-	# Convert CIDR to longs
-	my $cidr_address_long = ip_to_long($cidr_address);
-	my $cidr_mask_long = bits_to_mask($cidr_mask ? $cidr_mask : 32);
-	# Pull out network address
-	my $cidr_network_long = $cidr_address_long & $cidr_mask_long;
-	# And broadcast
-	my $cidr_broadcast_long = $cidr_address_long | (IPMASK ^ $cidr_mask_long);
-
-	# Convert to quad;/
-	my $cidr_network = long_to_ip($cidr_network_long);
-	my $cidr_broadcast = long_to_ip($cidr_broadcast_long);
-
-	# Default to no match
-	my $match = 0;
-
-	# Check IP is within range
-	if ($ip_long >= $cidr_network_long && $ip_long <= $cidr_broadcast_long) {
-		$match = 1;
-	}
-
-	return $match;
-}
 
 
 # Check if first arg lies within the scope of second arg email/domain
