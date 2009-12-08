@@ -259,7 +259,7 @@ sub protocol_validate {
 	
 
 	# Check params
-	if (!defined($request->{'client_address'}) || !($request->{'client_address'} =~ /^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$/) ) {
+	if (!awit::netip::is_valid($request->{'client_address'})) {
 		my $client_address = defined($request->{'client_address'}) ? "'".$request->{'client_address'}."'" : "undef";
 		$server->log(LOG_DEBUG,"[PROTOCOLS/Bizanga] Error, parameter 'client_address' cannot be $client_address") if ($log);
 		return "Required parameter 'client_address' was not found or invalid format";
