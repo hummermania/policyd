@@ -34,6 +34,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 
 
 use awitpt::db::dblayer;
+use awitpt::netip;
 use cbp::logging;
 use cbp::policies;
 use cbp::system qw(parseCIDR);
@@ -219,6 +220,17 @@ sub getSessionDataFromRequest
 		
 		# Requesting server address, we need this before the policy call
 		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
+		$sessionData->{'_PeerAddress'} = new awitpt::netip($request->{'PeerAddress'});
+		if (!defined($sessionData->{'_PeerAddress'})) {
+			$server->log(LOG_ERR,"[TRACKING] Failed to understand PeerAddress: ".awitpt::netip::Error());
+			return -1;
+		}
+		# and client address...
+		$sessionData->{'_ClientAddress'} = new awitpt::netip($sessionData->{'ClientAddress'});
+		if (!defined($sessionData->{'_ClientAddress'})) {
+			$server->log(LOG_ERR,"[TRACKING] Failed to understand ClientAddress: ".awitpt::netip::Error());
+			return -1;
+		}
 
 		# If we in rcpt, caclulate and save policy
 		if ($request->{'protocol_state'} eq 'RCPT') {
@@ -256,8 +268,19 @@ sub getSessionDataFromRequest
 	} elsif ($request->{'_protocol_transport'} eq "HTTP") {
 		# Requesting server address, we need this before the policy call
 		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
-
+		$sessionData->{'_PeerAddress'} = new awitpt::netip($request->{'PeerAddress'});
+		if (!defined($sessionData->{'_PeerAddress'})) {
+			$server->log(LOG_ERR,"[TRACKING] Failed to understand PeerAddress: ".awitpt::netip::Error());
+			return -1;
+		}
+		# and client address...
 		$sessionData->{'ClientAddress'} = $request->{'client_address'};
+		$sessionData->{'_ClientAddress'} = new awitpt::netip($sessionData->{'ClientAddress'});
+		if (!defined($sessionData->{'_ClientAddress'})) {
+			$server->log(LOG_ERR,"[TRACKING] Failed to understand ClientAddress: ".awitpt::netip::Error());
+			return -1;
+		}
+
 		$sessionData->{'ClientReverseName'} = $request->{'client_reverse_name'} if (defined($request->{'client_reverse_name'}));
 		$sessionData->{'Helo'} = $request->{'helo_name'} if (defined($request->{'helo_name'}));
 		$sessionData->{'Sender'} = $request->{'sender'};
@@ -283,8 +306,8 @@ sub getSessionDataFromRequest
 	$sessionData->{'ProtocolTransport'} = $request->{'_protocol_transport'};
 	$sessionData->{'ProtocolState'} = $request->{'protocol_state'};
 	$sessionData->{'UnixTimestamp'} = $request->{'_timestamp'};
+	# XXX: redundant
 	$sessionData->{'ParsedClientAddress'} = parseCIDR($sessionData->{'ClientAddress'});
-
 	# Make sure HELO is clean...
 	$sessionData->{'Helo'} = defined($sessionData->{'Helo'}) ? $sessionData->{'Helo'} : '';
 
