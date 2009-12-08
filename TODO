@@ -40,8 +40,6 @@ Immediate requirements:
 
 - Template based replies for greylisting, helo checks ... etc  (2.1)
 
-- Change Column width of ClientAddress in session tracking table to 39 chars to cover both ipv4 and ipv6 (2.1)
-
 - Configurable rejection messages for all modules  (2.1)
 
 --------------
