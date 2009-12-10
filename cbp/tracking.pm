@@ -37,7 +37,6 @@ use awitpt::db::dblayer;
 use awitpt::netip;
 use cbp::logging;
 use cbp::policies;
-use cbp::system qw(parseCIDR);
 
 use Data::Dumper;
 
@@ -220,7 +219,7 @@ sub getSessionDataFromRequest
 		
 		# Requesting server address, we need this before the policy call
 		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
-		$sessionData->{'_PeerAddress'} = new awitpt::netip($request->{'PeerAddress'});
+		$sessionData->{'_PeerAddress'} = new awitpt::netip($sessionData->{'PeerAddress'});
 		if (!defined($sessionData->{'_PeerAddress'})) {
 			$server->log(LOG_ERR,"[TRACKING] Failed to understand PeerAddress: ".awitpt::netip::Error());
 			return -1;
@@ -268,7 +267,7 @@ sub getSessionDataFromRequest
 	} elsif ($request->{'_protocol_transport'} eq "HTTP") {
 		# Requesting server address, we need this before the policy call
 		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
-		$sessionData->{'_PeerAddress'} = new awitpt::netip($request->{'PeerAddress'});
+		$sessionData->{'_PeerAddress'} = new awitpt::netip($sessionData->{'PeerAddress'});
 		if (!defined($sessionData->{'_PeerAddress'})) {
 			$server->log(LOG_ERR,"[TRACKING] Failed to understand PeerAddress: ".awitpt::netip::Error());
 			return -1;
@@ -306,8 +305,6 @@ sub getSessionDataFromRequest
 	$sessionData->{'ProtocolTransport'} = $request->{'_protocol_transport'};
 	$sessionData->{'ProtocolState'} = $request->{'protocol_state'};
 	$sessionData->{'UnixTimestamp'} = $request->{'_timestamp'};
-	# XXX: redundant
-	$sessionData->{'ParsedClientAddress'} = parseCIDR($sessionData->{'ClientAddress'});
 	# Make sure HELO is clean...
 	$sessionData->{'Helo'} = defined($sessionData->{'Helo'}) ? $sessionData->{'Helo'} : '';
 

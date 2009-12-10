@@ -543,37 +543,6 @@ sub getEmailKey
 }
 
 
-# Get key from IP spec
-sub getIPKey
-{
-	my ($spec,$ip) = @_;
-
-	my $key;
-
-	# Check if spec is ok...
-	if (defined($spec) && $spec =~ /^\/(\d+)$/) {
-		my $mask = $1;
-
-		# If we couldn't pull the mask, just return
-		return if (!defined($mask));
-
-		# Pull long for IP we going to test
-		my $ip_long = ip_to_long($ip);
-		# Convert mask to longs
-		my $mask_long = bits_to_mask($mask);
-		# AND with mask to get network addy
-		my $network_long = $ip_long & $mask_long;
-		# Convert to quad;/
-		my $cidr_network = long_to_ip($network_long);
-
-		# Create key
-		$key = sprintf("%s/%s",$cidr_network,$mask);
-	}
-
-	return $key;
-}
-
-
 # Get quota from policyID
 sub getQuotas
 {
@@ -629,7 +598,7 @@ sub getKey
 
 	# Check TrackSenderIP
 	} elsif ($method eq "senderip") {
-		my $key = getIPKey($spec,$sessionData->{'ClientAddress'});
+		my $key = getIPKey($spec,$sessionData->{'_ClientAddress'});
 
 		# Check for no key
 		if (defined($key)) {

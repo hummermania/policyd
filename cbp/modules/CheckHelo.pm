@@ -238,37 +238,35 @@ sub check {
 		# Loop with whitelist and calculate
 		foreach my $source (@{$whitelistSources}) {
 			# Check format is SenderIP
-			if ((my $address = $source) =~ s/^SenderIP://i) {
-				# Parse CIDR into its various peices
-				my $parsedIP = parseCIDR($address);
-				# Check if this is a valid cidr or IP
-				if (ref $parsedIP eq "HASH") {
-					# Check if IP is whitelisted
-					if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
-								$sessionData->{'ParsedClientAddress'}->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
-						# Cache positive result
-						my $cache_res = cacheStoreKeyPair('CheckHelo/Whitelist/IP',
-								$sessionData->{'ClientAddress'},1);
-						if ($cache_res) {
-							return $server->protocol_response(PROTO_ERROR);
-						}
-						# Log...
-						$server->maillog("module=CheckHelo, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted",
-								$sessionData->{'ClientAddress'},
-								$sessionData->{'Helo'},
-								$sessionData->{'Sender'},
-								$sessionData->{'Recipient'});
+			if ((my $raw_waddress = $source) =~ s/^SenderIP://i) {
 
-						return $server->protocol_response(PROTO_PASS);
-					}
-					# Cache negative result
-					my $cache_res = cacheStoreKeyPair('CheckHelo/Whitelist/IP',$sessionData->{'ClientAddress'},0);
+				# Create our IP object
+				my $waddress = new awitpt::netip($raw_waddress);
+				if (!defined($waddress)) {
+					$server->log(LOG_WARN,"[CHECKHELO] Skipping invalid address '$raw_waddress'.");
+					next;
+				}
+				# Check if IP is whitelisted
+				if ($sessionData->{'_ClientAddress'}->is_within($waddress)) {
+					# Cache positive result
+					my $cache_res = cacheStoreKeyPair('CheckHelo/Whitelist/IP',
+							$sessionData->{'ClientAddress'},1);
 					if ($cache_res) {
 						return $server->protocol_response(PROTO_ERROR);
 					}
-				} else {
-					$server->log(LOG_ERR,"[CHECKHELO] Failed to parse address '$address' is invalid.");
-					return $server->protocol_response(PROTO_DATA_ERROR);
+					# Log...
+					$server->maillog("module=CheckHelo, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted",
+							$sessionData->{'ClientAddress'},
+							$sessionData->{'Helo'},
+							$sessionData->{'Sender'},
+							$sessionData->{'Recipient'});
+
+					return $server->protocol_response(PROTO_PASS);
+				}
+				# Cache negative result
+				my $cache_res = cacheStoreKeyPair('CheckHelo/Whitelist/IP',$sessionData->{'ClientAddress'},0);
+				if ($cache_res) {
+					return $server->protocol_response(PROTO_ERROR);
 				}
 
 			} else {
@@ -284,8 +282,11 @@ sub check {
 	#
 	if (defined($policy{'RejectInvalid'}) && $policy{'RejectInvalid'} eq "1") {
 
-		# Check if helo is an IP address
-		if ($sessionData->{'Helo'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/) {
+		# Check if helo is an IPv4 or IPv6 address
+		if (
+			$sessionData->{'Helo'} =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/ ||
+			$sessionData->{'Helo'} =~ /^(?:::(:?[a-f\d]{1,4}:){0,6}?[a-f\d]{0,4}|[a-f\d]{1,4}(?::[a-f\d]{1,4}){0,6}?::|[a-f\d]{1,4}(?::[a-f\d]{1,4}){0,6}?::(?:[a-f\d]{1,4}:){0,6}?[a-f\d]{1,4})$/i
+		) {
 
 			# Check if we must reject IP address HELO's
 			if (defined($policy{'RejectIP'}) && $policy{'RejectIP'} eq "1") {
@@ -301,8 +302,11 @@ sub check {
 			}
 
 		# Address literal is valid
-		} elsif  ($sessionData->{'Helo'} =~ /^\[\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\]$/) {
+		} elsif (
+			$sessionData->{'Helo'} =~ /^\[(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\]$/ ||
+			$sessionData->{'Helo'} =~ /^\[((?:::(:?[a-f\d]{1,4}:){0,6}?[a-f\d]{0,4}|[a-f\d]{1,4}(?::[a-f\d]{1,4}){0,6}?::|[a-f\d]{1,4}(?::[a-f\d]{1,4}){0,6}?::(?:[a-f\d]{1,4}:){0,6}?[a-f\d]{1,4}))\]$/i
 
+		) {
 		# Check if helo is a FQDN - Only valid characters in a domain is alnum and a -
 		} elsif ($sessionData->{'Helo'} =~ /^[\w-]+(\.[\w-]+)+$/) {
 

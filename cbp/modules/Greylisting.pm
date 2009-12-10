@@ -26,6 +26,7 @@ use warnings;
 use cbp::logging;
 use awitpt::cache;
 use awitpt::db::dblayer;
+use awitpt::netip;
 use cbp::system;
 use cbp::protocols;
 
@@ -211,26 +212,23 @@ sub check {
 	while (my $row = $sth->fetchrow_hashref()) {
 		
 		# Check format is SenderIP
-		if ((my $address = $row->{'source'}) =~ s/^SenderIP://i) {
+		if ((my $raw_waddress = $row->{'source'}) =~ s/^SenderIP://i) {
 
-			# Parse CIDR into its various peices
-			my $parsedIP = parseCIDR($address);
-			# Check if this is a valid cidr or IP
-			if (ref $parsedIP eq "HASH") {
-
-				# Check if IP is whitelisted
-				if ($sessionData->{'ParsedClientAddress'}->{'IP_Long'} >= $parsedIP->{'Network_Long'} && 
-						$sessionData->{'ParsedClientAddress'}->{'IP_Long'} <= $parsedIP->{'Broadcast_Long'}) {
-					$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted",
-							$sessionData->{'ClientAddress'},
-							$sessionData->{'Helo'},
-							$sessionData->{'Sender'},
-							$sessionData->{'Recipient'});
-					DBFreeRes($sth);
-					return $server->protocol_response(PROTO_PASS);
-				}
-			} else {
-				$server->log(LOG_WARN,"[GREYLISTING] Skipping invalid address '$address'.");
+			# Create our IP object
+			my $waddress = new awitpt::netip($raw_waddress);
+			if (!defined($waddress)) {
+				$server->log(LOG_WARN,"[GREYLISTING] Skipping invalid address '$raw_waddress'.");
+				next;
+			}
+			# Check if IP is whitelisted
+			if ($sessionData->{'_ClientAddress'}->is_within($waddress)) {
+				$server->maillog("module=Greylisting, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=whitelisted",
+						$sessionData->{'ClientAddress'},
+						$sessionData->{'Helo'},
+						$sessionData->{'Sender'},
+						$sessionData->{'Recipient'});
+				DBFreeRes($sth);
+				return $server->protocol_response(PROTO_PASS);
 			}
 
 		} else {
@@ -843,7 +841,7 @@ sub getKey
 
 	# Check TrackSenderIP
 	if ($method eq "senderip") {
-		my $key = getIPKey($spec,$sessionData->{'ClientAddress'});
+		my $key = getIPKey($spec,$sessionData->{'_ClientAddress'});
 
 		# Check for no key
 		if (defined($key)) {
@@ -859,37 +857,6 @@ sub getKey
 
 
 	return $res;
-}
-
-
-# Get key from session
-sub getIPKey
-{
-	my ($spec,$ip) = @_;
-
-	my $key;
-
-	# Check if spec is ok...
-	if ($spec =~ /^\/(\d+)$/) {
-		my $mask = $1;
-
-		# If we couldn't pull the mask, just return
-		$mask = 32 if (!defined($mask));
-
-		# Pull long for IP we going to test
-		my $ip_long = ip_to_long($ip);
-		# Convert mask to longs
-		my $mask_long = bits_to_mask($mask);
-		# AND with mask to get network addy
-		my $network_long = $ip_long & $mask_long;
-		# Convert to quad;/
-		my $cidr_network = long_to_ip($network_long);
-
-		# Create key
-		$key = sprintf("%s/%s",$cidr_network,$mask);
-	}
-
-	return $key;
 }
 
 
