@@ -187,6 +187,14 @@ if ($_POST['frmaction'] == "add") {
 <?php
 
 	} else {
+
+		if ($_POST['accounting_track'] == "SenderIP") {
+			$accountingTrack = sprintf('%s:%s',$_POST['accounting_track'],$_POST['accounting_trackextra']);
+		} else {
+			$accountingTrack = $_POST['accounting_track'];
+		}
+
+
 		$stmt = $db->prepare("
 			INSERT INTO ${DB_TABLE_PREFIX}accounting 
 				(
@@ -202,7 +210,7 @@ if ($_POST['frmaction'] == "add") {
 		$res = $stmt->execute(array(
 			$_POST['accounting_policyid'],
 			$_POST['accounting_name'],
-			$_POST['accounting_track'],
+			$accountingTrack,
 			$_POST['accounting_period'],
 			$_POST['accounting_messagecountlimit'],
 			$_POST['accounting_messagecumulativesize'],

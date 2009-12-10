@@ -250,7 +250,12 @@ if ($_POST['frmaction'] == "change") {
 		array_push($updates,"Name = ".$db->quote($_POST['accounting_name']));
 	}
 	if (!empty($_POST['accounting_track'])) {
-		array_push($updates,"Track = ".$db->quote($_POST['accounting_track']));
+		if ($_POST['accounting_track'] == "SenderIP") {
+			$accountingTrack = sprintf('%s:%s',$_POST['accounting_track'],$_POST['accounting_trackextra']);
+		} else {
+			$accountingTrack = $_POST['accounting_track'];
+		}
+		array_push($updates,"Track = ".$db->quote($accountingTrack));
 	}
 	if (isset($_POST['accounting_period']) && $_POST['accounting_period'] != "") {
 		array_push($updates,"AccountingPeriod = ".$db->quote($_POST['accounting_period']));
