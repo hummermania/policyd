@@ -56,9 +56,7 @@ Planned Features:
 
 * Caching (2.2)
 
-* IPv6
-
-- ability to disable tcp connection logs while keeping action=* logs (perhaps move the latter from info to notice?)
+* ability to disable tcp connection logs while keeping action=* logs (perhaps move the latter from info to notice?)
 
 
 
