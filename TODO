@@ -42,6 +42,8 @@ Immediate requirements:
 
 - Configurable rejection messages for all modules  (2.1)
 
+- Honor bypass_mode for all db queries (2.1)
+
 --------------
 
 Planned Features:
