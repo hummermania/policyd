@@ -568,8 +568,11 @@ sub getQuotas
 		$server->log(LOG_ERR,"Failed to get quota data: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	while (my $quota = $sth->fetchrow_hashref()) {
-		push(@res,hashifyLCtoMC($quota,qw(ID Period Track Verdict Data LastQuota)));
+	while (my $quota = hashifyLCtoMC($sth->fetchrow_hashref(),
+			qw( ID Period Track Verdict Data LastQuota )
+	)) {
+
+		push(@res, $quota);
 	}
 
 	return \@res;
@@ -681,10 +684,10 @@ sub getTrackingInfo
 		$server->log(LOG_ERR,"[QUOTAS] Failed to query quotas_tracking: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	my $row = $sth->fetchrow_hashref(); 
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( QuotasLimitsID TrackKey Counter LastUpdate )); 
 	DBFreeRes($sth);
 
-	return hashifyLCtoMC($row,qw(QuotasLimitsID TrackKey Counter LastUpdate));
+	return $row;
 }
 
 
@@ -711,8 +714,8 @@ sub getLimits
 		return -1;
 	}
 	my $list = [];
-	while (my $qtrack = $sth->fetchrow_hashref()) {
-		push(@{$list},hashifyLCtoMC($qtrack,qw(ID Type CounterLimit)));
+	while (my $qtrack = hashifyLCtoMC($sth->fetchrow_hashref(), qw( ID Type CounterLimit ))) {
+		push(@{$list}, $qtrack);
 	}
 
 	return $list;

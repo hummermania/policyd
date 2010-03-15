@@ -631,8 +631,11 @@ sub getAccountings
 		$server->log(LOG_ERR,"Failed to get accounting data: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	while (my $quota = $sth->fetchrow_hashref()) {
-		push(@res,hashifyLCtoMC($quota,qw(ID Track AccountingPeriod MessageCountLimit MessageCumulativeSizeLimit Verdict Data LastAccounting)));
+	while (my $quota = hashifyLCtoMC($sth->fetchrow_hashref(),
+			qw( ID Track AccountingPeriod MessageCountLimit MessageCumulativeSizeLimit Verdict Data LastAccounting )
+	)) {
+
+		push(@res, $quota);
 	}
 
 	return \@res;
@@ -776,10 +779,12 @@ sub getTrackingInfo
 		$server->log(LOG_ERR,"[ACCOUNTING] Failed to query accounting_tracking: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	my $row = $sth->fetchrow_hashref(); 
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
+			qw( AccountingID TrackKey PeriodKey MessageCount MessageCumulativeSize )
+	);
 	DBFreeRes($sth);
 
-	return hashifyLCtoMC($row,qw(AccountingID TrackKey PeriodKey MessageCount MessageCumulativeSize));
+	return $row;
 }
 
 

@@ -104,14 +104,14 @@ sub check {
 				$server->log(LOG_ERR,"Database query failed: ".awitpt::db::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
-			my $row = $sth->fetchrow_hashref();
+			my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Verdict Data ));
 			DBFreeRes($sth);
 
 			# If no result, next
 			next if (!$row);
 
 			# Setup result
-			if (!defined($row->{'verdict'})) {
+			if (!defined($row->{'Verdict'})) {
 				$server->maillog("module=AccessControl, action=none, host=%s, helo=%s, from=%s, to=%s, reason=no_verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
@@ -119,64 +119,64 @@ sub check {
 						$sessionData->{'Recipient'});
 				next; # No verdict
 
-			} elsif ($row->{'verdict'} =~ /^hold$/i) {
+			} elsif ($row->{'Verdict'} =~ /^hold$/i) {
 				$server->maillog("module=AccessControl, action=hold, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
 						$sessionData->{'Sender'},
 						$sessionData->{'Recipient'});
-				return $server->protocol_response(PROTO_HOLD,$row->{'data'});
+				return $server->protocol_response(PROTO_HOLD,$row->{'Data'});
 
-			} elsif ($row->{'verdict'} =~ /^reject$/i) {
+			} elsif ($row->{'Verdict'} =~ /^reject$/i) {
 				$server->maillog("module=AccessControl, action=reject, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
 						$sessionData->{'Sender'},
 						$sessionData->{'Recipient'});
-				return $server->protocol_response(PROTO_REJECT,$row->{'data'});
+				return $server->protocol_response(PROTO_REJECT,$row->{'Data'});
 
-			} elsif ($row->{'verdict'} =~ /^discard$/i) {
+			} elsif ($row->{'Verdict'} =~ /^discard$/i) {
 				$server->maillog("module=AccessControl, action=discard, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
 						$sessionData->{'Sender'},
 						$sessionData->{'Recipient'});
-				return $server->protocol_response(PROTO_DISCARD,$row->{'data'});
+				return $server->protocol_response(PROTO_DISCARD,$row->{'Data'});
 
-			} elsif ($row->{'verdict'} =~ /^filter$/i) {
+			} elsif ($row->{'Verdict'} =~ /^filter$/i) {
 				$server->maillog("module=AccessControl, action=filter, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
 						$sessionData->{'Sender'},
 						$sessionData->{'Recipient'});
-				return $server->protocol_response(PROTO_FILTER,$row->{'data'});
+				return $server->protocol_response(PROTO_FILTER,$row->{'Data'});
 
-			} elsif ($row->{'verdict'} =~ /^redirect$/i) {
+			} elsif ($row->{'Verdict'} =~ /^redirect$/i) {
 				$server->maillog("module=AccessControl, action=redirect, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
 						$sessionData->{'Sender'},
 						$sessionData->{'Recipient'});
-				return $server->protocol_response(PROTO_REDIRECT,$row->{'data'});
+				return $server->protocol_response(PROTO_REDIRECT,$row->{'Data'});
 
-			} elsif ($row->{'verdict'} =~ /^ok$/i) {
+			} elsif ($row->{'Verdict'} =~ /^ok$/i) {
 				$server->maillog("module=AccessControl, action=ok, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
 						$sessionData->{'Sender'},
 						$sessionData->{'Recipient'});
-				return $server->protocol_response(PROTO_OK,$row->{'data'});
+				return $server->protocol_response(PROTO_OK,$row->{'Data'});
 
-			} elsif ($row->{'verdict'} =~ /^pass$/i) {
+			} elsif ($row->{'Verdict'} =~ /^pass$/i) {
 				$server->maillog("module=AccessControl, action=pass, host=%s, helo=%s, from=%s, to=%s, reason=verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},
 						$sessionData->{'Sender'},
 						$sessionData->{'Recipient'});
-				return $server->protocol_response(PROTO_PASS,$row->{'data'});
+				return $server->protocol_response(PROTO_PASS,$row->{'Data'});
 
 			} else {
-				$server->log(LOG_ERR,"[ACCESSCONTROL] Unknown Verdict specification in access control '".$row->{'verdict'}."'");
+				$server->log(LOG_ERR,"[ACCESSCONTROL] Unknown Verdict specification in access control '".$row->{'Verdict'}."'");
 				$server->maillog("module=AccessControl, action=none, host=%s, helo=%s, from=%s, to=%s, reason=invalid_verdict",
 						$sessionData->{'ClientAddress'},
 						$sessionData->{'Helo'},

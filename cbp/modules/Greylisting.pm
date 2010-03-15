@@ -131,50 +131,58 @@ sub check {
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
 			# Loop with rows and build end policy
-			while (my $row = $sth->fetchrow_hashref()) {
+			while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
+					qw(
+						UseGreylisting GreylistPeriod Track	GreylistAuthValidity 
+						GreylistUnAuthValidity	UseAutoWhitelist AutoWhitelistPeriod 
+						AutoWhitelistCount AutoWhitelistPercentage	UseAutoBlacklist 
+						AutoBlacklistPeriod AutoBlacklistCount AutoBlacklistPercentage 
+					)
+			)) {
+
 				$policy{'Identifier'} .= ":$policyID";
 
 				# If defined, its to override
-				if (defined($row->{'usegreylisting'})) {
-					$policy{'UseGreylisting'} = $row->{'usegreylisting'};
+				if (defined($row->{'UseGreylisting'})) {
+					$policy{'UseGreylisting'} = $row->{'UseGreylisting'};
 				}
-				if (defined($row->{'greylistperiod'})) {
-					$policy{'GreylistPeriod'} = $row->{'greylistperiod'};
+				if (defined($row->{'GreylistPeriod'})) {
+					$policy{'GreylistPeriod'} = $row->{'GreylistPeriod'};
 				}
-				if (defined($row->{'track'})) {
-					$policy{'Track'} = $row->{'track'};
+				if (defined($row->{'Track'})) {
+					$policy{'Track'} = $row->{'Track'};
 				}
-				if (defined($row->{'greylistauthvalidity'})) {
-					$policy{'GreylistAuthValidity'} = $row->{'greylistauthvalidity'};
+				if (defined($row->{'GreylistAuthValidity'})) {
+					$policy{'GreylistAuthValidity'} = $row->{'GreylistAuthValidity'};
 				}
-				if (defined($row->{'greylistunauthvalidity'})) {
-					$policy{'GreylistUnAuthValidity'} = $row->{'greylistunauthvalidity'};
-				}
-	
-				if (defined($row->{'useautowhitelist'})) {
-					$policy{'UseAutoWhitelist'} = $row->{'useautowhitelist'};
-				}
-				if (defined($row->{'autowhitelistperiod'})) {
-					$policy{'AutoWhitelistPeriod'} = $row->{'autowhitelistperiod'};
-				}
-				if (defined($row->{'autowhitelistcount'})) {
-					$policy{'AutoWhitelistCount'} = $row->{'autowhitelistcount'};
-				}
-				if (defined($row->{'autowhitelistpercentage'})) {
-					$policy{'AutoWhitelistPercentage'} = $row->{'autowhitelistpercentage'};
+				if (defined($row->{'GreylistUnAuthValidity'})) {
+					$policy{'GreylistUnAuthValidity'} = $row->{'GreylistUnAuthValidity'};
 				}
 	
-				if (defined($row->{'useautoblacklist'})) {
-					$policy{'UseAutoBlacklist'} = $row->{'useautoblacklist'};
+				if (defined($row->{'UseAutoWhitelist'})) {
+					$policy{'UseAutoWhitelist'} = $row->{'UseAutoWhitelist'};
 				}
-				if (defined($row->{'autoblacklistperiod'})) {
-					$policy{'AutoBlacklistPeriod'} = $row->{'autoblacklistperiod'};
+				if (defined($row->{'AutoWhitelistPeriod'})) {
+					$policy{'AutoWhitelistPeriod'} = $row->{'AutoWhitelistPeriod'};
 				}
-				if (defined($row->{'autoblacklistcount'})) {
-					$policy{'AutoBlacklistCount'} = $row->{'autoblacklistcount'};
+				if (defined($row->{'AutoWhitelistCount'})) {
+					$policy{'AutoWhitelistCount'} = $row->{'AutoWhitelistCount'};
 				}
-				if (defined($row->{'autoblacklistpercentage'})) {
-					$policy{'AutoBlacklistPercentage'} = $row->{'autoblacklistpercentage'};
+				if (defined($row->{'AutoWhitelistPercentage'})) {
+					$policy{'AutoWhitelistPercentage'} = $row->{'AutoWhitelistPercentage'};
+				}
+	
+				if (defined($row->{'UseAutoBlacklist'})) {
+					$policy{'UseAutoBlacklist'} = $row->{'UseAutoBlacklist'};
+				}
+				if (defined($row->{'AutoBlacklistPeriod'})) {
+					$policy{'AutoBlacklistPeriod'} = $row->{'AutoBlacklistPeriod'};
+				}
+				if (defined($row->{'AutoBlacklistCount'})) {
+					$policy{'AutoBlacklistCount'} = $row->{'AutoBlacklistCount'};
+				}
+				if (defined($row->{'AutoBlacklistPercentage'})) {
+					$policy{'AutoBlacklistPercentage'} = $row->{'AutoBlacklistPercentage'};
 				}
 	
 			} # while (my $row = $sth->fetchrow_hashref())
@@ -209,10 +217,10 @@ sub check {
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 	# Loop with whitelist and calculate
-	while (my $row = $sth->fetchrow_hashref()) {
+	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Source ))) {
 		
 		# Check format is SenderIP
-		if ((my $raw_waddress = $row->{'source'}) =~ s/^SenderIP://i) {
+		if ((my $raw_waddress = $row->{'Source'}) =~ s/^SenderIP://i) {
 
 			# Create our IP object
 			my $waddress = new awitpt::netip($raw_waddress);
@@ -232,7 +240,7 @@ sub check {
 			}
 
 		} else {
-			$server->log(LOG_WARN,"[GREYLISTING] Skipping invalid whitelist entry '".$row->{'source'}."'.");
+			$server->log(LOG_WARN,"[GREYLISTING] Skipping invalid whitelist entry '".$row->{'Source'}."'.");
 		}
 	}
 	DBFreeRes($sth);
@@ -272,13 +280,13 @@ sub check {
 				$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
-			my $row = $sth->fetchrow_hashref();
+			my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( ID LastSeen ));
 
 			# Pull off first row
 			if ($row) {
 
 				# Check if we're within the auto-whitelisting period
-				if ($sessionData->{'UnixTimestamp'} - $row->{'lastseen'} <= $policy{'AutoWhitelistPeriod'}) {
+				if ($sessionData->{'UnixTimestamp'} - $row->{'LastSeen'} <= $policy{'AutoWhitelistPeriod'}) {
 
 					my $sth = DBDo('
 						UPDATE
@@ -355,13 +363,13 @@ sub check {
 					$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 					return $server->protocol_response(PROTO_DB_ERROR);
 				}
-				my $row = $sth->fetchrow_hashref();
+				my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( ID Added ));
 	
 				# Pull off first row
 				if ($row) {
 	
 					# Check if we're within the auto-blacklisting period
-					if ($sessionData->{'UnixTimestamp'} - $row->{'added'} <= $policy{'AutoBlacklistPeriod'}) {
+					if ($sessionData->{'UnixTimestamp'} - $row->{'Added'} <= $policy{'AutoBlacklistPeriod'}) {
 						# Cache positive result
 						my $cache_res = cacheStoreKeyPair(
 								'Greylisting/Auto-Blacklist/PolicyIdentifier-Blacklisted-IP',
@@ -445,8 +453,8 @@ sub check {
 						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
-					my $row = $sth->fetchrow_hashref();
-					my $totalCount = defined($row->{'totalcount'}) ? $row->{'totalcount'} : 0;
+					my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( TotalCount ));
+					my $totalCount = defined($row->{'TotalCount'}) ? $row->{'TotalCount'} : 0;
 	
 	
 					# If count exceeds or equals blacklist count, nail the server
@@ -470,8 +478,8 @@ sub check {
 							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
 						}
-						$row = $sth->fetchrow_hashref();
-						my $failCount = defined($row->{'failcount'}) ? $row->{'failcount'} : 0;
+						$row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( FailCount ));
+						my $failCount = defined($row->{'FailCount'}) ? $row->{'FailCount'} : 0;
 	
 						# Check if we should blacklist this host
 						if (defined($policy{'AutoBlacklistPercentage'}) && $policy{'AutoBlacklistPercentage'} > 0) {
@@ -601,8 +609,7 @@ sub check {
 		SELECT
 			FirstSeen,
 			LastUpdate,
-			Tries,
-			Count
+			Tries
 
 		FROM
 			@TP@greylisting_tracking
@@ -618,14 +625,14 @@ sub check {
 		$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
-	my $row = $sth->fetchrow_hashref();
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( FirstSeen LastUpdate Tries ));
 	if (!$row) {
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to find triplet in database");
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
 
 	# Check if we should greylist, or not
-	my $timeElapsed = $row->{'lastupdate'} - $row->{'firstseen'};
+	my $timeElapsed = $row->{'LastUpdate'} - $row->{'FirstSeen'};
 	if (!$config{'training_mode'} && $timeElapsed < $policy{'GreylistPeriod'}) {
 		# Get time left, debug and return
 		my $timeLeft = $policy{'GreylistPeriod'} - $timeElapsed;
@@ -634,7 +641,7 @@ sub check {
 				$sessionData->{'Helo'},
 				$sessionData->{'Sender'},
 				$sessionData->{'Recipient'},
-				$row->{'tries'} + 1);
+				$row->{'Tries'} + 1);
 
 		# Update stats
 		my $sth = DBDo('
@@ -702,8 +709,8 @@ sub check {
 						$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 						return $server->protocol_response(PROTO_DB_ERROR);
 					}
-					my $row = $sth->fetchrow_hashref();
-					my $totalCount = defined($row->{'totalcount'}) ? $row->{'totalcount'} : 0;
+					my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( TotalCount ));
+					my $totalCount = defined($row->{'TotalCount'}) ? $row->{'TotalCount'} : 0;
 
 					# If count exceeds or equals whitelist count, nail the server
 					if ($totalCount >= $policy{'AutoWhitelistCount'}) {
@@ -725,8 +732,8 @@ sub check {
 							$server->log(LOG_ERR,"[GREYLISTING] Database query failed: ".awitpt::db::dblayer::Error());
 							return $server->protocol_response(PROTO_DB_ERROR);
 						}
-						$row = $sth->fetchrow_hashref();
-						my $passCount = defined($row->{'passcount'}) ? $row->{'passcount'} : 0;
+						$row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( PassCount ));
+						my $passCount = defined($row->{'PassCount'}) ? $row->{'PassCount'} : 0;
 				
 						# Check if we should whitelist this host
 						if (defined($policy{'AutoWhitelistPercentage'}) && $policy{'AutoWhitelistPercentage'} > 0) {
@@ -883,11 +890,11 @@ sub cleanup
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoWhitelistPeriod: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	my $row = $sth->fetchrow_hashref();
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Period ));
 
 	# Check if we have something...
 	my $AWLPeriod;
-	if (($AWLPeriod = $row->{'period'}) && $AWLPeriod > 0) {
+	if (($AWLPeriod = $row->{'Period'}) && $AWLPeriod > 0) {
 		# Get start time
 		$AWLPeriod = $now - $AWLPeriod;
 
@@ -923,11 +930,11 @@ sub cleanup
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to query AutoBlacklistPeriod: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	$row = $sth->fetchrow_hashref();
+	$row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Period ));
 
 	# Check if we have something...
 	my $ABLPeriod;
-	if (($ABLPeriod = $row->{'period'}) && $ABLPeriod > 0) {
+	if (($ABLPeriod = $row->{'Period'}) && $ABLPeriod > 0) {
 		# Get start time
 		$ABLPeriod = $now - $ABLPeriod;
 	
@@ -962,11 +969,11 @@ sub cleanup
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistAuthValidity: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	$row = $sth->fetchrow_hashref();
+	$row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Period ));
 	
 	# Check if we have something...
 	my $AuthPeriod;
-	if (($AuthPeriod = $row->{'period'}) && $AuthPeriod > 0) {
+	if (($AuthPeriod = $row->{'Period'}) && $AuthPeriod > 0) {
 		# Get start time
 		$AuthPeriod = $now - $AuthPeriod;
 	
@@ -1002,11 +1009,11 @@ sub cleanup
 		$server->log(LOG_ERR,"[GREYLISTING] Failed to query GreylistUnAuthValidity: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	$row = $sth->fetchrow_hashref();
+	$row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Period ));
 
 	# Check if we have something...
 	my $UnAuthPeriod;
-	if (($UnAuthPeriod = $row->{'period'}) && $UnAuthPeriod > 0) {
+	if (($UnAuthPeriod = $row->{'Period'}) && $UnAuthPeriod > 0) {
 		# Get start time
 		$UnAuthPeriod = $now - $UnAuthPeriod;
 	

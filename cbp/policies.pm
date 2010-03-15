@@ -232,15 +232,18 @@ sub getPolicyMembers
 
 	# Loop with results
 	my @policyMembers;
-	while (my $row = $sth->fetchrow_hashref()) {
+	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
+			qw( Name Priority PolicyDisabled ID PolicyID Source Destination MemberDisabled )
+	)) {
+
 		# Log what we see
-		if ($row->{'policydisabled'} eq "1") {
-			$server->log(LOG_DEBUG,"[POLICIES] Policy '".$row->{'name'}."' is disabled") if ($log);
-		} elsif ($row->{'memberdisabled'} eq "1") {
-			$server->log(LOG_DEBUG,"[POLICIES] Policy member item with ID '".$row->{'id'}."' is disabled") if ($log);
+		if ($row->{'PolicyDisabled'} eq "1") {
+			$server->log(LOG_DEBUG,"[POLICIES] Policy '".$row->{'Name'}."' is disabled") if ($log);
+		} elsif ($row->{'MemberDisabled'} eq "1") {
+			$server->log(LOG_DEBUG,"[POLICIES] Policy member item with ID '".$row->{'ID'}."' is disabled") if ($log);
 		} else {
-			$server->log(LOG_DEBUG,"[POLICIES] Found policy member with ID '".$row->{'id'}."' in policy '".$row->{'name'}."'") if ($log);
-			push(@policyMembers,hashifyLCtoMC($row,qw(Name Priority PolicyDisabled ID PolicyID Source Destination MemberDisabled)));
+			$server->log(LOG_DEBUG,"[POLICIES] Found policy member with ID '".$row->{'ID'}."' in policy '".$row->{'Name'}."'") if ($log);
+			push(@policyMembers, $row);
 		}
 	}
 	
@@ -291,8 +294,8 @@ sub getGroupMembers
 	}
 	# Pull in groups
 	my @groupMembers;
-	while (my $row = $sth->fetchrow_hashref()) {
-		push(@groupMembers,$row->{'member'});
+	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Member ))) {
+		push(@groupMembers,$row->{'Member'});
 	}
 
 	# Cache this

@@ -114,18 +114,21 @@ sub check {
 				$server->log(LOG_ERR,"[CHECKSPF] Database query failed: ".awitpt::db::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
-			while (my $row = $sth->fetchrow_hashref()) {
+			while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
+					qw( UseSPF RejectFailedSPF AddSPFHeader )
+			)) {
+
 				# If defined, its to override
-				if (defined($row->{'usespf'})) {
-					$policy{'UseSPF'} = $row->{'usespf'};
+				if (defined($row->{'UseSPF'})) {
+					$policy{'UseSPF'} = $row->{'UseSPF'};
 				}
 				# If defined, its to override
-				if (defined($row->{'rejectfailedspf'})) {
-					$policy{'RejectFailedSPF'} = $row->{'rejectfailedspf'};
+				if (defined($row->{'RejectFailedSPF'})) {
+					$policy{'RejectFailedSPF'} = $row->{'RejectFailedSPF'};
 				}
 				# If defined, its to override
-				if (defined($row->{'addspfheader'})) {
-					$policy{'AddSPFHeader'} = $row->{'addspfheader'};
+				if (defined($row->{'AddSPFHeader'})) {
+					$policy{'AddSPFHeader'} = $row->{'AddSPFHeader'};
 				}
 			} # while (my $row = $sth->fetchrow_hashref())
 		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})

@@ -114,35 +114,37 @@ sub check {
 				$server->log(LOG_ERR,"[CHECKHELO] Database query failed: ".awitpt::db::dblayer::Error());
 				return $server->protocol_response(PROTO_DB_ERROR);
 			}
-			while (my $row = $sth->fetchrow_hashref()) {
+			while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
+					qw(	UseBlacklist BlacklistPeriod UseHRP HRPPeriod HRPLimit RejectInvalid RejectIP RejectUnresolvable )
+			)) {
 				$policy{'Identifier'} .= ":$policyID";
 
 				# If defined, its to override
-				if (defined($row->{'useblacklist'})) {
-					$policy{'UseBlacklist'} = $row->{'useblacklist'};
+				if (defined($row->{'UseBlacklist'})) {
+					$policy{'UseBlacklist'} = $row->{'UseBlacklist'};
 				}
-				if (defined($row->{'blacklistperiod'})) {
-					$policy{'BlacklistPeriod'} = $row->{'blacklistperiod'};
-				}
-	
-				if (defined($row->{'usehrp'})) {
-					$policy{'UseHRP'} = $row->{'usehrp'};
-				}
-				if (defined($row->{'hrpperiod'})) {
-					$policy{'HRPPeriod'} = $row->{'hrpperiod'};
-				}
-				if (defined($row->{'hrplimit'})) {
-					$policy{'HRPLimit'} = $row->{'hrplimit'};
+				if (defined($row->{'BlacklistPeriod'})) {
+					$policy{'BlacklistPeriod'} = $row->{'BlacklistPeriod'};
 				}
 	
-				if (defined($row->{'rejectinvalid'})) {
-					$policy{'RejectInvalid'} = $row->{'rejectinvalid'};
+				if (defined($row->{'UseHRP'})) {
+					$policy{'UseHRP'} = $row->{'UseHRP'};
 				}
-				if (defined($row->{'rejectip'})) {
-					$policy{'RejectIP'} = $row->{'rejectip'};
+				if (defined($row->{'HRPPeriod'})) {
+					$policy{'HRPPeriod'} = $row->{'HRPPeriod'};
 				}
-				if (defined($row->{'rejectunresolvable'})) {
-					$policy{'RejectUnresolvable'} = $row->{'rejectunresolvable'};
+				if (defined($row->{'HRPLimit'})) {
+					$policy{'HRPLimit'} = $row->{'HRPLimit'};
+				}
+	
+				if (defined($row->{'RejectInvalid'})) {
+					$policy{'RejectInvalid'} = $row->{'RejectInvalid'};
+				}
+				if (defined($row->{'RejectIP'})) {
+					$policy{'RejectIP'} = $row->{'RejectIP'};
+				}
+				if (defined($row->{'RejectUnresolvable'})) {
+					$policy{'RejectUnresolvable'} = $row->{'RejectUnresolvable'};
 				}
 			} # while (my $row = $sth->fetchrow_hashref())
 		} # foreach my $policyID (@{$sessionData->{'Policy'}->{$priority}})
@@ -558,13 +560,13 @@ sub cleanup
 		$server->log(LOG_ERR,"[CHECKHELO] Failed to query maximum periods: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	my $row = $sth->fetchrow_hashref();
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( BlacklistPeriod HRPPeriod ));
 
 	# Check we have results
-	return if (!defined($row->{'blacklistperiod'}) || !defined($row->{'hrpperiod'}));
+	return if (!defined($row->{'BlacklistPeriod'}) || !defined($row->{'HRPPeriod'}));
 
 	# Work out which one is largest
-	my $period = $row->{'blacklistperiod'} > $row->{'hrpperiod'} ? $row->{'blacklistperiod'} : $row->{'hrpperiod'};
+	my $period = $row->{'BlacklistPeriod'} > $row->{'HRPPeriod'} ? $row->{'BlacklistPeriod'} : $row->{'HRPPeriod'};
 
 	# Bork if we didn't find anything of interest
 	return if (!($period > 0));
@@ -614,9 +616,9 @@ sub getHRPCount
 		return;
 	}
 
-	my $row = $sth->fetchrow_hashref();
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Count ));
 
-	return $row->{'count'};
+	return $row->{'Count'};
 }
 
 
@@ -654,16 +656,16 @@ sub getBlacklistCount
 		$server->log(LOG_ERR,"Database query failed: ".awitpt::db::dblayer::Error());
 		return $server->protocol_response(PROTO_DB_ERROR);
 	}
-	my $row = $sth->fetchrow_hashref();
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Count ));
 	
 	# Cache this
-	$cache_res = cacheStoreKeyPair('CheckHelo/Blacklist',$clientAddress,$row->{'count'});
+	$cache_res = cacheStoreKeyPair('CheckHelo/Blacklist',$clientAddress,$row->{'Count'});
 	if ($cache_res) {
 		$server->log(LOG_ERR,"[CHECKHELO] Blacklist cache store failed: ".awitpt::cache::Error());
 		return;
 	}
 
-	return $row->{'count'};
+	return $row->{'Count'};
 }
 
 
@@ -698,8 +700,8 @@ sub getWhitelist
 	}
 	# Loop with whitelist and calculate
 	my @sources;
-	while (my $row = $sth->fetchrow_hashref()) {
-			push(@sources,$row->{'source'});
+	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( Source ))) {
+			push(@sources,$row->{'Source'});
 	}
 
 	# Cache this
