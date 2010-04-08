@@ -1,4 +1,4 @@
-* SPF with actions for each result  (greylist if spf gives soft-fail)
+* SPF with actions for each result  (greylist if spf gives soft-fail, bypass greylist for SPF pass)
 
 * Weighted tests
 
