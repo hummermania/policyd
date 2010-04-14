@@ -105,7 +105,7 @@ sub configure {
 	tie my %inifile, 'Config::IniFiles', (
 			-file => $cfg->{'config_file'},
 			-nocase => 1
-	) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
+	) or die "Failed to open config file '".$cfg->{'config_file'}."': ".join("\n",@Config::IniFiles::errors);
 	# Copy config
 	my %config = %inifile;
 	# FIXME: This now generates a warning as Config::Inifiles doesn't implement UNTIE
