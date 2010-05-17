@@ -563,10 +563,17 @@ sub cleanup
 	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( BlacklistPeriod HRPPeriod ));
 
 	# Check we have results
-	return if (!defined($row->{'BlacklistPeriod'}) || !defined($row->{'HRPPeriod'}));
+	return if (!defined($row->{'BlacklistPeriod'}) && !defined($row->{'HRPPeriod'}));
 
 	# Work out which one is largest
-	my $period = $row->{'BlacklistPeriod'} > $row->{'HRPPeriod'} ? $row->{'BlacklistPeriod'} : $row->{'HRPPeriod'};
+	my $period;
+	if (defined($row->{'BlacklistPeriod'}) && defined($row->{'HRPPeriod'})) {
+		$period = $row->{'BlacklistPeriod'} > $row->{'HRPPeriod'} ? $row->{'BlacklistPeriod'} : $row->{'HRPPeriod'};
+	} elsif (defined($row->{'BlacklistPeriod'})) {
+		$period = $row->{'BlacklistPeriod'};
+	} else {
+		$period = $row->{'HRPPeriod'};
+	}
 
 	# Bork if we didn't find anything of interest
 	return if (!($period > 0));
