@@ -164,8 +164,8 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 					if (defined($atrack)) {
 						# Make sure we have initialized the counters
 						if (!defined($newCounters{$atrack->{'AccountingID'}})) {
-							$newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} = $atrack->{'MessageCount'};
-							$newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'} = $atrack->{'MessageCumulativeSize'};
+							$newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} = 0;
+							$newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'} = 0;
 						}
 	
 						# Check for violation
@@ -174,13 +174,8 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 							if ($accounting->{'MessageCountLimit'} =~ /^[0-9]+$/) {
 								# Check if we exceeded
 								if ($accounting->{'MessageCountLimit'} > 0 && (
-										# Check current counter
-										(
-											defined($newCounters{$atrack->{'AccountingID'}}->{'MessageCount'}) && 
-											$newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} >= $accounting->{'MessageCountLimit'}
-										) || 
-										# Or if that doesn't match, the DB counter
-										$atrack->{'MessageCount'} >= $accounting->{'MessageCountLimit'}
+									# Check current counter
+									$atrack->{'MessageCount'} >= $accounting->{'MessageCountLimit'}
 								)) {
 									$hasExceeded = "Policy rejection; Message count exceeded";
 								}
@@ -208,14 +203,14 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 								}
 							}
 						}
-	
+
 					} else {
 						$atrack->{'AccountingID'} = $accounting->{'ID'};
 						$atrack->{'TrackKey'} = $trackKey;
 						$atrack->{'PeriodKey'} = $periodKey;
 						$atrack->{'MessageCount'} = 0;
 						$atrack->{'MessageCumulativeSize'} = 0;
-								
+					
 						# Make sure we have initialized the counters
 						if (!defined($newCounters{$atrack->{'AccountingID'}})) {
 							$newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} = $atrack->{'MessageCount'};
@@ -257,25 +252,24 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 			# Loop with tracking ID's and update
 			foreach my $atrack (@trackingList) {
 				# Percent used
-				my $pCountUsage = $newCounters{$atrack->{'AccountingID'}}->{'MessageCount'};
-				my $pCumulativeSizeUsage =  $newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'};
+				my $pCountUsage = "/-";
+				my $pCumulativeSizeUsage = "/-"; 
 				# If we have additional limits, add to the usage string
 				if (defined($atrack->{'MessageCountLimit'}) && $atrack->{'MessageCountLimit'} > 0) {
+					$pCountUsage = $newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} + $atrack->{'MessageCount'};
 					$pCountUsage .= sprintf('/%s (%.1f%%)',
 							$atrack->{'MessageCountLimit'},
-							( $newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} / $atrack->{'MessageCountLimit'} ) * 100
+							( ($newCounters{$atrack->{'AccountingID'}}->{'MessageCount'} + $atrack->{'MessageCount'}) /
+									$atrack->{'MessageCountLimit'} ) * 100
 					);
-				} else {
-					$pCountUsage .= "/-";
 				}
 				if (defined($atrack->{'MessageCumulativeSizeLimit'}) && $atrack->{'MessageCumulativeSizeLimit'} > 0) {
+					$pCumulativeSizeUsage =  $newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'} + $atrack->{'MessageCumulativeSize'};
 					$pCumulativeSizeUsage .= sprintf('/%s (%.1f%%)',
 							$atrack->{'MessageCumulativeSizeLimit'},
-							( $newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'} / 
+							( ($newCounters{$atrack->{'AccountingID'}}->{'MessageCumulativeSize'} + $atrack->{'MessageCumulativeSize'}) / 
 								$atrack->{'MessageCumulativeSizeLimit'} ) * 100
 					);
-				} else {
-					$pCumulativeSizeUsage .= "/-";
 				}
 
 				# Update database
@@ -283,8 +277,8 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 					UPDATE 
 						@TP@accounting_tracking
 					SET
-						MessageCount = ?,
-						MessageCumulativeSize = ?,
+						MessageCount = MessageCount + ?,
+						MessageCumulativeSize = MessageCumulativeSize + ?,
 						LastUpdate = ?
 					WHERE
 						AccountingID = ?
@@ -358,13 +352,15 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 		# If we have exceeded, set verdict
 		} else {
 			# Percent used
-			my $pCountUsage = $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCount'};
-			my $pCumulativeSizeUsage =  $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCumulativeSize'};
+			my $pCountUsage = $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCount'} + $exceededAtrack->{'MessageCount'};
+			my $pCumulativeSizeUsage =  $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCumulativeSize'} +
+				$exceededAtrack->{'MessageCumulativeSize'};
 			# If we have additional limits, add to the usage string
 			if (defined($exceededAtrack->{'MessageCountLimit'}) && $exceededAtrack->{'MessageCountLimit'} > 0) {
 				$pCountUsage .= sprintf('/%s (%.1f%%)',
 						$exceededAtrack->{'MessageCountLimit'},
-						( $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCount'} / $exceededAtrack->{'MessageCountLimit'} ) * 100
+						( ($newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCount'} +
+								$exceededAtrack->{'MessageCount'}) / $exceededAtrack->{'MessageCountLimit'} ) * 100
 				);
 			} else {
 				$pCountUsage .= "/-";
@@ -372,8 +368,8 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 			if (defined($exceededAtrack->{'MessageCumulativeSizeLimit'}) && $exceededAtrack->{'MessageCumulativeSizeLimit'} > 0) {
 				$pCumulativeSizeUsage .= sprintf('/%s (%.1f%%)',
 						$exceededAtrack->{'MessageCumulativeSizeLimit'},
-						( $newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCumulativeSize'} / 
-							$exceededAtrack->{'MessageCumulativeSizeLimit'} ) * 100
+						( ($newCounters{$exceededAtrack->{'AccountingID'}}->{'MessageCumulativeSize'} +
+								$exceededAtrack->{'MessageCumulativeSize'}) / $exceededAtrack->{'MessageCumulativeSizeLimit'} ) * 100
 				);
 			} else {
 				$pCumulativeSizeUsage .= "/-";
@@ -454,21 +450,21 @@ POLICY:			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipie
 						}
 
 						# Bump up counter
-						$atrack->{'MessageCumulativeSize'} += ceil($sessionData->{'Size'} / 1024);
+						my $sessionDataSize = ceil($sessionData->{'Size'} / 1024);
 								
 						# Update database
 						my $sth = DBDo('
 							UPDATE 
 								@TP@accounting_tracking
 							SET
-								MessageCumulativeSize = ?,
+								MessageCumulativeSize = MessageCumulativeSize + ?,
 								LastUpdate = ?
 							WHERE
 								AccountingID = ?
 								AND TrackKey = ?
 								AND PeriodKey = ?
 							',
-							$atrack->{'MessageCumulativeSize'},$now,$atrack->{'AccountingID'},$atrack->{'TrackKey'},
+							$sessionDataSize,$now,$atrack->{'AccountingID'},$atrack->{'TrackKey'},
 							$atrack->{'PeriodKey'}
 						);
 						if (!$sth) {
