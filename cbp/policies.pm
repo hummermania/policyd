@@ -525,8 +525,23 @@ sub emailAddressMatches
 	my ($email_user,$email_domain) = ($email =~ /^(\S+)@(\S+)$/);
 	my ($template_user,$template_domain) = ($template =~ /^(\S*)@(\S+)$/);
 
-	if (lc($email_domain) eq lc($template_domain) && (lc($email_user) eq lc($template_user) || $template_user eq "")) {
-		$match = 1;
+	# Make sure its all lowercase
+	$template_user = lc($template_user);
+	$template_domain = lc($template_domain);
+
+	# Replace all .'s with \.'s
+	$template_user =~ s/\./\\./g;
+	$template_domain =~ s/\./\\./g;
+
+	# Change *'s into a proper regex expression
+	$template_user =~ s/\*/\\S*/g;
+	$template_domain =~ s/\*/\\S*/g;
+
+	# Check if we have a match
+	if ($email_domain =~ /^$template_domain$/) {
+		if (($email_user =~ $template_user) || $template_user =~ /^$/) {
+			$match = 1;
+		}
 	}
 
 	return $match;
