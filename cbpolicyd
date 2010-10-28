@@ -364,8 +364,8 @@ sub child_finish_hook {
 
 	$self->SUPER::child_finish_hook();
 	
-	$self->log(LOG_DEBUG,"[CBPOLICYD] Caching engine: hits = ".awitpt::cache::getHitRatio().", misses = ".
-			awitpt::cache::getMissRatio()) if ($log_cache);
+	$self->log(LOG_DEBUG,"[CBPOLICYD] Caching engine: hits = ".awitpt::cache::getCacheHits().", misses = ".
+			awitpt::cache::getCacheMisses()) if ($log_cache);
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Shutting down caching engine ($$)");
 	awitpt::cache::disconnect($self);
 }
