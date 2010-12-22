@@ -43,10 +43,18 @@ cp cbpadmin /usr/local/bin/
 cp cbpolicyd /usr/local/sbin/
 
 
-5. Install the webui/*  into your apache directory, check out   includes/config.php  and adjust the MySQL server details.
+5. Setup system dirs ...
+mkdir /var/log/cbpolicyd
+mkdir /var/run/cbpolicyd
+
+If you are running cbpolicyd as an unpriv user, then ...
+chown cbpolicyd.cbpolicyd /var/log/cbpolicyd /var/run/cbpolicyd
 
 
-6. Setup Postfix to use cbpolicyd...
+6. Install the webui/*  into your apache directory, check out   includes/config.php  and adjust the MySQL server details.
+
+
+7. Setup Postfix to use cbpolicyd...
 Add the following Postfix config...
 	check_policy_service inet:127.0.0.1:10031
 in BOTH  smtpd_recipient_restrictions and smtpd_end_of_data_restrictions.
@@ -54,18 +62,18 @@ in BOTH  smtpd_recipient_restrictions and smtpd_end_of_data_restrictions.
 
 ** Optional Amavisd Supprt ***
 
-7. Copy your amavisd from /usr/sbin/amavisd and patch it with contrib/amavisd-new-2.5.3_policyd-200802070918.patch like this...
+8. Copy your amavisd from /usr/sbin/amavisd and patch it with contrib/amavisd-new-2.5.3_policyd-200802070918.patch like this...
 $ patch < contrib/amavisd-new-2.5.3_policyd-200802070918.patch
 After this change your initscripts to start the patched amavisd.
 
 
-8. Copy amavisd-policyd.pm where you see fit, and add this configuration line to your amavisd.conf file...
+9. Copy amavisd-policyd.pm where you see fit, and add this configuration line to your amavisd.conf file...
 include_config_files('/path/to/amavisd-policyd.pm');
 
-9. Edit the top of amavisd-policyd.pm and change ...
+10. Edit the top of amavisd-policyd.pm and change ...
 use lib('/root/cluebringer-trunk');  # to point to the directory which contains cbp/
 
 my $DB_dsn = "DBI:mysql:database=policyd;host=localhost";  # to point to your MySQL DB
 
 
-10. Fire everything up and browse to the web gui to configure
+11. Fire everything up and browse to the web gui to configure
