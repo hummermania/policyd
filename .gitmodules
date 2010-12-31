@@ -1,0 +1,3 @@
+[submodule "awitpt"]
+	path = awitpt
+	url = git://git.devlabs.linuxassist.net/awit-perl-toolkit
