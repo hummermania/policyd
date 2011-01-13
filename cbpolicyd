@@ -648,7 +648,11 @@ sub log
 		$msg = "[CORE] $logtxt: $msg";
 	}
 
-	$self->SUPER::log($level,"[".$self->log_time." - $$] $msg",@args);
+	# If we have args, this is more than likely a format string & args
+	if (@args > 0) {
+		$msg = sprintf($msg,@args);
+	}
+	$self->SUPER::log($level,"[".$self->log_time." - $$] $msg");
 }
 
 
