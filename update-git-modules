@@ -4,5 +4,6 @@ git submodule update --recursive --init
 
 pushd awitpt
 git checkout v0.0.x
+git pull
 popd
 
