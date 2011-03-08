@@ -521,6 +521,9 @@ sub emailAddressMatches
 
 	my $match = 0;
 
+	# Sender may be null
+	return $match if ($email eq "");
+
 	# Strip email addy
 	my ($email_user,$email_domain) = ($email =~ /^(\S+)@(\S+)$/);
 	my ($template_user,$template_domain) = ($template =~ /^(\S*)@(\S+)$/);
