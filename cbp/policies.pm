@@ -519,10 +519,11 @@ sub emailAddressMatches
 {
 	my ($email,$template) = @_;
 
-	my $match = 0;
 
-	# Sender may be null
-	return $match if ($email eq "");
+	# Sender may be blank, in the case of <>
+	return 0 if ($email eq "");
+
+	my $match = 0;
 
 	# Strip email addy
 	my ($email_user,$email_domain) = ($email =~ /^(\S+)@(\S+)$/);
