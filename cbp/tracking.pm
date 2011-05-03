@@ -37,6 +37,7 @@ use awitpt::db::dblayer;
 use awitpt::netip;
 use cbp::logging;
 use cbp::policies;
+use POSIX qw( ceil);
 
 use Data::Dumper;
 
@@ -112,6 +113,12 @@ sub getSessionDataFromRequest
 		return -1;
 	}
 
+	# Change size to kbyte, we don't want to use bytes
+	my $requestSize;
+	if (defined($request->{'size'})) {
+		$requestSize = ceil($request->{'size'} / 1024);
+	}
+
 	my $sessionData;
 
 	# Check protocol
@@ -178,7 +185,7 @@ sub getSessionDataFromRequest
 						$request->{'client_name'},$request->{'reverse_client_name'},$request->{'protocol_name'},
 						$request->{'encryption_protocol'},$request->{'encryption_cipher'},$request->{'encryption_keysize'},
 						$request->{'sasl_method'},$request->{'sasl_sender'},$request->{'sasl_username'},$request->{'helo_name'},
-						$request->{'sender'},$request->{'size'}
+						$request->{'sender'},$requestSize
 					);
 					if (!$sth) {
 						$server->log(LOG_ERR,"[TRACKING] Failed to record session tracking info: ".awitpt::db::dblayer::Error());
@@ -213,7 +220,7 @@ sub getSessionDataFromRequest
 			$sessionData->{'SASLUsername'} = $request->{'sasl_username'};
 			$sessionData->{'Helo'} = $request->{'helo_name'};
 			$sessionData->{'Sender'} = $request->{'sender'};
-			$sessionData->{'Size'} = $request->{'size'};
+			$sessionData->{'Size'} = $requestSize;
 			$sessionData->{'RecipientData'} = "";
 		}
 		
@@ -258,7 +265,7 @@ sub getSessionDataFromRequest
 			$server->log(LOG_DEBUG,"[TRACKING] Decoded into: ".Dumper($sessionData->{'_Recipient_To_Policy'})) if ($log);
 
 			# This must be updated here ... we may of got actual size
-			$sessionData->{'Size'} = $request->{'size'};
+			$sessionData->{'Size'} = $requestSize;
 			# Only get a queue id once we have gotten the message
 			$sessionData->{'QueueID'} = $request->{'queue_id'};
 		}

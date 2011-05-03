@@ -1,3 +1,15 @@
+Updating database for f9855324c09e674daa276cff21d437080c1aee85
+--------------------------------------------------------------
+
+UPDATE quotas_limits, quotas_tracking
+		SET quotas_limits.CounterLimit = ceil(quotas_limits.CounterLimit / 1024),
+		quotas_tracking.Counter = ceil(quotas_tracking.Counter / 1024)
+		WHERE quotas_tracking.QuotasLimitsID = quotas_limits.ID
+		AND quotas_limits.Type = "MessageCumulativeSize";
+
+UPDATE session_tracking	SET Size = ceil(Size / 1024);
+
+
 Upgrading from 2.0.x
 --------------------
 

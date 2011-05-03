@@ -450,9 +450,6 @@ POLICY:			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipie
 							next; # If not just carry on?
 						}
 
-						# Bump up counter
-						my $sessionDataSize = ceil($sessionData->{'Size'} / 1024);
-								
 						# Update database
 						my $sth = DBDo('
 							UPDATE 
