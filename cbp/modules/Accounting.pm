@@ -462,7 +462,7 @@ POLICY:			foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'_Recipie
 								AND TrackKey = ?
 								AND PeriodKey = ?
 							',
-							$sessionDataSize,$now,$atrack->{'AccountingID'},$atrack->{'TrackKey'},
+							$sessionData->{'Size'},$now,$atrack->{'AccountingID'},$atrack->{'TrackKey'},
 							$atrack->{'PeriodKey'}
 						);
 						if (!$sth) {
