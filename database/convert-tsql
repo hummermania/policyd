@@ -27,6 +27,7 @@ display_usage() {
     echo "Usage: $0 <database type> <file> [prefix]"
     echo
     echo "Valid database types:"
+    echo "      mysql55 - For MySQL v5.5"
     echo "      mysql4  - For MySQL v4"
     echo "      mysql   - For MySQL v5"
     echo "      pgsql   - For PostgreSQL"
@@ -53,6 +54,19 @@ fi
 
 # Check what we converting for
 case "$database" in
+		"mysql55")
+		sed \
+			-e "s/@PREFIX@/$prefix/g" \
+			-e 's/@PRELOAD@/SET FOREIGN_KEY_CHECKS=0;/' \
+			-e 's/@POSTLOAD@/SET FOREIGN_KEY_CHECKS=1;/' \
+			-e 's/@CREATE_TABLE_SUFFIX@/ENGINE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin/' \
+			-e 's/@SERIAL_TYPE@/SERIAL/' \
+			-e 's/@BIGINT_UNSIGNED@/BIGINT UNSIGNED/' \
+			-e 's/@INT_UNSIGNED@/INT UNSIGNED/' \
+			-e 's/@TRACK_KEY_LEN@/512/' \
+			-e 's/@SERIAL_REF_TYPE@/BIGINT UNSIGNED/' < "$file"
+		;;
+
     	"mysql4")
 		sed \
 			-e "s/@PREFIX@/$prefix/g" \
