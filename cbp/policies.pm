@@ -543,7 +543,7 @@ sub emailAddressMatches
 
 	# Check if we have a match
 	if ($email_domain =~ /^$template_domain$/) {
-		if (($email_user =~ $template_user) || $template_user =~ /^$/) {
+		if (($email_user =~ /^$template_user$/) || $template_user eq "") {
 			$match = 1;
 		}
 	}
