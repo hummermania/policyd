@@ -568,9 +568,16 @@ sub saslUsernameMatches
 		if ($template_user eq '-') {
 			$match = 1;
 		}
-	# Else normal match
+	# Else regex it
 	} else {
-		if (lc($saslUsername) eq lc($template_user) || $template_user eq "*") {
+		# Make sure its all lowercase
+		$template_user = lc($template_user);
+		# Replace all .'s with \.'s
+		$template_user =~ s/\./\\./g;
+		# Change *'s into a proper regex expression
+		$template_user =~ s/\*/\\S*/g;
+
+		if ($saslUsername =~ /^$template_user$/) {
 			$match = 1;
 		}
 	}
