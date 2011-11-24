@@ -116,7 +116,7 @@ sub new {
 	cbp::config::Init($self);
 	
 	# Init system stuff
-	$self->{'dbh'} = awitpt::db::dbilayer::Init($self);
+	$self->{'dbh'} = awitpt::db::dbilayer::Init($self,'cbp');
 	if (!defined($self->{'dbh'})) {
 		$self->log(LOG_WARN,"Failed to Initialize: ".awitpt::db::dbilayer::internalError()." ($$)");
 		die;
