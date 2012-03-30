@@ -1,6 +1,7 @@
 %define apacheconfdir %{_sysconfdir}/httpd/conf.d
 # this path is hardcoded
-%define cblibdir %{_libdir}/policyd-2.0
+%define cblibdir %{_libdir}/policyd-2.1
+%define awitptlibdir %{_libdir}/policyd-2.1
 
 %define cvsver yyyymmddhhmm
 
@@ -53,7 +54,7 @@ hosting industry.
 # aren't actually external requirements.  See https://fedoraproject.org/wiki/Packaging/Perl#In_.25prep_.28preferred.29
 cat << EOF > %{name}-req
 #!/bin/sh
-%{__perl_requires} $* | sed -e '/perl(cbp::/d'
+%{__perl_requires} $* | sed -e '/perl(cbp::/d' | sed -e '/perl(awt::/d'
 EOF
 
 %define __perl_requires %{_builddir}/%{name}-%{tarver}/%{name}-req
@@ -80,10 +81,12 @@ rm -rf $RPM_BUILD_ROOT
 
 # cbpolicyd
 mkdir -p $RPM_BUILD_ROOT%{cblibdir}
+mkdir -p $RPM_BUILD_ROOT%{awitptlibdir}
 mkdir -p $RPM_BUILD_ROOT%{_sbindir}
 mkdir -p $RPM_BUILD_ROOT%{_initrddir}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/policyd
 cp -R cbp $RPM_BUILD_ROOT%{cblibdir}
+cp -R awitpt $RPM_BUILD_ROOT%{awitptlibdir}
 install -m 755 cbpolicyd cbpadmin database/convert-tsql $RPM_BUILD_ROOT%{_sbindir}
 install -m 644 cluebringer.conf $RPM_BUILD_ROOT%{_sysconfdir}/policyd/cluebringer.conf
 install -m 755 contrib/initscripts/Fedora/cbpolicyd $RPM_BUILD_ROOT%{_initrddir}
@@ -118,6 +121,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %doc %{_docdir}/%{name}-%{version}
 %{cblibdir}/
+%{awitptlibdir}/
 %{_sbindir}/cbpolicyd
 %{_sbindir}/cbpadmin
 %{_sbindir}/convert-tsql
