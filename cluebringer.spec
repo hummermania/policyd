@@ -3,10 +3,10 @@
 %define cblibdir %{_libdir}/policyd-2.1
 %define awitptlibdir %{_libdir}/policyd-2.1
 
-%define cvsver yyyymmddhhmm
+%define cvsver 201205100639
 
 %if %{cvsver}
-%define version 2.1
+%define version 2.1.x
 %define release %{cvsver}
 %define tarver snapshot-%{cvsver}
 %else
@@ -104,7 +104,7 @@ chmod 0640 $RPM_BUILD_ROOT%{_sysconfdir}/policyd/webui.conf
 # Docdir
 mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/contrib
 mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/database
-install -m 644 AUTHORS INSTALL LICENSE TODO WISHLIST $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
+install -m 644 AUTHORS INSTALL LICENSE TODO ChangeLog WISHLIST $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
 cp -R contrib $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/contrib/amavisd-new
 install -m 644 database/*.sql $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/database
 
@@ -139,6 +139,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu May 10 2012 Nigel Kukard  <nkukard@lbsd.net>
+- Released v2.1.x-201205100639
+
 * Wed Nov 19 2008 Nigel Kukard  <nkukard@lbsd.net>
 - Various updates and changes
 
