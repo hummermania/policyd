@@ -8,7 +8,7 @@
 %if %{cvsver}
 %define version 2.1.x
 %define release %{cvsver}
-%define tarver snapshot-%{cvsver}
+%define tarver snapshot-%{version}-%{cvsver}
 %else
 %define version 2.0.5
 %define release 1
