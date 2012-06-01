@@ -126,17 +126,20 @@ sub protocol_parse {
 sub protocol_response 
 {
 	my ($server,$resp,$data) = @_;
+	my $log = defined($server->{'config'}{'logging'}{'protocols'});
 
 
 	# Check protocol responses...
 	if ($resp == PROTO_PASS) {
 		$response = "DUNNO";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_PASS with response '$response':'$response_data'") if ($log);
 		return CBP_CONTINUE;
 
 	} elsif ($resp == PROTO_OK) {
 		$response = "OK";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_OK with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_REJECT) {
@@ -147,6 +150,7 @@ sub protocol_response
 			$response = "REJECT";
 			$response_data = $data;
 		}
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_REJECT with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_DEFER) {
@@ -157,46 +161,55 @@ sub protocol_response
 			$response = "DEFER";
 			$response_data = $data;
 		}
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_DEFER with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_HOLD) {
 		$response = "HOLD";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_HOLD with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_REDIRECT) {
 		$response = "REDIRECT";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_REDIRECT with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_DISCARD) {
 		$response = "DISCARD";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_DISCARD with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_FILTER) {
 		$response = "FILTER";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_FILTER with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_PREPEND) {
 		$response = "PREPEND";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_PREPEND with response '$response':'$response_data'") if ($log);
 		return CBP_CONTINUE;
 
 	} elsif ($resp == PROTO_ERROR) {
 		$response = "DEFER";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_ERROR with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 
 	} elsif ($resp == PROTO_DB_ERROR) {
 		$response = "DEFER";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_DB_ERROR with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 	
 	} elsif ($resp == PROTO_DATA_ERROR) {
 		$response = "DEFER";
 		$response_data = $data;
+		$server->log(LOG_DEBUG,"[PROTOCOL/Postfix] Received PROTO_DATA_ERROR with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
 	
 	# Fallthrough

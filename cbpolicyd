@@ -589,12 +589,15 @@ CONN_READ:
 			last;
 
 		} elsif ($res == CBP_SKIP) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD] Module '".$module->{'name'}."' returned CBP_SKIP") if ($log);
 			next;
 
 		} elsif ($res == CBP_CONTINUE) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD] Module '".$module->{'name'}."' returned CBP_CONTINUE") if ($log);
 			next;
 
 		} elsif ($res == CBP_STOP) {
+			$self->log(LOG_DEBUG,"[CBPOLICYD] Module '".$module->{'name'}."' returned CBP_STOP") if ($log);
 			last;
 
 		} elsif ($res == CBP_ERROR) {
