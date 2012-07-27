@@ -388,6 +388,22 @@ sub process_request {
 	my $server = $self->{'server'};
 	my $log = defined($self->{'config'}{'logging'}{'modules'});
 
+	# Check for unix/tcp peer and set peer_type
+	my $sock = $self->{'server'}->{'client'};
+	if ($sock->NS_proto eq 'UNIX') {
+		$server->{'peer_type'} = "UNIX";
+
+		# Some defaults for debugging, these are undef if UNIX
+		$server->{'peeraddr'} = "";
+		$server->{'peerport'} = $sock->NS_unix_path;
+		$server->{'sockaddr'} = "";
+		$server->{'sockport'} = "";
+	} elsif ($sock->NS_proto eq 'TCP') {
+		$server->{'peer_type'} = "TCP";
+	} else {
+		$self->log(LOG_WARN,"[CBPOLICYD] Unknown peer type, expected UNIX / TCP. Rejecting.");
+		return;
+	}
 
 	# How many times did we pipeline...
 	my $policyRequests = 0;
@@ -492,8 +508,12 @@ CONN_READ:
 	$request->{'sasl_username'} = lc($request->{'sasl_username'}) if (defined($request->{'sasl_username'}));
 
 	# Internal data
-	$request->{'_peer_address'} = $server->{'peeraddr'};
 	$request->{'_timestamp'} = time();
+
+	# If this is a TCP peer type then it has a peer address
+	if ($server->{'peer_type'} eq "TCP") {
+		$request->{'_peer_address'} = $server->{'peeraddr'};
+	}
 	
 	
 	# Check if we got connected, if not ... bypass

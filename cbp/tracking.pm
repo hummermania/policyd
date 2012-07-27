@@ -121,6 +121,16 @@ sub getSessionDataFromRequest
 
 	my $sessionData;
 
+	# Requesting server address, we need this before the policy call. Only do this for TCP
+	if ($server->{'server'}->{'peer_type'} eq "TCP") {
+		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
+		$sessionData->{'_PeerAddress'} = new awitpt::netip($sessionData->{'PeerAddress'});
+		if (!defined($sessionData->{'_PeerAddress'})) {
+			$server->log(LOG_ERR,"[TRACKING] Failed to understand PeerAddress: ".awitpt::netip::Error());
+			return -1;
+		}
+	}
+
 	# Check protocol
 	if ($request->{'_protocol_transport'} eq "Postfix") {
 		my $initSessionData = 0;
@@ -224,14 +234,7 @@ sub getSessionDataFromRequest
 			$sessionData->{'RecipientData'} = "";
 		}
 		
-		# Requesting server address, we need this before the policy call
-		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
-		$sessionData->{'_PeerAddress'} = new awitpt::netip($sessionData->{'PeerAddress'});
-		if (!defined($sessionData->{'_PeerAddress'})) {
-			$server->log(LOG_ERR,"[TRACKING] Failed to understand PeerAddress: ".awitpt::netip::Error());
-			return -1;
-		}
-		# and client address...
+		# Set client address..
 		$sessionData->{'_ClientAddress'} = new awitpt::netip($sessionData->{'ClientAddress'});
 		if (!defined($sessionData->{'_ClientAddress'})) {
 			$server->log(LOG_ERR,"[TRACKING] Failed to understand ClientAddress: ".awitpt::netip::Error());
@@ -272,14 +275,8 @@ sub getSessionDataFromRequest
 
 	# Check for HTTP protocol transport
 	} elsif ($request->{'_protocol_transport'} eq "HTTP") {
-		# Requesting server address, we need this before the policy call
-		$sessionData->{'PeerAddress'} = $request->{'_peer_address'};
-		$sessionData->{'_PeerAddress'} = new awitpt::netip($sessionData->{'PeerAddress'});
-		if (!defined($sessionData->{'_PeerAddress'})) {
-			$server->log(LOG_ERR,"[TRACKING] Failed to understand PeerAddress: ".awitpt::netip::Error());
-			return -1;
-		}
-		# and client address...
+
+		# Set client address..
 		$sessionData->{'ClientAddress'} = $request->{'client_address'};
 		$sessionData->{'_ClientAddress'} = new awitpt::netip($sessionData->{'ClientAddress'});
 		if (!defined($sessionData->{'_ClientAddress'})) {

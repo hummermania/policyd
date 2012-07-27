@@ -396,9 +396,14 @@ sub policySourceItemMatches
 				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, but its INVALID: ".awitpt::netip::Error());
 				next;
 			}
-			# Check if IP is within the range
-			$res = $sessionData->{'_PeerAddress'}->is_within($matchRange);
-			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, match = $res") if ($log);
+			if ($server->{'server'}->{'peer_type'} eq "TCP") {
+				# Check if IP is within the range
+				$res = $sessionData->{'_PeerAddress'}->is_within($matchRange);
+				$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, match = $res") if ($log);
+			} else {
+				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Trying to match source '$item' to a PEER IP/CIDR specification when peer type is '".$server->{'server'}->{'peer_type'}."'") if ($log);
+				next;
+			}
 
 
 		# Match SASL user, must be above email addy to match SASL usernames in the same format as email addies
