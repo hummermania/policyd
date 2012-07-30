@@ -376,7 +376,7 @@ sub policySourceItemMatches
 			my $matchRange = new awitpt::netip($item);
 			if (!defined($matchRange)) {
 				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Resolved source '$item' to a IP/CIDR specification, but its INVALID: ".awitpt::netip::Error());
-				next;
+				return -1;
 			}
 			# Check if IP is within the range
 			$res = $sessionData->{'_ClientAddress'}->is_within($matchRange);
@@ -394,7 +394,7 @@ sub policySourceItemMatches
 			my $matchRange = new awitpt::netip($cleanItem);
 			if (!defined($matchRange)) {
 				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, but its INVALID: ".awitpt::netip::Error());
-				next;
+				return -1;
 			}
 			if ($server->{'server'}->{'peer_type'} eq "TCP") {
 				# Check if IP is within the range
@@ -402,7 +402,7 @@ sub policySourceItemMatches
 				$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, match = $res") if ($log);
 			} else {
 				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Trying to match source '$item' to a PEER IP/CIDR specification when peer type is '".$server->{'server'}->{'peer_type'}."'") if ($log);
-				next;
+				return -1;
 			}
 
 
