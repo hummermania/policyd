@@ -1,13 +1,46 @@
 Installing Policyd v2.
 
 
+*
 * Requirements for Policyd v2
+*
+
+Note: For CentOS you will need to use RPMForge repositories.
+
 - MySQL or PostgreSQL or SQLite
+	Debian based: mysql-server
+	RPM based: mysql-server
+
 - Net::Server >= 0.96
+	Debian based: libnet-server-perl
+	RPM based: perl-Net-Server
+
 - Net::CIDR
-- Config::IniFiles (Debian based: libconfig-inifiles-perl, RPM based: perl-Config-IniFiles)
-- Cache::FastMmap (Debian based: libcache-fastmmap-perl, RPM based: perl-Cache-FastMmap)
+	Debian based: libnet-cidr-perl
+	RPM based: perl-Net-CIDR
+
+- Net::DNS
+	Debian based: libnet-dns-perl
+	RPM based: perl-Net-DNS
+
+- Config::IniFiles
+	Debian based: libconfig-inifiles-perl
+	RPM based: perl-Config-IniFiles
+
+- Cache::FastMmap
+	Debian based: libcache-fastmmap-perl
+	RPM based: perl-Cache-FastMmap
+
+- DBI
+	Debian based: ?
+	RPM based: perl-DBI
+
 - Mail::SPF (Required for CheckSPF module)
+	Debian based: libmail-spf-perl
+
+- Date::Parse  (TimeDate)
+	RPM based: perl-TimeDate
+
 
 * Requirements for webui
 - PHP v5+ (compiled with PDO support for your DB)
