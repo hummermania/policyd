@@ -1,38 +1,39 @@
-%define apacheconfdir %{_sysconfdir}/httpd/conf.d
+%global apacheconfdir %{_sysconfdir}/httpd/conf.d
 # this path is hardcoded
-%define cblibdir %{_libdir}/policyd-2.1
-%define awitptlibdir %{_libdir}/policyd-2.1
-
-%define cvsver 201205100639
-
-%if %{cvsver}
-%define version 2.1.x
-%define release %{cvsver}
-%define tarver snapshot-%{version}-%{cvsver}
-%else
-%define version 2.0.5
-%define release 1
-%define tarver %{version}
-%endif
+%global cblibdir %{_libdir}/cbpolicyd-2.1
+%global awitptlibdir %{_libdir}/cbpolicyd-2.1
 
 Summary: Postfix Policy Daemon
 Name: cluebringer
-Version: %{version}
-Release: %{release}
+Version: @PKG_VER_MAIN@
+Release: @PKG_VER_REL@
 License: GPLv2
-Group: System/Daemons
+Group: System Environment/Daemons
 URL: http://www.policyd.org
-Source0: http://downloads.sourceforge.net/policyd/%{name}-%{tarver}.tar.bz2
+Source0: http://downloads.policyd.org/%{version}/%{name}-%{version}-%{release}.tar.xz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Provides: cbpolicyd
+# Provide policyd
+Provides: cbpolicyd = %{version}-%{release}
+Provides: policyd = %{version}-%{release}
+# Obsolete old policyd
+Obsoletes: policyd < %{version}
 
-Provides: policyd = %{version}
-Obsoletes: policyd
+Requires: perl(Cache::FastMmap)
+Requires: perl(Config::IniFiles)
+Requires: perl(Date::Parse)
+Requires: perl(DBI)
+Requires: perl(Net::CIDR)
+Requires: perl(Net::DNS)
+Requires: perl(Net::Server)
 
-Requires: perl(Net::Server), perl(Config::IniFiles), perl(Cache::FastMmap), httpd
+Requires: httpd
+Requires: mysql-server
+
+AutoReq: no
+AutoProv: no
 
 
 %description
@@ -48,29 +49,19 @@ hosting industry.
 
 
 %prep
-%setup -q -n %{name}-%{tarver}
-
-# hack to prevent rpmbuild from automatically detecting "requirements" that
-# aren't actually external requirements.  See https://fedoraproject.org/wiki/Packaging/Perl#In_.25prep_.28preferred.29
-cat << EOF > %{name}-req
-#!/bin/sh
-%{__perl_requires} $* | sed -e '/perl(cbp::/d' | sed -e '/perl(awt::/d'
-EOF
-
-%define __perl_requires %{_builddir}/%{name}-%{tarver}/%{name}-req
-chmod +x %{__perl_requires}
+%setup -q -n @PKG_DIR_RPM@
 
 
 %build
 cd database
 for db_type in mysql4 mysql pgsql sqlite; do
-	./convert-tsql ${db_type} core.tsql > policyd.${db_type}.sql
+	./convert-tsql ${db_type} core.tsql > cbpolicyd.${db_type}.sql
 	for file in `find . -name \*.tsql -and -not -name core.tsql`; do
 		./convert-tsql ${db_type} ${file}
-	done >> policyd.${db_type}.sql
+	done >> cbpolicyd.${db_type}.sql
 	cd whitelists
-		./parse-checkhelo-whitelist >> policyd.${db_type}.sql
-		./parse-greylisting-whitelist >> policyd.${db_type}.sql
+		./parse-checkhelo-whitelist >> cbpolicyd.${db_type}.sql
+		./parse-greylisting-whitelist >> cbpolicyd.${db_type}.sql
 	cd ..
 done
 
@@ -84,12 +75,20 @@ mkdir -p $RPM_BUILD_ROOT%{cblibdir}
 mkdir -p $RPM_BUILD_ROOT%{awitptlibdir}
 mkdir -p $RPM_BUILD_ROOT%{_sbindir}
 mkdir -p $RPM_BUILD_ROOT%{_initrddir}
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/policyd
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/cbpolicyd
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/cbpolicyd
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/cbpolicyd
+
 cp -R cbp $RPM_BUILD_ROOT%{cblibdir}
-cp -R awitpt $RPM_BUILD_ROOT%{awitptlibdir}
+cp -R awitpt/awitpt $RPM_BUILD_ROOT%{awitptlibdir}
 install -m 755 cbpolicyd cbpadmin database/convert-tsql $RPM_BUILD_ROOT%{_sbindir}
-install -m 644 cluebringer.conf $RPM_BUILD_ROOT%{_sysconfdir}/policyd/cluebringer.conf
+install -m 644 cluebringer.conf $RPM_BUILD_ROOT%{_sysconfdir}/cbpolicyd/cluebringer.conf
+install -m 644 contrib/cluebringer.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/cluebringer
 install -m 755 contrib/initscripts/Fedora/cbpolicyd $RPM_BUILD_ROOT%{_initrddir}
+install -m 755 contrib/cluebringer.cron $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily/cluebringer
+
 
 # Webui
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/%{name}/webui
@@ -97,20 +96,28 @@ mkdir -p $RPM_BUILD_ROOT%{apacheconfdir}
 cp -R webui/* $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/
 install -m 644 contrib/httpd/cluebringer-httpd.conf $RPM_BUILD_ROOT%{apacheconfdir}/cluebringer.conf
 # Move config into /etc
-mv $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php $RPM_BUILD_ROOT%{_sysconfdir}/policyd/webui.conf
-ln -s %{_sysconfdir}/policyd/webui.conf $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php
-chmod 0640 $RPM_BUILD_ROOT%{_sysconfdir}/policyd/webui.conf
+mv $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php $RPM_BUILD_ROOT%{_sysconfdir}/cbpolicyd/webui.conf
+ln -s %{_sysconfdir}/cbpolicyd/webui.conf $RPM_BUILD_ROOT%{_datadir}/%{name}/webui/includes/config.php
+chmod 0640 $RPM_BUILD_ROOT%{_sysconfdir}/cbpolicyd/webui.conf
 
 # Docdir
-mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/contrib
 mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/database
 install -m 644 AUTHORS INSTALL LICENSE TODO ChangeLog WISHLIST $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}
-cp -R contrib $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/contrib/amavisd-new
-install -m 644 database/*.sql $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/database
+cp -R contrib $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/
+cp -R database $RPM_BUILD_ROOT%{_docdir}/%{name}-%{version}/
+
+
+%pre
+/usr/sbin/groupadd cbpolicyd 2>/dev/null || :
+/usr/sbin/useradd -d / -s /sbin/nologin -c "PolicyD User" -g cbpolicyd cbpolicyd 2>/dev/null || :
 
 
 %post
 /sbin/chkconfig --add cbpolicyd
+
+%preun
+/sbin/service cbpolicyd stop
+/sbin/chkconfig --del cbpolicyd
 
 
 %clean
@@ -121,30 +128,23 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %doc %{_docdir}/%{name}-%{version}
 %{cblibdir}/
-%{awitptlibdir}/
 %{_sbindir}/cbpolicyd
 %{_sbindir}/cbpadmin
 %{_sbindir}/convert-tsql
 %{_initrddir}/cbpolicyd
+%dir %attr(0700,cbpolicyd,cbpolicyd) %{_localstatedir}/run/cbpolicyd
+%dir %attr(0700,cbpolicyd,cbpolicyd) %{_localstatedir}/log/cbpolicyd
 
 %dir %{_datadir}/%{name}
 %attr(-,root,apache) %{_datadir}/%{name}/webui/
 
-%dir %{_sysconfdir}/policyd
-%config(noreplace) %{_sysconfdir}/policyd/cluebringer.conf
-
-%attr(-,root,apache) %config(noreplace) %{_sysconfdir}/policyd/webui.conf
+%dir %{_sysconfdir}/cbpolicyd
+%config(noreplace) %{_sysconfdir}/logrotate.d/cluebringer
+%config(noreplace) %{_sysconfdir}/cron.daily/cluebringer
+%config(noreplace) %attr(0600,cbpolicyd,cbpolicyd) %{_sysconfdir}/cbpolicyd/cluebringer.conf
+%config(noreplace) %attr(0640,cbpolicyd,apache) %{_sysconfdir}/cbpolicyd/webui.conf
 
 %config(noreplace) %{apacheconfdir}/cluebringer.conf
 
 
 %changelog
-* Thu May 10 2012 Nigel Kukard  <nkukard@lbsd.net>
-- Released v2.1.x-201205100639
-
-* Wed Nov 19 2008 Nigel Kukard  <nkukard@lbsd.net>
-- Various updates and changes
-
-* Tue Nov 18 2008 Christopher St Pierre <stpierre@NebrWesleyan.edu> - 
-- Initial build.
-
