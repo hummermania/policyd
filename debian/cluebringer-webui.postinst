@@ -1,0 +1,24 @@
+#!/bin/sh -e
+
+set -e
+
+case "${1}" in
+	configure)
+		chgrp www-data /etc/cbpolicyd/webui.conf
+		chmod 0640 /etc/cbpolicyd/webui.conf
+
+		;;
+
+	abort-upgrade|abort-remove|abort-deconfigure)
+
+		;;
+
+	*)
+		echo "postinst called with unknown argument \`${1}'" >&2
+		exit 1
+		;;
+esac
+
+#DEBHELPER#
+
+exit 0

@@ -1,0 +1,13 @@
+#!/bin/sh -e
+
+if [ -x "/etc/init.d/cbpolicyd" ]; then
+	if [ -x /usr/sbin/invoke-rc.d ]; then
+		invoke-rc.d cbpolicyd stop || true
+	else
+		/etc/init.d/cbpolicyd stop || true
+	fi
+fi
+
+#DEBHELPER#
+
+exit 0

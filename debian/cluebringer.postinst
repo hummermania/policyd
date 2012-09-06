@@ -1,0 +1,43 @@
+#!/bin/sh
+
+set -e
+
+_USERNAME=cbpolicyd
+_DIRECTORY=/var/lib/cbpolicyd
+
+case "${1}" in
+	configure)
+		if ! getent passwd | grep -q "%{_USERNAME}"
+		then
+			adduser --system --home ${_DIRECTORY} --quiet --gecos 'cbpolicyd daemon' --group ${_USERNAME}
+		elif ! getent group | grep -q "^${_USERNAME}"
+		then
+			addgroup --system --quiet ${_USERNAME}
+			gpasswd -a ${_USERNAME} ${_USERNAME}
+		else
+			echo "cluebringer user (${_USERNAME}) already exists, doing nothing."
+		fi
+
+        	chown root:cbpolicyd /var/log/cbpolicyd 
+	        chmod 0700 /var/log/cbpolicyd
+
+		chown cbpolicyd:cbpolicyd /var/lib/cbpolicyd
+	        chmod 0750 /var/lib/cbpolicyd
+
+		chmod 0600 /etc/cbpolicyd/cluebringer.conf
+
+		;;
+
+	abort-upgrade|abort-remove|abort-deconfigure)
+
+		;;
+
+	*)
+		echo "postinst called with unknown argument \`${1}'" >&2
+		exit 1
+		;;
+esac
+
+#DEBHELPER#
+
+exit 0

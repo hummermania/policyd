@@ -1,0 +1,13 @@
+# Main daemon
+cbpolicyd usr/sbin
+
+# Utils
+cbpadmin usr/sbin
+database/convert-tsql usr/sbin
+
+# Libraries
+cbp usr/lib/cbpolicyd-2.1
+awitpt/awitpt usr/lib/cbpolicyd-2.1
+
+# configs
+cluebringer.conf etc/cbpolicyd

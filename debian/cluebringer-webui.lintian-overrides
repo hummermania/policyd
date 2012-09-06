@@ -1,0 +1,2 @@
+# File contains mysql password
+cluebringer-webui: non-standard-file-perm etc/cbpolicyd/webui.conf 0640 != 0644

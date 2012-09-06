@@ -1,0 +1,50 @@
+Source: cluebringer
+Maintainer: Nigel Kukard <nkukard@lbsd.net>
+Section: contrib/mail
+Priority: optional
+Standards-Version: 3.9.1
+Build-Depends: debhelper (>= 8)
+Homepage: http://www.policyd.org/
+
+Package: cluebringer
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, adduser, mysql-client,
+	libdbd-mysql-perl, libnet-server-perl (>= 0.96), libnet-cidr-perl, 
+	libconfig-inifiles-perl, libcache-fastmmap-perl, libmail-spf-perl
+Replaces: 
+	cluebringer-pgsql (<< 2.1.0),
+	cluebringer-mysql (<< 2.1.0),
+	cluebringer-sqlite3 (<< 2.1.0)
+Breaks:
+	cluebringer-pgsql (<< 2.1.0),
+	cluebringer-mysql (<< 2.1.0),
+	cluebringer-sqlite3 (<< 2.1.0)
+Recommends: cluebringer-webui
+Suggests: mysql-server
+Description: Postfix Policy Daemon
+ Policyd v2 (codenamed "cluebringer") is a multi-platform policy server
+ for popular MTAs. This policy daemon is designed mostly for large
+ scale mail hosting environments. The main goal is to implement as many
+ spam combating and email compliance features as possible while at the
+ same time maintaining the portability, stability and performance
+ required for mission critical email hosting of today. Most of the
+ ideas and methods implemented in Policyd v2 stem from Policyd v1
+ as well as the authors' long time involvement in large scale mail
+ hosting industry.
+
+Package: cluebringer-webui
+Architecture: all
+Depends: ${misc:Depends}
+Suggests: apache2, php5, php5-mysql
+Description: Postfix Policy Daemon (webui)
+ Policyd v2 (codenamed "cluebringer") is a multi-platform policy server
+ for popular MTAs. This policy daemon is designed mostly for large
+ scale mail hosting environments. The main goal is to implement as many
+ spam combating and email compliance features as possible while at the
+ same time maintaining the portability, stability and performance
+ required for mission critical email hosting of today. Most of the
+ ideas and methods implemented in Policyd v2 stem from Policyd v1
+ as well as the authors' long time involvement in large scale mail
+ hosting industry.
+ . 
+ This package contains the webui for Policyd.

@@ -1,0 +1,6 @@
+# Webui
+webui usr/share/cluebringer
+contrib/httpd/cluebringer-httpd.conf etc/apache2/conf-available
+
+## TODO ##
+# apache config

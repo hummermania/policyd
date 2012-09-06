@@ -1,0 +1,8 @@
+# Upstream doesn't ship a manpage yet
+cluebringer: binary-without-manpage usr/sbin/cbpadmin
+cluebringer: binary-without-manpage usr/sbin/cbpolicyd
+cluebringer: binary-without-manpage usr/sbin/convert-tsql
+# file contains mysql password
+cluebringer: non-standard-file-perm etc/cbpolicyd/cluebringer.conf 0600 != 0644
+# dir contains mmap cache file
+cluebringer: non-standard-dir-perm var/log/cbpolicyd/ 0700 != 0755

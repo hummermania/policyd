@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_install:
+	dh_install 
+	mv debian/cluebringer-webui/usr/share/cluebringer/webui/includes/config.php debian/cluebringer-webui/etc/cbpolicyd/webui.conf
+	mv debian/cluebringer-webui/etc/apache2/conf-available/cluebringer-httpd.conf debian/cluebringer-webui/etc/apache2/conf-available/cluebringer.conf
+
+override_dh_installdocs:
+	dh_installdocs AUTHORS TODO ChangeLog WISHLIST contrib database
+
+override_dh_installinit:
+	dh_installinit --init-script=cbpolicyd
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod 0700 debian/cluebringer/var/log/cbpolicyd
+	chmod 0600 debian/cluebringer/etc/cbpolicyd/cluebringer.conf
+	chmod 0640 debian/cluebringer-webui/etc/cbpolicyd/webui.conf
