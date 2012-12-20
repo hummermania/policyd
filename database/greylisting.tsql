@@ -31,7 +31,7 @@ CREATE TABLE @PREFIX@greylisting (
 
 	/* General greylisting settings */
 	UseGreylisting			SMALLINT,  /* Actually use greylisting */
-	GreylistPeriod			@BIG_INTEGER@,  /* Period in seconds to greylist for */
+	GreylistPeriod			@BIG_INTEGER_UNSIGNED@,  /* Period in seconds to greylist for */
 
 	/* Record tracking */
 	Track				VARCHAR(255) NOT NULL,  /* Format:   <type>:<spec>
@@ -39,24 +39,24 @@ CREATE TABLE @PREFIX@greylisting (
 						*/
 
 	/* Bypass greylisting: sender+recipient level */
-	GreylistAuthValidity		@BIG_INTEGER@,  /* Period for which last authenticated greylist entry is valid for.
+	GreylistAuthValidity		@BIG_INTEGER_UNSIGNED@,  /* Period for which last authenticated greylist entry is valid for.
 						    This effectively bypasses greylisting for the second email a sender
 						    sends a recipient. */
-	GreylistUnAuthValidity		@BIG_INTEGER@,  /* Same as above but for unauthenticated entries */
+	GreylistUnAuthValidity		@BIG_INTEGER_UNSIGNED@,  /* Same as above but for unauthenticated entries */
 
 
 	/* Auto-whitelisting: sending server level */
 	UseAutoWhitelist		SMALLINT,  /* Use auto-whitelisting */
-	AutoWhitelistPeriod		@BIG_INTEGER@,  /* Period to look back to find authenticated triplets */
-	AutoWhitelistCount		@BIG_INTEGER@,  /* Count of authenticated triplets after which we auto-whitelist */
-	AutoWhitelistPercentage		@BIG_INTEGER@,  /* Percentage of at least Count triplets that must be authenticated
+	AutoWhitelistPeriod		@BIG_INTEGER_UNSIGNED@,  /* Period to look back to find authenticated triplets */
+	AutoWhitelistCount		@BIG_INTEGER_UNSIGNED@,  /* Count of authenticated triplets after which we auto-whitelist */
+	AutoWhitelistPercentage		@BIG_INTEGER_UNSIGNED@,  /* Percentage of at least Count triplets that must be authenticated
 							   before auto-whitelisting. This changes the behaviour or Count */
 
 	/* Auto-blacklisting: sending server level */
 	UseAutoBlacklist		SMALLINT,  /* Use auto-blacklisting */
-	AutoBlacklistPeriod		@BIG_INTEGER@,  /* Period to look back to find unauthenticated triplets */
-	AutoBlacklistCount		@BIG_INTEGER@,  /* Count of authenticated triplets after which we auto-whitelist */
-	AutoBlacklistPercentage		@BIG_INTEGER@,  /* Percentage of at least Count triplets that must be authenticated
+	AutoBlacklistPeriod		@BIG_INTEGER_UNSIGNED@,  /* Period to look back to find unauthenticated triplets */
+	AutoBlacklistCount		@BIG_INTEGER_UNSIGNED@,  /* Count of authenticated triplets after which we auto-whitelist */
+	AutoBlacklistPercentage		@BIG_INTEGER_UNSIGNED@,  /* Percentage of at least Count triplets that must be authenticated
 							   before auto-whitelisting. This changes the behaviour or Count */
 
 	Comment			VARCHAR(1024),
@@ -88,8 +88,8 @@ CREATE TABLE @PREFIX@greylisting_autowhitelist (
 
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL,
 
-	Added			@BIG_INTEGER@ NOT NULL,
-	LastSeen		@BIG_INTEGER@ NOT NULL,
+	Added			@BIG_INTEGER_UNSIGNED@ NOT NULL,
+	LastSeen		@BIG_INTEGER_UNSIGNED@ NOT NULL,
 
 	Comment			VARCHAR(1024),
 
@@ -104,7 +104,7 @@ CREATE TABLE @PREFIX@greylisting_autoblacklist (
 
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@) NOT NULL,
 
-	Added			@BIG_INTEGER@ NOT NULL,
+	Added			@BIG_INTEGER_UNSIGNED@ NOT NULL,
 
 	Comment			VARCHAR(1024),
 
@@ -120,11 +120,11 @@ CREATE TABLE @PREFIX@greylisting_tracking (
 	Sender			VARCHAR(255) NOT NULL,
 	Recipient		VARCHAR(255) NOT NULL,
 
-	FirstSeen		@BIG_INTEGER@ NOT NULL,
-	LastUpdate		@BIG_INTEGER@ NOT NULL,
+	FirstSeen		@BIG_INTEGER_UNSIGNED@ NOT NULL,
+	LastUpdate		@BIG_INTEGER_UNSIGNED@ NOT NULL,
 
-	Tries			@BIG_INTEGER@ NOT NULL,  /* Authentication tries */
-	Count			@BIG_INTEGER@ NOT NULL,  /* Authenticated count */
+	Tries			@BIG_INTEGER_UNSIGNED@ NOT NULL,  /* Authentication tries */
+	Count			@BIG_INTEGER_UNSIGNED@ NOT NULL,  /* Authenticated count */
 
 	UNIQUE(TrackKey,Sender,Recipient)
 ) @CREATE_TABLE_SUFFIX@;

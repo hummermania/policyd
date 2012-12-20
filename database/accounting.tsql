@@ -38,8 +38,8 @@ CREATE TABLE @PREFIX@accounting (
 	AccountingPeriod		SMALLINT NOT NULL,  /* 0 - Track by day, 1 - Track by week, 2 - Track by month */
 
 	/* Limits for this period */
-	MessageCountLimit		@BIG_INTEGER@,  /* Limit is in Kbyte, NULL means no limit */
-	MessageCumulativeSizeLimit	@BIG_INTEGER@,  /* LImit is in Kbyte, NULL means no limit */
+	MessageCountLimit		@BIG_INTEGER_UNSIGNED@,  /* Limit is in Kbyte, NULL means no limit */
+	MessageCumulativeSizeLimit	@BIG_INTEGER_UNSIGNED@,  /* LImit is in Kbyte, NULL means no limit */
 
 	/* Verdict if limits are exceeded */
 	Verdict			VARCHAR(255), /* Verdict when limit is exceeded */
@@ -64,10 +64,10 @@ CREATE TABLE @PREFIX@accounting_tracking (
 	PeriodKey		VARCHAR(@TRACK_KEY_LEN@),
 
 	/* Last time this record was update */
-	LastUpdate		@BIG_INTEGER@,  /* NULL means not updated yet */	
+	LastUpdate		@BIG_INTEGER_UNSIGNED@,  /* NULL means not updated yet */
 
-	MessageCount		@BIG_INTEGER@,
-	MessageCumulativeSize	@BIG_INTEGER@,  /* Counter is in Kbyte */
+	MessageCount		@BIG_INTEGER_UNSIGNED@,
+	MessageCumulativeSize	@BIG_INTEGER_UNSIGNED@,  /* Counter is in Kbyte */
 	
 	UNIQUE (AccountingID,TrackKey,PeriodKey),
 	FOREIGN KEY (AccountingID) REFERENCES @PREFIX@accounting(ID)

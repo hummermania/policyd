@@ -31,13 +31,13 @@ CREATE TABLE @PREFIX@checkhelo (
 
 	/* Blacklisting, we want to reject people impersonating us */
 	UseBlacklist			SMALLINT,  /* Checks blacklist table */
-	BlacklistPeriod			@BIG_INTEGER@,  /* Period to keep the host blacklisted for, if not set or 0
+	BlacklistPeriod			@BIG_INTEGER_UNSIGNED@,  /* Period to keep the host blacklisted for, if not set or 0
 						    the check will be live */	
 
 	/* Random helo prevention */
 	UseHRP				SMALLINT,  /* Use helo randomization prevention */
-	HRPPeriod			@BIG_INTEGER@,  /* Period/window we check for random helo's */
-	HRPLimit			@BIG_INTEGER@,  /* Our limit for the number of helo's is this */
+	HRPPeriod			@BIG_INTEGER_UNSIGNED@,  /* Period/window we check for random helo's */
+	HRPLimit			@BIG_INTEGER_UNSIGNED@,  /* Our limit for the number of helo's is this */
 
 	/* RFC compliance options */
 	RejectInvalid			SMALLINT,  /* Reject invalid HELO */
@@ -100,7 +100,7 @@ CREATE TABLE @PREFIX@checkhelo_whitelist (
 CREATE TABLE @PREFIX@checkhelo_tracking (
 	Address			VARCHAR(64) NOT NULL,
 	Helo			VARCHAR(255) NOT NULL,
-	LastUpdate		@BIG_INTEGER@ NOT NULL,
+	LastUpdate		@BIG_INTEGER_UNSIGNED@ NOT NULL,
 
 	UNIQUE (Address,Helo)
 ) @CREATE_TABLE_SUFFIX@;

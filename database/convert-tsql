@@ -61,7 +61,7 @@ case "$database" in
 			-e 's/@POSTLOAD@/SET FOREIGN_KEY_CHECKS=1;/' \
 			-e 's/@CREATE_TABLE_SUFFIX@/ENGINE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin/' \
 			-e 's/@SERIAL_TYPE@/SERIAL/' \
-			-e 's/@BIGINT_UNSIGNED@/BIGINT UNSIGNED/' \
+			-e 's/@BIG_INTEGER_UNSIGNED@/BIGINT UNSIGNED/' \
 			-e 's/@INT_UNSIGNED@/INT UNSIGNED/' \
 			-e 's/@TRACK_KEY_LEN@/512/' \
 			-e 's/@SERIAL_REF_TYPE@/BIGINT UNSIGNED/' < "$file"
@@ -74,7 +74,7 @@ case "$database" in
 			-e 's/@POSTLOAD@/SET FOREIGN_KEY_CHECKS=1;/' \
 			-e 's/@CREATE_TABLE_SUFFIX@/TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin/' \
 			-e 's/@SERIAL_TYPE@/SERIAL/' \
-			-e 's/@BIG_INTEGER@/BIGINT UNSIGNED/' \
+			-e 's/@BIG_INTEGER_UNSIGNED@/BIGINT UNSIGNED/' \
 			-e 's/@TRACK_KEY_LEN@/255/' \
 			-e 's/@SERIAL_REF_TYPE@/BIGINT UNSIGNED/' < "$file"
 		;;
@@ -86,7 +86,7 @@ case "$database" in
 			-e 's/@POSTLOAD@/SET FOREIGN_KEY_CHECKS=1;/' \
 			-e 's/@CREATE_TABLE_SUFFIX@/TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin/' \
 			-e 's/@SERIAL_TYPE@/SERIAL/' \
-			-e 's/@BIG_INTEGER@/BIGINT UNSIGNED/' \
+			-e 's/@BIG_INTEGER_UNSIGNED@/BIGINT UNSIGNED/' \
 			-e 's/@TRACK_KEY_LEN@/512/' \
 			-e 's/@SERIAL_REF_TYPE@/BIGINT UNSIGNED/' < "$file"
 		;;
@@ -98,7 +98,7 @@ case "$database" in
 			-e 's/@POSTLOAD@//' \
 			-e 's/@CREATE_TABLE_SUFFIX@//' \
 			-e 's/@SERIAL_TYPE@/SERIAL PRIMARY KEY/' \
-			-e 's/@BIG_INTEGER@/INT8/' \
+			-e 's/@BIG_INTEGER_UNSIGNED@/INT8/' \
 			-e 's/@TRACK_KEY_LEN@/512/' \
 			-e 's/@SERIAL_REF_TYPE@/INT8/' < "$file"
 		;;
@@ -110,7 +110,7 @@ case "$database" in
 			-e 's/@POSTLOAD@//' \
 			-e 's/@CREATE_TABLE_SUFFIX@//' \
 			-e 's/@SERIAL_TYPE@/INTEGER PRIMARY KEY AUTOINCREMENT/' \
-			-e 's/@BIG_INTEGER@/INT8/' \
+			-e 's/@BIG_INTEGER_UNSIGNED@/UNSIGNED BIG INT/' \
 			-e 's/@TRACK_KEY_LEN@/512/' \
 			-e 's/@SERIAL_REF_TYPE@/INT8/' < "$file"
 		;;

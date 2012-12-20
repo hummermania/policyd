@@ -160,7 +160,7 @@ CREATE TABLE @PREFIX@session_tracking (
 
 	Sender			VARCHAR(255),
 
-	Size			@BIG_INTEGER@,
+	Size			@BIG_INTEGER_UNSIGNED@,
 
 	RecipientData		TEXT,  /* Policy state information */
 

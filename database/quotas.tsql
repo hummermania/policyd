@@ -35,7 +35,7 @@ CREATE TABLE @PREFIX@quotas (
 					   */
 
 	/* Period over which this policy is valid,  this is in seconds */
-	Period			@BIG_INTEGER@,
+	Period			@BIG_INTEGER_UNSIGNED@,
 
 	Verdict			VARCHAR(255),
 	Data			TEXT,
@@ -59,7 +59,7 @@ CREATE TABLE @PREFIX@quotas_limits (
 	QuotasID		@SERIAL_REF_TYPE@,
 
 	Type			VARCHAR(255),  /* "MessageCount" or "MessageCumulativeSize" */
-	CounterLimit		@BIG_INTEGER@,
+	CounterLimit		@BIG_INTEGER_UNSIGNED@,
 
 	Comment			VARCHAR(1024),
 
@@ -79,7 +79,7 @@ CREATE TABLE @PREFIX@quotas_tracking (
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@),
 
 	/* Last time this record was update */
-	LastUpdate		@BIG_INTEGER@,  /* NULL means not updated yet */	
+	LastUpdate		@BIG_INTEGER_UNSIGNED@,  /* NULL means not updated yet */
 
 	Counter			NUMERIC(10,4),
 	
