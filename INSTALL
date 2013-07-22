@@ -39,6 +39,7 @@ Note: For CentOS you will need to use RPMForge repositories.
 	Debian based: libmail-spf-perl
 
 - Date::Parse  (TimeDate)
+	Debian based: libtimedate-perl
 	RPM based: perl-TimeDate
 
 
