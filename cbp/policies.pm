@@ -319,6 +319,12 @@ sub policySourceItemMatches
 	my ($negate,$tmpItem) = ($rawItem =~ /^(!)?(.*)/);
 	# See if we match %, if we do its a group
 	my ($isGroup,$item) = ($tmpItem =~ /^(%)?(.*)/);
+	# IPv6 match components
+	my $v6c = '[a-f\d]{1,4}';
+	my $v6cg = "(?:$v6c:){0,6}";
+	my $v6c1 = "$v6cg?:?:?$v6cg?(?:$v6c)?";
+	my $v6m = '(?:\/\d{1,3})';
+	my $v6 = "$v6c1$v6m?";
 	
 	# Check if this is a group
 	my $match = 0;
@@ -370,7 +376,7 @@ sub policySourceItemMatches
 		# Match IPv4 or IPv6
 		if (
 			$item =~ /^(?:\d{1,3})(?:\.(?:\d{1,3})(?:\.(?:\d{1,3})(?:\.(?:\d{1,3}))?)?)?(?:\/(\d{1,2}))?$/ ||
-			$item =~ /^(?:::(?:[a-f\d]{1,4}:){0,6}?[a-f\d]{1,4}|[a-f\d]{1,4}(?::[a-f\d]{1,4}){0,6}?::|[a-f\d]{1,4}(?::[a-f\d]{1,4}){0,6}?::(?:[a-f\d]{1,4}:){0,6}?[a-f\d]{1,4})(?:\/\d{1,3})?$/i
+			$item =~ /^$v6$/i
 		) {
 			# See if we get an object from 
 			my $matchRange = new awitpt::netip($item);
@@ -385,7 +391,7 @@ sub policySourceItemMatches
 		# Match peer IPv4 or IPv6 (the server requesting the policy)
 		} elsif (
 			$item =~ /^\[((?:\d{1,3})(?:\.(?:\d{1,3})(?:\.(?:\d{1,3})(?:\.(?:\d{1,3}))?)?)?(?:\/(\d{1,2}))?)\]$/ ||
-			$item =~ /^\[((?:::(?:[a-f\d]{1,4}:){0,6}?[a-f\d]{1,4}|[a-f\d]{1,4}(?::[a-f\d]{1,4}){0,6}?::|[a-f\d]{1,4}(?::[a-f\d]{1,4}){0,6}?::(?:[a-f\d]{1,4}:){0,6}?[a-f\d]{1,4})(?:\/\d{1,3})?)\]$/i
+			$item =~ /^\[($v6)\]$/i
 		) {
 			# We don't want the [ and ]
 			my $cleanItem = $1;
