@@ -1,0 +1,32 @@
+--- amavisd-2.8.1	2013-08-13 17:03:11.000000000 +0000
++++ amavisd	2013-07-28 20:32:26.000000000 +0000
+@@ -10771,6 +10771,8 @@
+ sub before_send { my($self,$conn,$msginfo)  = @_; undef }
+ sub after_send  { my($self,$conn,$msginfo)  = @_; undef }
+ sub mail_done   { my($self,$conn,$msginfo)  = @_; undef }
++# POLICYD
++sub process_policy   { my($self,$conn,$msginfo,$pbn)  = @_; return $pbn }
+ 
+ 1;
+ 
+@@ -12876,6 +12878,20 @@
+         $r->user_policy_id($user_policy_id);  # just the first match
+       }
+     }
++
++	# POLICYD: Check if we need to do last minute policy changes
++	if (ref $custom_object) {
++		$which_section = "custom-process_policy";
++		eval {
++			my $new_policy_bank = $custom_object->process_policy($conn,$msginfo,\%current_policy_bank); 1;
++			%current_policy_bank = %{ $new_policy_bank };
++		} or do {
++			my($eval_stat) = $@ ne '' ? $@ : "errno=$!";  chomp $eval_stat;
++			do_log(-1,"custom process_policy error: %s", $eval_stat);
++		};
++		section_time($which_section);
++	}
++
+     # update message count and message size snmp counters
+     # orig local
+     #   0   0  InMsgsOpenRelay
