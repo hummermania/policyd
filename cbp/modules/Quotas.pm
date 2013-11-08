@@ -699,6 +699,11 @@ sub getTrackingInfo
 	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw( QuotasLimitsID TrackKey Counter LastUpdate )); 
 	DBFreeRes($sth);
 
+	# Make sure Counter isn't 0
+	if (!defined($row->{'Counter'})) {
+		$row->{'Counter'} = 0;
+	}
+
 	return $row;
 }
 
