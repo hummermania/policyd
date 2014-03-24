@@ -700,7 +700,7 @@ sub getTrackingInfo
 	DBFreeRes($sth);
 
 	# Make sure Counter isn't 0
-	if (!defined($row->{'Counter'})) {
+	if (defined($row) && !defined($row->{'Counter'})) {
 		$row->{'Counter'} = 0;
 	}
 
