@@ -655,7 +655,8 @@ sub decodePolicyData
 	my $recipientData = shift;
 
 
-	my %recipientToPolicy = ();
+	my $recipientToPolicy = { };
+
 	# Build policy str list and recipients list
 	foreach my $item (split(/\//,$recipientData)) {
 		# Skip over first /
@@ -672,13 +673,21 @@ sub decodePolicyData
 				my ($prio,$policyIDs) = ( $policy =~ /(\d+)=(.*)/ );
 				# Pull off policyID's from string
 				foreach my $pid (split(/,/,$policyIDs)) {
-					push(@{$recipientToPolicy{$email}{$prio}},$pid);
+					$recipientToPolicy->{$email}{$prio}->{$pid} = 1;
 				}
 			}
 		}
 	}
 
-	return \%recipientToPolicy;
+	# Work through the list and build our result, which is a priority hash with matches as an array
+	foreach my $email (keys %{$recipientToPolicy}) {
+		foreach my $prio (keys %{$recipientToPolicy->{$email}}) {
+			my @policies = keys %{$recipientToPolicy->{$email}{$prio}};
+			$recipientToPolicy->{$email}{$prio} = \@policies;
+		}
+	}
+
+	return $recipientToPolicy;
 }
 
 
