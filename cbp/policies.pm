@@ -1,17 +1,17 @@
 # Policy handling functions
-# Copyright (C) 2009-2011, AllWorldIT
+# Copyright (C) 2009-2014, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -115,7 +115,7 @@ sub getPolicy
 		} else {
 			# Split off sources
 			my @rawSources = split(/,/,$policyMember->{'Source'});
-			
+
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Main policy sources '".join(',',@rawSources)."'") if ($log);
 
 			# Default to no match
@@ -138,7 +138,7 @@ sub getPolicy
 				}
 			}
 		}
-		
+
 		$server->log(LOG_INFO,"[POLICIES] $debugTxt: Source matching result: matched=$sourceMatch") if($log);
 		# Check if we passed the tests
 		next if (!$sourceMatch);
@@ -152,11 +152,11 @@ sub getPolicy
 		if (!defined($policyMember->{'Destination'}) || lc($policyMember->{'Destination'}) eq "any") {
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Destination not defined or 'any', explicit match: matched=1") if ($log);
 			$destinationMatch = 1;
-		
+
 		} else {
 			# Split off destinations
 			my @rawDestinations = split(/,/,$policyMember->{'Destination'});
-				
+
 			$server->log(LOG_DEBUG,"[POLICIES] $debugTxt: Main policy destinations '".join(',',@rawDestinations)."'") if ($log);
 
 			# Parse in group data
@@ -216,9 +216,9 @@ sub getPolicyMembers
 
 	# Grab all the policy members
 	my $sth = DBSelect('
-		SELECT 
+		SELECT
 			@TP@policies.Name, @TP@policies.Priority, @TP@policies.Disabled AS PolicyDisabled,
-			@TP@policy_members.ID, @TP@policy_members.PolicyID, @TP@policy_members.Source, 
+			@TP@policy_members.ID, @TP@policy_members.PolicyID, @TP@policy_members.Source,
 			@TP@policy_members.Destination, @TP@policy_members.Disabled AS MemberDisabled
 		FROM
 			@TP@policies, @TP@policy_members
@@ -249,7 +249,7 @@ sub getPolicyMembers
 			push(@policyMembers, $row);
 		}
 	}
-	
+
 	# Cache this
 #	$cache_res = cacheStoreComplexKeyPair('Policies','Members',\@policyMembers);
 #	if ($cache_res) {
@@ -280,7 +280,7 @@ sub getGroupMembers
 
 	# Grab group members
 	my $sth = DBSelect('
-		SELECT 
+		SELECT
 			@TP@policy_group_members.Member
 		FROM
 			@TP@policy_groups, @TP@policy_group_members
@@ -328,7 +328,7 @@ sub policySourceItemMatches
 	my $v6c1 = "$v6cg?:?:?$v6cg?(?:$v6c)?";
 	my $v6m = '(?:\/\d{1,3})';
 	my $v6 = "$v6c1$v6m?";
-	
+
 	# Check if this is a group
 	my $match = 0;
 	if ($isGroup) {
@@ -337,7 +337,7 @@ sub policySourceItemMatches
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: Source policy group '$item' appears to be used more than once, possible loop, aborting!");
 			return -1;
 		}
-		
+
 		# We going deeper, record the depth
 		$history->{$item} = keys(%{$history});
 		# Check if we not tooo deep
@@ -381,7 +381,7 @@ sub policySourceItemMatches
 			$item =~ /^(?:\d{1,3})(?:\.(?:\d{1,3})(?:\.(?:\d{1,3})(?:\.(?:\d{1,3}))?)?)?(?:\/(\d{1,2}))?$/ ||
 			$item =~ /^$v6$/i
 		) {
-			# See if we get an object from 
+			# See if we get an object from
 			my $matchRange = new awitpt::netip($item);
 			if (!defined($matchRange)) {
 				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Resolved source '$item' to a IP/CIDR specification, but its INVALID: ".awitpt::netip::Error());
@@ -399,7 +399,7 @@ sub policySourceItemMatches
 			# We don't want the [ and ]
 			my $cleanItem = $1;
 
-			# See if we get an object from 
+			# See if we get an object from
 			my $matchRange = new awitpt::netip($cleanItem);
 			if (!defined($matchRange)) {
 				$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Resolved source '$item' to a PEER IP/CIDR specification, but its INVALID: ".awitpt::netip::Error());
@@ -439,7 +439,7 @@ sub policySourceItemMatches
 		} else {
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Source '".$item."' is not a valid specification");
 		}
-		
+
 		$match = 1 if ($res);
 	}
 
@@ -461,7 +461,7 @@ sub policyDestinationItemMatches
 	my ($negate,$tmpItem) = ($rawItem =~ /^(!)?(.*)/);
 	# See if we match %, if we do its a group
 	my ($isGroup,$item) = ($tmpItem =~ /^(%)?(.*)/);
-	
+
 	# Check if this is a group
 	my $match = 0;
 	if ($isGroup) {
@@ -470,7 +470,7 @@ sub policyDestinationItemMatches
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: Destination policy group '$item' appears to be used more than once, possible loop, aborting!");
 			return -1;
 		}
-		
+
 		# We going deeper, record the depth
 		$history->{$item} = keys(%{$history});
 		# Check if we not tooo deep
@@ -517,7 +517,7 @@ sub policyDestinationItemMatches
 		} else {
 			$server->log(LOG_WARN,"[POLICIES] $debugTxt: - Destination '$item' is not a valid specification");
 		}
-		
+
 		$match = 1 if ($res);
 	}
 
@@ -629,7 +629,7 @@ sub reverseDNSMatches
 			$match = 1;
 		}
 	}
-	
+
 	return $match;
 }
 
@@ -663,8 +663,8 @@ sub decodePolicyData
 
 		my ($email,$rawPolicy) = ($item =~ /<([^>]*)>#(.*)/);
 
-		# Make sure that the recipient data in the DB is not null, ie. it may 
-		# of been killed by the admin before it updated it	
+		# Make sure that the recipient data in the DB is not null, ie. it may
+		# of been killed by the admin before it updated it
 		if (defined($email) && defined($rawPolicy)) {
 			# Loop with raw policies
 			foreach my $policy (split(/;/,$rawPolicy)) {
