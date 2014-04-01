@@ -86,14 +86,15 @@ sub getPolicy
 	$server->log(LOG_DEBUG,"[POLICIES] Going to resolve session data into policy: ".Dumper($sessionData)) if ($log);
 
 	# Start with blank policy list
-	my %matchedPolicies = ();
+	my $matchedPolicies = { };
 
 
 	# Grab policy members from database
 	my $policyMembers = getPolicyMembers($server,$log);
 	if (ref($policyMembers) ne "ARRAY") {
 		$server->log(LOG_DEBUG,"[POLICIES] Error while retriving policy members: $policyMembers");
-		return \%matchedPolicies;
+		# Return blank set
+		return $matchedPolicies;
 	}
 
 	# Process the Members
@@ -182,17 +183,19 @@ sub getPolicy
 		# Check if we passed the tests
 		next if (!$destinationMatch);
 
-		push(@{$matchedPolicies{$policyMember->{'Priority'}}},$policyMember->{'PolicyID'});
+		$matchedPolicies->{$policyMember->{'Priority'}}->{$policyMember->{'PolicyID'}} = 1;
 	}
 
-	# If we logging, display a list
-	if ($log) {
-		foreach my $prio (sort keys %matchedPolicies) {
-			$server->log(LOG_DEBUG,"[POLICIES] END RESULT: prio=$prio => policy ids: ".join(',',@{$matchedPolicies{$prio}}));
-		}
+	# Work through the list and build our result, which is a priority hash with matches as an array
+	foreach my $prio (sort {$a <=> $b} keys %{$matchedPolicies}) {
+		my @policies = keys %{$matchedPolicies->{$prio}};
+
+		$server->log(LOG_DEBUG,"[POLICIES] END RESULT: prio=$prio => policy ids: ".join(',',@policies)) if ($log);
+		# Change from a hash to an array...
+		$matchedPolicies->{$prio} = \@policies;
 	}
 
-	return \%matchedPolicies;
+	return $matchedPolicies;
 }
 
 
