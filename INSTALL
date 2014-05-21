@@ -32,7 +32,7 @@ Note: For CentOS you will need to use RPMForge repositories.
 	RPM based: perl-Cache-FastMmap
 
 - DBI
-	Debian based: ?
+	Debian based: libdbi-perl
 	RPM based: perl-DBI
 
 - Mail::SPF (Required for CheckSPF module)
