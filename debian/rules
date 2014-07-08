@@ -3,7 +3,7 @@
 	dh $@
 
 override_dh_install:
-	dh_install 
+	dh_install
 	mv debian/cluebringer-webui/usr/share/cluebringer/webui/includes/config.php debian/cluebringer-webui/etc/cbpolicyd/webui.conf
 	mv debian/cluebringer-webui/etc/apache2/conf-available/cluebringer-httpd.conf debian/cluebringer-webui/etc/apache2/conf-available/cluebringer.conf
 
