@@ -9,9 +9,9 @@ Homepage: http://www.policyd.org/
 Package: cluebringer
 Architecture: all
 Depends: ${perl:Depends}, ${misc:Depends}, adduser, mysql-client,
-	libdbd-mysql-perl, libnet-server-perl (>= 0.96), libnet-cidr-perl, 
+	libdbd-mysql-perl, libnet-server-perl (>= 0.96), libnet-cidr-perl,
 	libconfig-inifiles-perl, libcache-fastmmap-perl, libmail-spf-perl
-Replaces: 
+Replaces:
 	cluebringer-pgsql (<< 2.1.0),
 	cluebringer-mysql (<< 2.1.0),
 	cluebringer-sqlite3 (<< 2.1.0)
@@ -46,5 +46,5 @@ Description: Postfix Policy Daemon (webui)
  ideas and methods implemented in Policyd v2 stem from Policyd v1
  as well as the authors' long time involvement in large scale mail
  hosting industry.
- . 
+ .
  This package contains the webui for Policyd.
