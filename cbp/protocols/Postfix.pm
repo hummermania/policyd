@@ -270,7 +270,7 @@ sub protocol_validate {
 		}
 	}
 
-	if (!defined($request->{'instance'}) || $request->{'instance'} eq "") {
+	if ($request->{'protocol_state'} ne "VRFY" && !defined($request->{'instance'}) || $request->{'instance'} eq "") {
 		my $instance = defined($request->{'instance'}) ? "'".$request->{'instance'}."'" : "undef";
 		$server->log(LOG_ERR,"[PROTOCOLS/Postfix] Error, parameter 'instance' cannot be $instance") if ($log);
 		return "required parameter 'instance' was not found or invalid format";
