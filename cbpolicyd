@@ -465,7 +465,7 @@ CONN_READ:
 		# Check for timeout....
 		my $n = select($fdset,undef,undef,$timeout);
 		if (!$n) {
-			$self->log(LOG_WARN,"[CBPOLICYD] Timed out after ".$timeout."s from => Peer: ".$server->{'peeraddr'}.":".
+			$self->log(LOG_NOTICE,"[CBPOLICYD] Timed out after ".$timeout."s from => Peer: ".$server->{'peeraddr'}.":".
 					$server->{'peerport'}.", Local: ".$server->{'sockaddr'}.":".$server->{'sockport'});
 			return;
 		}
@@ -474,14 +474,14 @@ CONN_READ:
 		$n = sysread(STDIN,$buf,8192,$bufLen);
 		if (!$n) {
 			my $reason = defined($n) ? "Client closed connection" : "sysread[$!]";
-			$self->log(LOG_WARN,"[CBPOLICYD] $reason => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+			$self->log(LOG_DEBUG,"[CBPOLICYD] $reason => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
 					$server->{'sockaddr'}.":".$server->{'sockport'});
 			return;
 		}
 	}
 	# Check if a protocol handler wasn't found...
 	if (!$found) {
-		$self->log(LOG_ERR,"[CBPOLICYD] Request not understood => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
+		$self->log(LOG_WARN,"[CBPOLICYD] Request not understood => Peer: ".$server->{'peeraddr'}.":".$server->{'peerport'}.", Local: ".
 			$server->{'sockaddr'}.":".$server->{'sockport'});
 		return;
 	}
@@ -497,7 +497,7 @@ CONN_READ:
 
 	# Check data is ok...
 	if ((my $res = $server->{'_protocol_handler'}->{'protocol_validate'}($self,$request))) {
-		$self->log(LOG_ERR,"[CBPOLICYD] Protocol data validation error, $res");
+		$self->log(LOG_WARN,"[CBPOLICYD] Protocol data validation error, $res");
 		$self->protocol_response(PROTO_ERROR);
 		print($self->protocol_getresponse());
 		return;
