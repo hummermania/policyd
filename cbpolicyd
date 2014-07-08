@@ -1,19 +1,19 @@
 #!/usr/bin/perl
 # Cluebringer policy daemon
-# Copyright (C) 2009-2011, AllWorldIT
+# Copyright (C) 2009-2014, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
 # Copyright (C) 2007, Nigel Kukard  <nkukard@lbsd.net>
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -72,7 +72,7 @@ sub configure {
 	$server->{'proto'} = "tcp";
 	$server->{'host'} = "*";
 	$server->{'port'} = 10031;
-			
+
 	$server->{'min_servers'} = 4;
 	$server->{'min_spare_servers'} = 4;
 	$server->{'max_spare_servers'} = 12;
@@ -103,7 +103,7 @@ sub configure {
 		print(STDERR "ERROR: No configuration file '".$cfg->{'config_file'}."' found!\n");
 		exit 1;
 	}
-	
+
 	# Use config file, ignore case
 	tie my %inifile, 'Config::IniFiles', (
 			-file => $cfg->{'config_file'},
@@ -119,11 +119,11 @@ sub configure {
 			'log_level','log_file',
 			'proto', 'host', 'port',
 			'cidr_allow', 'cidr_deny',
-			'pid_file', 
+			'pid_file',
 			'user', 'group',
 			'timeout_idle', 'timeout_busy',
 			'background',
-			'min_servers',     
+			'min_servers',
 			'min_spare_servers',
 			'max_spare_servers',
 			'max_servers',
@@ -185,7 +185,7 @@ sub configure {
 			$module = "protocols/$module";
 			push(@{$cfg->{'module_list'}},$module);
 		}
-	}	
+	}
 
 	# Override
 	if ($cmdline->{'debug'}) {
@@ -238,7 +238,7 @@ sub post_configure_hook {
 	my $self = shift;
 	my $log_mail = $self->{'config'}{'log_mail'};
 
-	
+
 	$self->log(LOG_NOTICE,"[CBPOLICYD] Policyd v2 / Cluebringer - v".VERSION);
 
 	$self->log(LOG_NOTICE,"[CBPOLICYD] Initializing system modules.");
@@ -269,7 +269,7 @@ sub post_configure_hook {
 		}
 	}
 	$self->log(LOG_NOTICE,"[CBPOLICYD] Module load done.");
-	
+
 	# Report if session tracking is on
 	if ($self->{'config'}{'track_sessions'}) {
 		$self->log(LOG_NOTICE,"[CBPOLICYD] Session tracking is ENABLED.");
@@ -284,12 +284,12 @@ sub post_configure_hook {
 			my $facility = $1;
 			my $method = defined($2) ? $2 : 'syslog';
 			my $destination = $3;
-	
+
 			# Check method of logging
 			if ($method eq "syslog") {
 				$destination = 'native' if (!defined($destination));
 				$facility = 'mail' if (!defined($facility));
-	
+
 				$self->log(LOG_DEBUG,"[CBPOLICYD] Opening syslog, destination = '$destination', facility = '$facility'.");
 				# We may have some args to pass to setlogsock
 				my @syslogArgs = split(/,/,$destination);
@@ -299,11 +299,11 @@ sub post_configure_hook {
 				if (!Sys::Syslog::openlog("cbpolicyd",'pid|ndelay',$facility)) {
 					$self->log(LOG_ERR,"[CBPOLICYD] Failed to open syslog socket: $!");
 				}
-	
+
 			} else {
 				$self->log(LOG_WARN,"[CBPOLICYD] Value of 'log_mail' not understood. Method '$method' is invalid.");
 			}
-	
+
 		} else {
 			$self->log(LOG_WARN,"[CBPOLICYD] Value '$log_mail' of 'log_mail' not understood.");
 		}
@@ -340,9 +340,9 @@ sub child_init_hook
 {
 	my $self = shift;
 
-	
+
 	$self->SUPER::child_init_hook();
-	
+
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Starting up caching engine");
 	awitpt::cache::connect($self);
 
@@ -375,7 +375,7 @@ sub child_finish_hook {
 	my $log_cache = defined($self->{'config'}{'logging'}{'cache'});
 
 	$self->SUPER::child_finish_hook();
-	
+
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Caching engine: hits = ".awitpt::cache::getCacheHits().", misses = ".
 			awitpt::cache::getCacheMisses()) if ($log_cache);
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Shutting down caching engine ($$)");
@@ -418,10 +418,10 @@ CONN_READ:
 
 	# Found module, set to 1 if found, 0 if otherwize
 	my $found = 0;
-	
+
 	# Buffer
 	my $buf = "";
-	
+
 	# Create an FDSET for use in select()
 	my $fdset = "";
 	vec($fdset, fileno(STDIN), 1) = 1;
@@ -461,7 +461,7 @@ CONN_READ:
 		} else {
 			$timeout = $server->{'timeout_idle'};
 		}
-	
+
 		# Check for timeout....
 		my $n = select($fdset,undef,undef,$timeout);
 		if (!$n) {
@@ -469,7 +469,7 @@ CONN_READ:
 					$server->{'peerport'}.", Local: ".$server->{'sockaddr'}.":".$server->{'sockport'});
 			return;
 		}
-		
+
 		# Read in 8kb
 		$n = sysread(STDIN,$buf,8192,$bufLen);
 		if (!$n) {
@@ -491,7 +491,7 @@ CONN_READ:
 
 	# If we have a init function, call it before processing...
 	$server->{'_protocol_handler'}->{'protocol_init'}($self) if (defined($server->{'_protocol_handler'}->{'protocol_init'}));
-	
+
 	# Process buffer
 	my $request = $server->{'_protocol_handler'}->{'protocol_parse'}($self,$buf);
 
@@ -515,8 +515,8 @@ CONN_READ:
 	if ($server->{'peer_type'} eq "TCP") {
 		$request->{'_peer_address'} = $server->{'peeraddr'};
 	}
-	
-	
+
+
 	# Check if we got connected, if not ... bypass
 	if ($self->{'client'}->{'dbh_status'} > 0) {
 		my $action;
@@ -541,7 +541,7 @@ CONN_READ:
 			$self->protocol_response(PROTO_DB_ERROR);
 			$action = "tempfail";
 		}
-		
+
 		$self->maillog("module=Core, action=$action, host=%s, from=%s, to=%s, reason=db_failure_bypass",
 				$request->{'client_address'} ? $request->{'client_address'} : "unknown",
 				$request->{'helo_name'} ? $request->{'helo_name'} : "",
@@ -592,7 +592,7 @@ CONN_READ:
 		next if (!defined($module->{'request_process'}));
 
 		$self->log(LOG_DEBUG,"[CBPOLICYD] Running module: ".$module->{'name'}) if ($log);
-		
+
 		# Run request in eval
 		my $res;
 		eval {
@@ -626,7 +626,7 @@ CONN_READ:
 			last;
 		}
 	}
-	
+
 	$self->log(LOG_DEBUG,"[CBPOLICYD] Done with modules") if ($log);
 
 	# Update session data
@@ -651,7 +651,7 @@ sub server_exit
 	my $self = shift;
 	my $log_mail = $self->{'config'}{'log_mail'};
 
-	
+
 	$self->log(LOG_DEBUG,"Destroying system modules.");
 	# Destroy cache
 	awitpt::cache::Destroy($self);
@@ -687,7 +687,7 @@ sub log
 		$logtxt = "WARNING";
 	} elsif ($level == LOG_ERR) {
 		$logtxt = "ERROR";
-	} 
+	}
 
 	# Parse message nicely
 	if ($msg =~ /^(\[[^\]]+\]) (.*)/s) {
