@@ -154,9 +154,9 @@ sub configure {
 	if (ref($config{'server'}{'modules'}) eq "ARRAY") {
 		foreach my $module (@{$config{'server'}{'modules'}}) {
 			$module =~ s/\s+//g;
-	 		# Skip comments
-	 		next if ($module =~ /^#/);
-	 		$module = "modules/$module";
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "modules/$module";
 			push(@{$cfg->{'module_list'}},$module);
 		}
 	} else {
@@ -172,11 +172,11 @@ sub configure {
 	if (ref($config{'server'}{'protocols'}) eq "ARRAY") {
 		foreach my $module (@{$config{'server'}{'protocols'}}) {
 			$module =~ s/\s+//g;
- 			# Skip comments
-	 		next if ($module =~ /^#/);
- 			$module = "protocols/$module";
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "protocols/$module";
 			push(@{$cfg->{'module_list'}},$module);
-	 	}
+		}
 	} else {
 		my @protocolList = split(/\s+/,$config{'server'}{'protocols'});
 		foreach my $module (@protocolList) {
@@ -239,7 +239,7 @@ sub post_configure_hook {
 	my $log_mail = $self->{'config'}{'log_mail'};
 
 
-	$self->log(LOG_NOTICE,"[CBPOLICYD] Policyd v2 / Cluebringer - v".VERSION);
+	$self->log(LOG_NOTICE,"[CBPOLICYD] PolicyD v2 / Cluebringer - v".VERSION);
 
 	$self->log(LOG_NOTICE,"[CBPOLICYD] Initializing system modules.");
 	# Init config
@@ -761,7 +761,7 @@ sub protocol_getresponse
 
 # Display help
 sub displayHelp {
-	print(STDERR "Policyd (ClueBringer) v".VERSION." - Copyright (c) 2007-2009 AllWorldIT\n");
+	print(STDERR "PolicyD (Cluebringer) v".VERSION." - Copyright (c) 2007-2014 AllWorldIT\n");
 
 	print(STDERR<<EOF);
 
@@ -775,8 +775,8 @@ EOF
 
 
 
-
 __PACKAGE__->run;
+
 
 
 1;

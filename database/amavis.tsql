@@ -1,22 +1,22 @@
 # Amavis module schema
 # Copyright (C) 2009-2015, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-/* Amavisd-new integration for Policyd */
+/* Amavisd-new integration for PolicyD */
 
 CREATE TABLE @PREFIX@amavis_rules (
 	ID			@SERIAL_TYPE@,
@@ -32,7 +32,7 @@ Mode of operation (the _m columns):
 
 	0 - Inherit
 	1 - Merge  (only valid for lists)
-	2 - Overwrite 
+	2 - Overwrite
 
 */
 
@@ -75,10 +75,10 @@ Mode of operation (the _m columns):
 
 	spam_tag_subject	VARCHAR(255),  /* _SCORE_ is the score, _REQD_ is the required score */
 	spam_tag_subject_m	SMALLINT NOT NULL DEFAULT '0',
-	
+
 	spam_tag2_subject	VARCHAR(255),
 	spam_tag2_subject_m	SMALLINT NOT NULL DEFAULT '0',
-	
+
 	spam_tag3_subject	VARCHAR(255),
 	spam_tag3_subject_m	SMALLINT NOT NULL DEFAULT '0',
 
@@ -125,7 +125,7 @@ Mode of operation (the _m columns):
 
 	quarantine_bad_header	VARCHAR(255),
 	quarantine_bad_header_m	SMALLINT NOT NULL DEFAULT '0',
-	
+
 	quarantine_spam		VARCHAR(255),
 	quarantine_spam_m	SMALLINT NOT NULL DEFAULT '0',
 
@@ -148,8 +148,8 @@ INSERT INTO @PREFIX@amavis_rules
 		Name,
 		max_message_size,max_message_size_m,
 		bypass_banned_checks, bypass_banned_checks_m
-	) 
-	VALUES 
+	)
+	VALUES
 	(
 		1,
 		'Default system amavis policy',

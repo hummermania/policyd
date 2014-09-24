@@ -1,17 +1,17 @@
 # Bizanga protocol support module
 # Copyright (C) 2009-2015, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -36,15 +36,15 @@ use cbp::protocols;
 
 # User plugin info
 our $pluginInfo = {
-	name 			=> "Bizanga Protocol Support Module",
-	init		 	=> \&init,
-	priority	 	=> 50,
-	protocol_init	=> \&protocol_init,
-	protocol_check	=> \&protocol_check,
-	protocol_parse	=> \&protocol_parse,
-	protocol_response	=> \&protocol_response,
-	protocol_getresponse	=> \&protocol_getresponse,
-	protocol_validate	=> \&protocol_validate,
+	name => "Bizanga Protocol Support Module",
+	ini => \&init,
+	priority => 50,
+	protocol_init => \&protocol_init,
+	protocol_check => \&protocol_check,
+	protocol_parse => \&protocol_parse,
+	protocol_response => \&protocol_response,
+	protocol_getresponse => \&protocol_getresponse,
+	protocol_validate => \&protocol_validate,
 };
 
 # Module configuration
@@ -82,7 +82,7 @@ sub protocol_init {
 sub protocol_check {
 	my ($server,$buffer) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'protocols'});
-	
+
 
 	# If we not enabled, don't do anything
 	return undef if (!$config{'enable'});
@@ -143,7 +143,7 @@ sub protocol_parse {
 
 
 # Process response
-sub protocol_response 
+sub protocol_response
 {
 	my ($server,$resp,$data) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'protocols'});
@@ -215,13 +215,13 @@ sub protocol_response
 		$response_data = defined($data) ? $data : "Database error";
 		$server->log(LOG_DEBUG,"[PROTOCOL/Bizanga] Received PROTO_DB_ERROR with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
-	
+
 	} elsif ($resp == PROTO_DATA_ERROR) {
 		$response = "502";
 		$response_data = defined($data) ? $data : "Database record error";
 		$server->log(LOG_DEBUG,"[PROTOCOL/Bizanga] Received PROTO_DATA_ERROR with response '$response':'$response_data'") if ($log);
 		return CBP_STOP;
-	
+
 	# Fallthrough
 	} else {
 		$server->log(LOG_ERR,"[PROTOCOL/Bizanga] Cannot understand response code '$resp'");
@@ -231,7 +231,7 @@ sub protocol_response
 
 
 # Get protocol response
-sub protocol_getresponse 
+sub protocol_getresponse
 {
 	my $resp;
 
@@ -243,7 +243,7 @@ sub protocol_getresponse
 	}
 
 	# Check if we have any additional data
-	$response_data = "" if (!defined($response_data));	
+	$response_data = "" if (!defined($response_data));
 
 	# Get timestamp
 	my $timestamp = strftime("%a, %d %b %Y %H:%M:%S %Z",localtime());
@@ -253,7 +253,7 @@ sub protocol_getresponse
 Date: $timestamp
 Content-Length: 0
 Content-Type: text/plain
-Server: Policyd/".VERSION." (Cluebringer)
+Server: PolicyD/".VERSION." (Cluebringer)
 Connection: close
 ";
 
@@ -265,7 +265,7 @@ Connection: close
 sub protocol_validate {
 	my ($server,$request) = @_;
 	my $log = defined($server->{'config'}{'logging'}{'protocols'});
-	
+
 
 	# Check params
 	if (!awitpt::netip::is_valid($request->{'client_address'})) {
@@ -286,7 +286,6 @@ sub protocol_validate {
 		return "Required parameter 'recipient' was not found or invalid format";
 	}
 }
-
 
 
 

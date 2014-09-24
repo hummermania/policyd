@@ -2,17 +2,17 @@
 # Cluebringer administration tool
 # Copyright (C) 2009-2015, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -31,8 +31,8 @@ use cbp::logging;
 
 use cbp::version;
 
-	
-print("Policyd Admin Tool (ClueBringer) v".VERSION." - Copyright (c) 2007-2010 AllWorldIT\n");
+
+print("PolicyD Admin Tool (Cluebringer) v".VERSION." - Copyright (c) 2009-2014 AllWorldIT\n");
 
 # Fire up commandline processing...
 my %opts;
@@ -109,7 +109,7 @@ if ($opts{'cleanup'}) {
 
 #
 # Misc functions
-# 
+#
 
 
 # Register plugin info
@@ -160,13 +160,13 @@ sub loadModules
 			push(@modulelist,$module);
 		}
 	}
-	
+
 	# Emulate server
 	$server = new cbpserver;
-	$server->{'inifile'} = \%config; 
+	$server->{'inifile'} = \%config;
 	# Init everything
 	$server->init();
-	
+
 	# Load modules
 	foreach my $module (@modulelist) {
 		# Split off dir and mod name
@@ -222,7 +222,7 @@ sub new
 
 	my $self = {
 	};
-	
+
 	bless $self, $class;
 	return $self;
 };
@@ -253,23 +253,9 @@ sub log
 	my ($self,$level,@msg) = @_;
 
 	# FIXME: we shouldn't ignore $level
-    print(@msg, "\n");
+	print(@msg, "\n");
 }
 
-
-
-
-
-
-# Load modules we need and run cleanup() function
-
-# Cleanup session_tracking older than 24hr
-
-# Cleanup quotas_tracking
-# - check last update, if its older than now - period, remove
-
-# CheckHelo
-# - Remove checkhelo_tracking older than specified period, default to 1 month
 
 
 # vim: ts=4
