@@ -1,5 +1,5 @@
 # Cluebringer version package
-# Copyright (C) 2009-2011, AllWorldIT
+# Copyright (C) 2009-2015, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
 # Copyright (C) 2007, Nigel Kukard <nkukard@lbsd.net>
 # 
