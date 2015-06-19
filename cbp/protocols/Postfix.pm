@@ -1,5 +1,5 @@
 # Postfix SMTP Access delegation protocol support module
-# Copyright (C) 2009-2014, AllWorldIT
+# Copyright (C) 2009-2015, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
 #
 # This program is free software; you can redistribute it and/or modify
