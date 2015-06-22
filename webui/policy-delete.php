@@ -1,6 +1,6 @@
 <?php
 # Module: Policy delete
-# Copyright (C) 2009-2012, AllWorldIT
+# Copyright (C) 2009-2015, AllWorldIT
 # Copyright (C) 2008, LinuxRulz
 #
 # This program is free software; you can redistribute it and/or modify
