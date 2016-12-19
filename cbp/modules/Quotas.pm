@@ -27,6 +27,7 @@ use cbp::logging;
 use awitpt::db::dblayer;
 use cbp::system;
 use cbp::protocols;
+use Time::HiRes;
 
 
 # User plugin info
@@ -94,7 +95,7 @@ sub check {
 	# Our verdict and data
 	my ($verdict,$verdict_data);
 
-	my $now = time();
+	my $now = Time::HiRes::time;
 
 
 	#
@@ -178,7 +179,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 							# Calculate the % of the period we have, and multiply it with the counter ... this should give us a reasonably
 							# accurate counting
 							} else {
-								$currentCounter = ( 1 - ($elapsedTime / $quota->{'Period'}) ) * $qtrack->{'Counter'};
+								$currentCounter = ( 1.0 - ($elapsedTime / $quota->{'Period'}) ) * $qtrack->{'Counter'};
 							}
 
 							# Work out the difference to the DB value, we ONLY DO THIS ONCE!!! so if its defined, leave it alone!
@@ -196,7 +197,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 									$hasExceeded = "Policy rejection; Message count quota exceeded";
 								}
 								# Bump up limit
-								$newCounters{$qtrack->{'QuotasLimitsID'}}++;
+								$newCounters{$qtrack->{'QuotasLimitsID'}} += 1.0;
 
 							# Check for cumulative size violation
 							} elsif ($limitType eq "messagecumulativesize") {
@@ -220,7 +221,7 @@ POLICY:		foreach my $priority (sort {$a <=> $b} keys %{$sessionData->{'Policy'}}
 							# Check if this is a message counter
 							if (lc($limit->{'Type'}) eq "messagecount") {
 								# Bump up limit
-								$newCounters{$qtrack->{'QuotasLimitsID'}}++;
+								$newCounters{$qtrack->{'QuotasLimitsID'}} += 1.0;
 							}
 						}
 

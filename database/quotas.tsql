@@ -79,7 +79,7 @@ CREATE TABLE @PREFIX@quotas_tracking (
 	TrackKey		VARCHAR(@TRACK_KEY_LEN@),
 
 	/* Last time this record was update */
-	LastUpdate		@BIG_INTEGER_UNSIGNED@,  /* NULL means not updated yet */
+	LastUpdate		NUMERIC(12,4),  /* NULL means not updated yet */
 
 	Counter			NUMERIC(10,4),
 	
